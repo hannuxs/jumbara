@@ -1,0 +1,8 @@
+{% load sigap %}
+{% if halaman.paginator.num_pages > 1 %}
+<nav class="mt-4 flex items-center justify-center gap-2 text-sm" aria-label="Halaman">
+  {% if halaman.has_previous %}<a class="btn-abu btn-kecil" href="{% url_ganti hal=halaman.previous_page_number %}">‹ Sebelumnya</a>{% endif %}
+  <span class="px-2 text-abu">Halaman {{ halaman.number }} dari {{ halaman.paginator.num_pages }}</span>
+  {% if halaman.has_next %}<a class="btn-abu btn-kecil" href="{% url_ganti hal=halaman.next_page_number %}">Berikutnya ›</a>{% endif %}
+</nav>
+{% endif %}

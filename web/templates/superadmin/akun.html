@@ -1,0 +1,23 @@
+{% extends "superadmin/base.html" %}
+{% block judul %}Akun{% endblock %}
+{% block judul_halaman %}Akun dan kata sandi{% endblock %}
+{% block konten %}
+<p class="mb-4 text-sm text-abu">Ada tiga akun bersama. Mengganti kata sandi langsung mengeluarkan semua perangkat yang memakai akun itu. Sesi selalu berakhir 2 jam setelah masuk.</p>
+<div class="grid gap-4 lg:grid-cols-3">
+{% for a in akun %}
+  <div class="kartu">
+    <div class="mb-1 flex items-center gap-2"><h2 class="text-lg font-bold">{{ a.username }}</h2><span class="badge-abu">{{ a.get_peran_display }}</span></div>
+    <p class="mb-3 text-xs {% if a.wajib_ganti_sandi %}font-semibold text-merah{% else %}text-abu{% endif %}">{% if a.wajib_ganti_sandi %}Kata sandi masih bawaan, segera ganti.{% else %}Sandi diganti {{ a.sandi_diganti_pada|date:"d/m/Y H.i" }}{% endif %}</p>
+    <div class="mb-3 flex flex-wrap gap-2">
+      <a href="{% url 'akun_admin:sandi' a.pk %}" class="btn-utama btn-kecil">Ganti kata sandi</a>
+      <a href="{% url 'akun_admin:nama' a.pk %}" class="btn-abu btn-kecil">Ubah nama akun</a>
+    </div>
+    <h3 class="mb-1 text-sm font-semibold">Perangkat yang sedang masuk ({{ a.daftar_sesi|length }})</h3>
+    <ul class="mb-3 space-y-1 text-xs text-abu">
+      {% for s in a.daftar_sesi %}<li>{{ s.login_pada|date:"d/m H.i" }} · {{ s.ip|default:"" }} · {{ s.user_agent|truncatechars:40 }}{% if s.session_key == request.session.session_key %} <strong class="text-hijau">(perangkat ini)</strong>{% endif %}</li>{% empty %}<li>Tidak ada.</li>{% endfor %}
+    </ul>
+    <form method="post" action="{% url 'akun_admin:keluarkan' a.pk %}" data-konfirmasi="Keluarkan semua perangkat akun {{ a.username }}?">{% csrf_token %}<button class="btn-abu btn-kecil" type="submit">Keluarkan semua perangkat</button></form>
+  </div>
+{% endfor %}
+</div>
+{% endblock %}

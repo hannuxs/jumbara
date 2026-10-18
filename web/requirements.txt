@@ -1,0 +1,19 @@
+# Paket produksi SIGAP JUMBARA (versi dikunci). Pasang: pip install -r requirements.txt
+# Semua paket punya wheel untuk Windows dan tidak butuh layanan tambahan.
+Django==5.2.18
+asgiref==3.12.1
+sqlparse==0.6.0
+tzdata==2026.5
+mysqlclient==2.3.0
+waitress==3.0.2
+django-environ==0.14.0
+django-ratelimit==4.1.0
+whitenoise==6.12.0
+cryptography==50.0.2
+cffi==2.1.1
+pycparser==3.11
+pillow==13.0.0
+segno==1.6.6
+reportlab==5.0.1
+charset-normalizer==3.5.2
+xlsxwriter==3.2.9

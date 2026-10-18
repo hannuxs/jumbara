@@ -1,0 +1,39 @@
+{% extends "superadmin/base.html" %}
+{% load sigap %}
+{% block judul %}Pengaturan form{% endblock %}
+{% block judul_halaman %}Pengaturan form biodata{% endblock %}
+{% block konten %}
+<div class="mb-4 rounded-2xl bg-white p-3 text-sm shadow-kartu">
+  Status sekarang: {% if status.terbuka %}<span class="badge bg-green-100 text-green-800">DIBUKA</span>{% else %}<span class="badge bg-red-100 text-red-800">DITUTUP</span>{% endif %}
+  <span class="text-abu">
+    {% if status.alasan == "BELUM_BUKA" %}(belum waktunya buka){% elif status.alasan == "SUDAH_TUTUP" %}(sudah lewat jadwal tutup){% elif status.alasan == "PAKSA_TUTUP" %}(ditutup paksa){% elif status.alasan == "TERKUNCI" %}(data dikunci untuk cetak kartu){% endif %}
+  </span>
+</div>
+<form method="post" novalidate class="max-w-2xl">
+  {% csrf_token %}
+  {% if form.errors %}<div class="pesan-galat">Ada isian yang perlu diperbaiki.</div>{% endif %}
+  <div class="kartu mb-4">
+    <h2 class="judul-bagian">Jadwal form</h2>
+    {% include "komponen/isian.html" with f=form.paksa_status %}
+    <p class="-mt-3 mb-4 text-xs text-abu"><strong>Otomatis</strong> mengikuti jadwal di bawah. <strong>Paksa buka</strong> untuk uji coba sebelum 26 Oktober atau perpanjangan. <strong>Paksa tutup</strong> menutup form seketika.</p>
+    <div class="grid gap-x-4 sm:grid-cols-2">
+      {% include "komponen/isian.html" with f=form.buka_pada %}
+      {% include "komponen/isian.html" with f=form.tutup_pada %}
+    </div>
+    {% include "komponen/isian.html" with f=form.foto_wajib %}
+    {% include "komponen/isian.html" with f=form.waktu_minimal_detik %}
+    {% include "komponen/isian.html" with f=form.tanggal_acuan_usia %}
+  </div>
+  <div class="kartu mb-4">
+    <h2 class="judul-bagian">Kontak dan pengumuman</h2>
+    {% include "komponen/isian.html" with f=form.kontak_nama %}
+    {% include "komponen/isian.html" with f=form.kontak_wa %}
+    {% include "komponen/isian.html" with f=form.pengumuman %}
+  </div>
+  <div class="kartu mb-4">
+    <h2 class="judul-bagian">Sistem</h2>
+    {% include "komponen/isian.html" with f=form.perawatan %}
+  </div>
+  <button class="btn-utama" type="submit">Simpan pengaturan</button>
+</form>
+{% endblock %}

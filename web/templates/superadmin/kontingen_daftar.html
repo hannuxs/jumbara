@@ -1,0 +1,34 @@
+{% extends "superadmin/base.html" %}
+{% block judul %}Kontingen{% endblock %}
+{% block judul_halaman %}Kontingen dan kuota{% endblock %}
+{% block aksi_judul %}<a href="{% url 'kontingen_admin:tambah' %}" class="btn-utama btn-kecil">+ Tambah</a>{% endblock %}
+{% block konten %}
+<p class="mb-3 text-sm text-abu">Kuota hanya perkiraan dan bisa diubah kapan saja. Form biodata tidak pernah menolak karena kuota; kontingen yang melebihi kuota ditandai merah.</p>
+<div class="kartu mb-4 overflow-x-auto p-0 sm:p-0">
+  <table class="tabel">
+    <thead><tr><th>Kode</th><th>Nama</th><th>Tingkat</th><th class="text-right">Kuota</th><th class="text-right">Terisi</th><th class="text-right">Peserta</th><th class="text-right">Pimpinan</th><th class="text-right">Pembina</th><th class="text-right">Peninjau</th><th>Aksi</th></tr></thead>
+    <tbody>
+    {% for b in baris %}
+      <tr>
+        <td class="whitespace-nowrap font-mono">{{ b.k.kode }}</td>
+        <td class="min-w-[14rem]"><a href="{% url 'kontingen_admin:detail' b.k.pk %}" class="font-semibold hover:underline">{{ b.k.nama }}</a>{% if b.k.catatan %}<div class="text-xs text-abu">{{ b.k.catatan|truncatechars:80 }}</div>{% endif %}</td>
+        <td><span class="badge-{{ b.k.tingkat }}">{{ b.k.get_tingkat_display }}</span></td>
+        <td class="text-right">{{ b.k.kuota }}{% if b.k.kuota_diubah_manual %}<span class="text-xs text-abu" title="Diubah manual; awal {{ b.k.kuota_awal }}">*</span>{% endif %}</td>
+        <td class="text-right font-bold {% if b.warna == 'merah' %}text-merah{% elif b.warna == 'hijau' %}text-hijau{% elif b.warna == 'kuning' %}text-amber-700{% endif %}">{{ b.k.terisi }}</td>
+        <td class="text-right">{{ b.k.n_peserta }}</td><td class="text-right">{{ b.k.n_pimpinan }}</td><td class="text-right">{{ b.k.n_pembina }}</td><td class="text-right">{{ b.k.n_peninjau }}</td>
+        <td class="whitespace-nowrap"><a href="{% url 'kontingen_admin:ubah' b.k.pk %}" class="btn-abu btn-kecil">Ubah</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if dengan_catatan %}
+<div class="kartu mb-4">
+  <h2 class="mb-2 text-base font-bold">Catatan dari data Google Form</h2>
+  <ul class="list-disc space-y-1 pl-5 text-sm">{% for k in dengan_catatan %}<li><strong>{{ k.kode }} {{ k.nama }}</strong>: {{ k.catatan_data }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+<form method="post" action="{% url 'kontingen_admin:impor_ulang' %}" data-konfirmasi="Impor ulang data/kontingen.csv? Hanya menambah kontingen baru dan memperbarui kuota yang belum diubah manual. Tidak ada yang dihapus.">
+  {% csrf_token %}<button class="btn-abu btn-kecil" type="submit">Impor ulang dari CSV</button>
+</form>
+{% endblock %}

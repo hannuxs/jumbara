@@ -1,0 +1,23 @@
+{# Satu isian form Django standar. Pakai: {% include "komponen/isian.html" with f=form.nama %} #}
+<div class="isian" data-isian="{{ f.name }}">
+  {% if f.widget_type == "checkbox" %}
+    <label class="pilihan items-center"><span>{{ f }}</span><span class="font-semibold text-navy">{{ f.label }}</span></label>
+  {% elif f.widget_type == "radioselect" %}
+    <fieldset>
+      <legend class="label {% if f.field.required %}wajib{% endif %}">{{ f.label }}</legend>
+      <div class="grid gap-2 sm:grid-cols-3">
+        {% for r in f %}<label class="pilihan items-center"><input type="radio" name="{{ r.data.name }}" value="{{ r.data.value }}" {% if r.data.selected %}checked{% endif %}><span class="text-sm font-semibold">{{ r.choice_label }}</span></label>{% endfor %}
+      </div>
+    </fieldset>
+  {% elif f.widget_type == "tanggaltigapilihan" %}
+    <fieldset>
+      <legend class="label {% if f.field.required %}wajib{% endif %}">{{ f.label }}</legend>
+      <div class="grid grid-cols-[1fr_1.6fr_1.3fr] gap-2">{{ f }}</div>
+    </fieldset>
+  {% else %}
+    <label for="{{ f.id_for_label }}" class="label {% if f.field.required %}wajib{% endif %}">{{ f.label }}</label>
+    {{ f }}
+  {% endif %}
+  {% for e in f.errors %}<p class="galat">{{ e }}</p>{% endfor %}
+  {% if f.help_text %}<p class="bantuan">{{ f.help_text }}</p>{% endif %}
+</div>

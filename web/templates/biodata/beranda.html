@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static sigap %}
+{% block judul %}Beranda{% endblock %}
+{% block robots %}index, follow{% endblock %}
+{% block skrip %}<script src="{% static 'js/beranda.js' %}" defer></script>{% endblock %}
+{% block isi %}
+<section class="kartu mb-5 text-center">
+  <div class="mx-auto mb-4 flex items-center justify-center gap-5">
+    <img src="{% static 'img/pmi-logo.svg' %}" alt="Logo PMI" class="h-24 w-auto sm:h-28" width="63" height="96">
+    <img src="{% static 'img/jumbara-v-400.webp' %}" alt="Logo Jumbara PMR Kabupaten Bulungan V 2026" class="h-28 w-auto sm:h-32" width="89" height="112">
+  </div>
+  <h1 class="font-judul text-2xl font-bold text-oranye-tua sm:text-3xl">SIGAP JUMBARA</h1>
+  <p class="mt-1 font-semibold text-navy">Jumbara PMR Tingkat Kabupaten Bulungan V 2026</p>
+  <p class="mt-1 text-sm text-abu">12–15 November 2026 · Kebun Raya Bundayati, Tanjung Selor</p>
+  <p class="mt-2 text-sm font-semibold italic text-oranye-judul">Unggul – Responsif – Berkarakter</p>
+</section>
+
+{% if pengumuman %}
+<div class="pesan-info" role="note"><div>{{ pengumuman|linebreaksbr }}</div></div>
+{% endif %}
+
+<section class="kartu mb-5">
+  <h2 class="mb-2 text-lg font-bold">Biodata Peserta</h2>
+  {% if status.terbuka %}
+    <p class="mb-1 flex items-center gap-2 font-semibold text-hijau"><span class="inline-block h-2.5 w-2.5 rounded-full bg-hijau"></span> Pendaftaran biodata sedang dibuka</p>
+    {% if status.tutup_pada %}<p class="mb-4 text-sm text-abu">Ditutup {{ status.tutup_pada|tanggal }} pukul {{ status.tutup_pada|jam }}.</p>{% endif %}
+    <a href="{% url 'biodata:daftar' %}" class="btn-utama btn-besar">Isi Biodata</a>
+    <p class="mt-3 text-sm text-abu">Setiap orang mengisi satu biodata: peserta, pimpinan kontingen, pembina pendamping, dan peninjau. Siapkan NIK (ada di Kartu Keluarga) dan foto wajah.</p>
+  {% elif status.alasan == "BELUM_BUKA" %}
+    <p class="mb-2 font-semibold text-navy">Pendaftaran biodata dibuka {{ status.buka_pada|tanggal }} pukul {{ status.buka_pada|jam }}.</p>
+    <div x-data="hitungMundur('{{ status.buka_pada.isoformat }}')" x-init="mulai()" class="mb-3 grid grid-cols-4 gap-2 text-center" aria-live="polite">
+      <template x-for="b in bagian" :key="b.label">
+        <div class="rounded-xl bg-krem py-2"><div class="font-judul text-2xl font-bold text-oranye-tua" x-text="b.nilai"></div><div class="text-xs text-abu" x-text="b.label"></div></div>
+      </template>
+    </div>
+    <p class="text-sm text-abu">Simpan alamat web ini. Tombol <strong>Isi Biodata</strong> akan muncul saat pendaftaran dibuka.</p>
+  {% else %}
+    <p class="mb-3 font-semibold text-navy">Pendaftaran biodata sudah ditutup.</p>
+    <p class="mb-4 text-sm">Jika Anda belum terdaftar atau datanya perlu diperbaiki, hubungi superadmin.</p>
+    {% if tautan_wa_superadmin %}<a href="{{ tautan_wa_superadmin }}" class="btn-hijau w-full" target="_blank" rel="noopener">WhatsApp {{ kontak_nama }}</a>{% endif %}
+  {% endif %}
+</section>
+
+<section class="kartu text-sm">
+  <h2 class="mb-2 text-base font-bold">Butuh bantuan?</h2>
+  <p class="mb-3">Jika sekolah Anda tidak ada di daftar, NIK ditolak, atau ada data yang salah, hubungi <strong>{{ kontak_nama }}</strong>.</p>
+  {% if tautan_wa_superadmin %}<a href="{{ tautan_wa_superadmin }}" class="btn-garis w-full" target="_blank" rel="noopener">Hubungi lewat WhatsApp</a>{% endif %}
+  <p class="mt-4 text-xs text-abu">Panitia: <a href="{% url 'akun:masuk' %}" class="underline">masuk</a></p>
+</section>
+{% endblock %}

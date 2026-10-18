@@ -1,0 +1,41 @@
+{% extends "superadmin/base.html" %}
+{% block judul %}Tempat sampah{% endblock %}
+{% block judul_halaman %}Tempat sampah{% endblock %}
+{% block konten %}
+<p class="mb-4 text-sm text-abu">Data yang dihapus masuk ke sini dan bisa dipulihkan. Hapus permanen tidak bisa dibatalkan.</p>
+<div class="kartu mb-4 overflow-x-auto p-0 sm:p-0">
+  <h2 class="p-4 text-base font-bold sm:px-6">Biodata ({{ peserta|length }})</h2>
+  {% if peserta %}
+  <table class="tabel">
+    <thead><tr><th>Nama</th><th>Kontingen</th><th>Dihapus</th><th>Aksi</th></tr></thead>
+    <tbody>
+    {% for p in peserta %}
+      <tr>
+        <td><a href="{% url 'biodata_admin:detail' p.pk %}" class="font-semibold hover:underline">{{ p.nama_lengkap }}</a><div class="font-mono text-xs text-abu">{{ p.kode_pendaftaran }}</div></td>
+        <td>{{ p.kontingen.nama }}</td>
+        <td class="whitespace-nowrap text-xs">{{ p.dihapus_pada|date:"d/m/Y H.i" }}<br>{{ p.dihapus_oleh }}</td>
+        <td class="min-w-[16rem]">
+          <form method="post" action="{% url 'biodata_admin:pulihkan' p.pk %}" class="mb-2 inline">{% csrf_token %}<button class="btn-hijau btn-kecil" type="submit">Pulihkan</button></form>
+          <form method="post" action="{% url 'biodata_admin:hapus_permanen' p.pk %}" class="mt-2 flex gap-1" data-konfirmasi="Hapus PERMANEN biodata {{ p.nama_lengkap }} beserta fotonya? Tidak bisa dibatalkan.">
+            {% csrf_token %}<input name="konfirmasi" class="input min-h-[36px] w-32 py-1 text-sm" placeholder="Ketik {{ p.kode_pendaftaran }}" autocomplete="off" required>
+            <button class="btn-bahaya btn-kecil" type="submit">Hapus permanen</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="px-4 pb-4 text-sm text-abu sm:px-6">Kosong.</p>{% endif %}
+</div>
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <h2 class="p-4 text-base font-bold sm:px-6">Kontingen ({{ kontingen|length }})</h2>
+  {% if kontingen %}
+  <table class="tabel"><thead><tr><th>Kode</th><th>Nama</th><th>Dihapus</th><th>Aksi</th></tr></thead><tbody>
+  {% for k in kontingen %}
+    <tr><td>{{ k.kode }}</td><td>{{ k.nama }}</td><td class="text-xs">{{ k.dihapus_pada|date:"d/m/Y H.i" }} {{ k.dihapus_oleh }}</td>
+      <td><form method="post" action="{% url 'kontingen_admin:pulihkan' k.pk %}">{% csrf_token %}<button class="btn-hijau btn-kecil" type="submit">Pulihkan</button></form></td></tr>
+  {% endfor %}
+  </tbody></table>
+  {% else %}<p class="px-4 pb-4 text-sm text-abu sm:px-6">Kosong.</p>{% endif %}
+</div>
+{% endblock %}

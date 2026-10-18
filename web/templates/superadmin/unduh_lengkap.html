@@ -1,0 +1,14 @@
+{% extends "superadmin/base.html" %}
+{% block judul %}Unduh Excel lengkap{% endblock %}
+{% block judul_halaman %}Unduh Excel lengkap{% endblock %}
+{% block konten %}
+<div class="kartu max-w-lg">
+  <div class="pesan-peringatan"><div><strong>Berisi data pribadi anak:</strong> NIK utuh, alamat, dan kontak orang tua. Jangan dibagikan lewat grup WhatsApp. Hapus file setelah selesai dipakai. Unduhan ini dicatat di log.</div></div>
+  <p class="mb-4 text-sm">Jumlah baris: <strong>{{ jumlah }}</strong>{% if s.aktif %} (sesuai saringan yang sedang aktif){% endif %}.</p>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include "komponen/isian.html" with f=form.password %}
+    <div class="flex gap-2"><button class="btn-utama" type="submit">Unduh</button><a href="{% url 'biodata_admin:daftar' %}" class="btn-abu">Batal</a></div>
+  </form>
+</div>
+{% endblock %}

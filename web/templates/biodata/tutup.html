@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load sigap %}
+{% block judul %}Pendaftaran ditutup{% endblock %}
+{% block isi %}
+<div class="kartu text-center">
+  {% if status.alasan == "BELUM_BUKA" %}
+    <h1 class="mb-2 text-xl font-bold">Pendaftaran biodata belum dibuka</h1>
+    <p class="mb-4">Form biodata dibuka {{ status.buka_pada|tanggal }} pukul {{ status.buka_pada|jam }}.</p>
+    <a href="/" class="btn-utama w-full">Lihat hitung mundur</a>
+  {% else %}
+    <h1 class="mb-2 text-xl font-bold">Pendaftaran biodata sudah ditutup</h1>
+    <p class="mb-4">Jika Anda belum terdaftar atau datanya perlu diperbaiki, hubungi superadmin.</p>
+    {% if tautan_wa_superadmin %}<a href="{{ tautan_wa_superadmin }}" class="btn-hijau w-full" target="_blank" rel="noopener">WhatsApp {{ kontak_nama }}</a>{% endif %}
+  {% endif %}
+</div>
+{% endblock %}

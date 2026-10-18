@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+{% block judul %}Masuk{% endblock %}
+{% block isi %}
+<div class="kartu" x-data="{ lihat: false }">
+  <div class="mb-4 flex items-center justify-center gap-4">
+    <img src="{% static 'img/pmi-logo.svg' %}" alt="Logo PMI" class="h-16 w-auto" width="42" height="64">
+    <img src="{% static 'img/jumbara-v-160.webp' %}" alt="Logo Jumbara V" class="h-16 w-auto" width="51" height="64">
+  </div>
+  <h1 class="mb-1 text-center text-xl font-bold">Masuk SIGAP JUMBARA</h1>
+  <p class="mb-5 text-center text-sm text-abu">Khusus superadmin, panitia, dan juri.</p>
+  {% if galat %}<div class="pesan-galat" role="alert">{{ galat }}</div>{% endif %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <div class="isian">
+      <label for="id_username" class="label">Nama akun</label>
+      <input type="text" name="username" id="id_username" class="input" autocomplete="username" autocapitalize="none" spellcheck="false" required value="{{ form.username.value|default_if_none:'' }}">
+    </div>
+    <div class="isian">
+      <label for="id_password" class="label">Kata sandi</label>
+      <div class="relative">
+        <input :type="lihat ? 'text' : 'password'" type="password" name="password" id="id_password" class="input pr-24" autocomplete="current-password" required>
+        <button type="button" class="absolute inset-y-0 right-0 px-3 text-sm font-semibold text-oranye-tua" @click="lihat = !lihat" x-text="lihat ? 'Sembunyikan' : 'Tampilkan'" x-cloak></button>
+      </div>
+    </div>
+    <button type="submit" class="btn-utama btn-besar">Masuk</button>
+  </form>
+  <p class="mt-4 text-center text-xs text-abu">Sesi berlaku 2 jam sejak masuk. Lupa kata sandi? Hubungi superadmin.</p>
+</div>
+<p class="mt-4 text-center text-sm"><a href="/" class="tautan">Kembali ke beranda</a></p>
+{% endblock %}

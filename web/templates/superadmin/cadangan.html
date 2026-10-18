@@ -1,0 +1,24 @@
+{% extends "superadmin/base.html" %}
+{% load sigap %}
+{% block judul %}Cadangan data{% endblock %}
+{% block judul_halaman %}Cadangan data{% endblock %}
+{% block konten %}
+<div class="kartu mb-4 text-sm">
+  <p class="mb-2">Cadangan otomatis dibuat setiap hari pukul 02.00 WITA dan setiap 3 jam selama hari acara, oleh Windows Task Scheduler (<code>sigap_jadwal</code>). Disimpan selama <strong>14 hari terakhir</strong> di folder:</p>
+  <p class="mb-3 break-all font-mono text-xs text-navy">{{ folder }}</p>
+  <p class="mb-3">Cadangan terakhir: <strong>{% if terakhir %}{{ terakhir|tanggal }} {{ terakhir|jam }}{% else %}belum pernah{% endif %}</strong></p>
+  <form method="post" action="{% url 'inti_admin:cadangan_buat' %}" data-konfirmasi="Buat cadangan sekarang? Bisa memakan waktu beberapa detik.">{% csrf_token %}<button class="btn-utama btn-kecil" type="submit">Buat cadangan sekarang</button></form>
+</div>
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <table class="tabel">
+    <thead><tr><th>Nama file</th><th>Waktu</th><th class="text-right">Ukuran</th><th></th></tr></thead>
+    <tbody>
+    {% for c in daftar %}
+      <tr><td class="font-mono text-xs">{{ c.nama }}</td><td class="whitespace-nowrap text-xs">{{ c.dibuat|date:"d/m/Y H.i" }}</td><td class="text-right text-xs">{{ c.ukuran|filesizeformat }}</td>
+        <td><a href="{% url 'inti_admin:cadangan_unduh' c.nama %}" class="btn-abu btn-kecil">Unduh</a></td></tr>
+    {% empty %}<tr><td colspan="4" class="text-center text-abu">Belum ada cadangan.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="mt-3 text-xs text-abu">File cadangan berisi data pribadi anak (database dan foto). Simpan salinan di disk lain, jangan di grup WhatsApp.</p>
+{% endblock %}

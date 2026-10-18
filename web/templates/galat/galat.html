@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block judul %}{{ judul }}{% endblock %}
+{% block isi %}
+<div class="kartu text-center">
+  <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-krem text-3xl text-oranye-tua" aria-hidden="true">!</div>
+  <h1 class="mb-2 text-xl font-bold">{{ judul }}</h1>
+  <p class="mb-5 text-teks">{{ pesan }}</p>
+  <div class="flex flex-col gap-2 sm:flex-row sm:justify-center">
+    <a href="/" class="btn-utama">Ke beranda</a>
+    {% if tautan_wa_superadmin %}<a href="{{ tautan_wa_superadmin }}" class="btn-garis" target="_blank" rel="noopener">Hubungi superadmin</a>{% endif %}
+  </div>
+</div>
+{% endblock %}

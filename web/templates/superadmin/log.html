@@ -1,0 +1,50 @@
+{% extends "superadmin/base.html" %}
+{% block judul %}Log aktivitas{% endblock %}
+{% block judul_halaman %}Log aktivitas{% endblock %}
+{% block konten %}
+<form method="get" class="kartu mb-4" data-filter-halaman="log">
+  <div class="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+    <div><label class="label text-sm" for="aksi">Aksi</label>
+      <select id="aksi" name="aksi" class="input"><option value="">Semua</option>{% for a in daftar_aksi %}<option {% if g.aksi == a %}selected{% endif %}>{{ a }}</option>{% endfor %}</select></div>
+    <div><label class="label text-sm" for="peran">Akun</label>
+      <select id="peran" name="peran" class="input">
+        <option value="">Semua</option>
+        <option {% if g.peran == "SUPERADMIN" %}selected{% endif %}>SUPERADMIN</option>
+        <option {% if g.peran == "PANITIA" %}selected{% endif %}>PANITIA</option>
+        <option {% if g.peran == "JURI" %}selected{% endif %}>JURI</option>
+        <option {% if g.peran == "PUBLIK" %}selected{% endif %}>PUBLIK</option>
+        <option {% if g.peran == "SISTEM" %}selected{% endif %}>SISTEM</option>
+      </select></div>
+    <div><label class="label text-sm" for="nama">Nama pelaku</label><input id="nama" name="nama" value="{{ g.nama }}" class="input"></div>
+    <div><label class="label text-sm" for="q">Keterangan</label><input id="q" name="q" value="{{ g.q }}" class="input" placeholder="kode, kata"></div>
+    <div><label class="label text-sm" for="dari">Dari</label><input id="dari" type="date" name="dari" value="{{ g.dari }}" class="input"></div>
+    <div><label class="label text-sm" for="sampai">Sampai</label><input id="sampai" type="date" name="sampai" value="{{ g.sampai }}" class="input"></div>
+  </div>
+  <div class="mt-3 flex flex-wrap gap-2">
+    <button class="btn-utama btn-kecil" type="submit">Terapkan</button>
+    <a href="?reset=1" class="btn-abu btn-kecil">Hapus saringan</a>
+    <span class="flex-1"></span>
+    <a class="btn-garis btn-kecil" href="{% url 'inti_admin:log_unduh' %}?{{ request.GET.urlencode }}">Unduh Excel</a>
+  </div>
+</form>
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <table class="tabel">
+    <thead><tr><th>Waktu</th><th>Pelaku</th><th>Aksi</th><th>Subjek</th><th>Keterangan</th><th>IP</th></tr></thead>
+    <tbody>
+    {% for x in halaman.object_list %}
+      <tr>
+        <td class="whitespace-nowrap text-xs">{{ x.dibuat_pada|date:"d/m/Y H.i.s" }}</td>
+        <td class="whitespace-nowrap text-xs"><strong>{{ x.nama_pelaku|default:"-" }}</strong><br><span class="text-abu">{{ x.peran }}</span></td>
+        <td class="whitespace-nowrap font-mono text-xs">{{ x.aksi }}</td>
+        <td class="whitespace-nowrap text-xs">{% if x.subjek_tipe == "peserta" %}<a class="tautan" href="{% url 'biodata_admin:detail' x.subjek_id %}">peserta #{{ x.subjek_id }}</a>{% else %}{{ x.subjek_tipe }} {{ x.subjek_id }}{% endif %}</td>
+        <td class="min-w-[16rem] text-xs">{{ x.keterangan }}
+          {% if x.data_baru %}<details class="mt-1"><summary class="cursor-pointer text-abu">perubahan</summary>
+            <div class="mt-1 break-all">{% if x.data_lama %}<div><span class="text-abu">lama:</span> {{ x.data_lama }}</div>{% endif %}<div><span class="text-abu">baru:</span> {{ x.data_baru }}</div></div></details>{% endif %}</td>
+        <td class="text-xs text-abu">{{ x.ip|default:"" }}</td>
+      </tr>
+    {% empty %}<tr><td colspan="6" class="text-center text-abu">Belum ada log.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "komponen/paginasi.html" %}
+{% endblock %}

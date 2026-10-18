@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+{% block kelas_body %}bg-zebra{% endblock %}
+{% block kelas_main %}w-full{% endblock %}
+{% block atribut_body %}data-ingat-rute{% endblock %}
+{% block pesan %}{% endblock %}
+{% block skrip %}<script src="{% static 'js/admin.js' %}" defer></script>{% block skrip_tambahan %}{% endblock %}{% endblock %}
+{% block isi %}
+<div class="mx-auto flex w-full max-w-7xl gap-6 px-3 py-4 sm:px-4 lg:py-6" x-data="{ menu: false }">
+  {% with m=menu_aktif|default:'' %}
+  <nav class="fixed inset-0 z-40 hidden lg:static lg:z-auto lg:block lg:w-56 lg:shrink-0" :class="menu && '!block'" aria-label="Menu superadmin">
+    <div class="absolute inset-0 bg-black/40 lg:hidden" @click="menu = false"></div>
+    <div class="relative h-full w-72 overflow-y-auto bg-white p-3 shadow-xl lg:h-auto lg:w-56 lg:rounded-2xl lg:shadow-kartu">
+      <div class="mb-2 flex items-center justify-between px-2 lg:hidden"><span class="font-judul font-bold">Menu</span><button type="button" class="btn-abu btn-kecil" @click="menu = false">Tutup</button></div>
+      {% for grup, daftar in menu_superadmin %}
+        <div class="mt-3 px-2 text-xs font-semibold uppercase tracking-wider text-abu first:mt-0">{{ grup }}</div>
+        {% for kode, label, url in daftar %}
+          <a href="{{ url }}" class="mt-0.5 flex min-h-[40px] items-center rounded-lg px-3 text-sm font-medium {% if m == kode %}bg-oranye text-white{% else %}text-navy hover:bg-krem{% endif %}">{{ label }}</a>
+        {% endfor %}
+      {% endfor %}
+      <div class="mt-4 border-t border-gray-100 px-2 pt-3 text-xs text-abu">
+        Pemakai perangkat: <strong class="text-navy" data-nama-pelaku></strong>
+        <button type="button" class="mt-1 block font-semibold text-oranye-tua underline" data-ganti-nama>Ganti nama</button>
+        <button type="button" class="mt-1 block font-semibold text-oranye-tua underline" data-lupakan-perangkat>Lupakan perangkat ini</button>
+      </div>
+    </div>
+  </nav>
+  {% endwith %}
+
+  <div class="min-w-0 flex-1" data-halaman-superadmin>
+    <div class="mb-4 flex items-center gap-3">
+      <button type="button" class="btn-abu btn-kecil lg:hidden" @click="menu = true" aria-label="Buka menu">☰ Menu</button>
+      <h1 class="min-w-0 flex-1 truncate text-xl font-bold sm:text-2xl">{% block judul_halaman %}{% endblock %}</h1>
+      {% block aksi_judul %}{% endblock %}
+    </div>
+    {% if request.user.wajib_ganti_sandi %}
+      <div class="pesan-peringatan">Kata sandi akun superadmin masih bawaan. <a href="{% url 'akun_admin:daftar' %}" class="tautan">Ganti sekarang</a>.</div>
+    {% endif %}
+    {% if messages %}
+      {% for m in messages %}
+        <div class="{% if m.tags == 'success' %}pesan-sukses{% elif m.tags == 'warning' %}pesan-peringatan{% elif m.tags == 'error' %}pesan-galat{% else %}pesan-info{% endif %}" role="status">{{ m }}</div>
+      {% endfor %}
+    {% endif %}
+    {% block konten %}{% endblock %}
+  </div>
+</div>
+{% endblock %}

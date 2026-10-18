@@ -1,0 +1,88 @@
+{% extends "superadmin/base.html" %}
+{% load sigap %}
+{% block judul %}Dasbor{% endblock %}
+{% block judul_halaman %}Dasbor biodata{% endblock %}
+{% block konten %}
+<div class="mb-4 flex flex-wrap items-center gap-2 rounded-2xl bg-white p-3 text-sm shadow-kartu">
+  {% if status.terbuka %}<span class="badge bg-green-100 text-green-800">Form DIBUKA</span>{% else %}<span class="badge bg-red-100 text-red-800">Form DITUTUP</span>{% endif %}
+  <span class="text-abu">
+    {% if status.alasan == "BELUM_BUKA" %}Dibuka otomatis {{ status.buka_pada|tanggal }} {{ status.buka_pada|jam }}.
+    {% elif status.alasan == "PAKSA_TUTUP" %}Ditutup paksa oleh superadmin.
+    {% elif status.alasan == "TERKUNCI" %}Data biodata dikunci untuk cetak kartu.
+    {% elif status.alasan == "SUDAH_TUTUP" %}Ditutup sejak {{ status.tutup_pada|tanggal }} {{ status.tutup_pada|jam }}.
+    {% else %}Ditutup {{ status.tutup_pada|tanggal }} {{ status.tutup_pada|jam }}.{% endif %}
+  </span>
+  <a href="{% url 'inti_admin:pengaturan' %}" class="tautan ml-auto">Atur jadwal</a>
+</div>
+
+<div class="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+  <div class="kartu"><div class="text-xs text-abu">Total biodata</div><div class="font-judul text-3xl font-bold text-oranye-tua">{{ stat.total|angka }}</div></div>
+  {% for kode, label, n in stat.per_tingkat %}
+  <div class="kartu"><div class="text-xs text-abu">Tingkat <span class="badge-{{ kode }}">{{ label }}</span></div><div class="font-judul text-3xl font-bold text-navy">{{ n|angka }}</div></div>
+  {% endfor %}
+</div>
+
+<div class="mb-5 grid gap-3 md:grid-cols-3">
+  <div class="kartu md:col-span-1">
+    <h2 class="mb-3 text-base font-bold">Per peran</h2>
+    <ul class="space-y-1.5 text-sm">
+      {% for kode, label, n in stat.per_peran %}<li class="flex justify-between"><span>{{ label }}</span><strong>{{ n|angka }}</strong></li>{% endfor %}
+      <li class="flex justify-between border-t border-gray-100 pt-1.5"><a class="tautan" href="{% url 'biodata_admin:daftar' %}?tanda=ada">Perlu dicek (bertanda)</a><strong>{{ stat.dengan_tanda|angka }}</strong></li>
+      <li class="flex justify-between"><span>Tanpa foto</span><strong>{{ stat.tanpa_foto|angka }}</strong></li>
+    </ul>
+  </div>
+  <div class="kartu md:col-span-2">
+    <h2 class="mb-3 text-base font-bold">Biodata masuk per hari</h2>
+    {% if stat.per_hari %}
+    <div class="flex h-40 items-end gap-1.5 overflow-x-auto pb-1">
+      {% for h in stat.per_hari %}
+      <div class="flex min-w-[2.25rem] flex-1 flex-col items-center justify-end gap-1" title="{{ h.hari|tanggal }}: {{ h.n }}">
+        <span class="text-xs font-semibold text-navy">{{ h.n }}</span>
+        <div class="w-full rounded-t-md bg-oranye" style="height: {{ h.persen }}%; min-height: 4px"></div>
+        <span class="text-[10px] text-abu">{{ h.hari|date:"d/m" }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}<p class="text-sm text-abu">Belum ada biodata masuk.</p>{% endif %}
+  </div>
+</div>
+
+<div class="kartu mb-5 p-0 sm:p-0">
+  <div class="flex flex-wrap items-center gap-2 p-4 sm:px-6">
+    <h2 class="flex-1 text-base font-bold">Kontingen dan kuota</h2>
+    <span class="text-xs text-abu"><span class="badge bg-green-100 text-green-800">sesuai</span> <span class="badge bg-amber-100 text-amber-900">hampir penuh</span> <span class="badge bg-red-100 text-red-800">lebih</span></span>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="tabel">
+      <thead><tr><th>Kode</th><th>Kontingen</th><th class="text-right">Kuota</th><th class="text-right">Terisi</th><th class="text-right">Sisa</th><th class="text-right">Peserta</th><th class="text-right">Pimpinan</th><th class="text-right">Pembina</th><th class="text-right">Peninjau</th><th class="text-right">Tanda</th></tr></thead>
+      <tbody>
+      {% for b in kontingen %}
+        <tr>
+          <td class="whitespace-nowrap"><span class="badge-{{ b.k.tingkat }}">{{ b.k.kode }}</span></td>
+          <td class="min-w-[14rem]"><a href="{% url 'kontingen_admin:detail' b.k.pk %}" class="font-semibold text-navy hover:underline">{{ b.k.nama }}</a>
+            <div class="mt-1 h-1.5 w-full rounded-full bg-gray-100"><div class="h-1.5 rounded-full {% if b.warna == 'merah' %}bg-merah{% elif b.warna == 'hijau' %}bg-hijau{% elif b.warna == 'kuning' %}bg-kuning{% else %}bg-oranye/60{% endif %}" style="width: {{ b.persen }}%"></div></div></td>
+          <td class="text-right">{{ b.k.kuota }}</td>
+          <td class="text-right font-bold {% if b.warna == 'merah' %}text-merah{% elif b.warna == 'hijau' %}text-hijau{% elif b.warna == 'kuning' %}text-amber-700{% endif %}">{{ b.k.terisi }}</td>
+          <td class="text-right {% if b.sisa < 0 %}font-bold text-merah{% endif %}">{% if b.lebih %}lebih {{ b.lebih }}{% else %}{{ b.sisa }}{% endif %}</td>
+          <td class="text-right">{{ b.k.n_peserta }}</td><td class="text-right">{{ b.k.n_pimpinan }}</td><td class="text-right">{{ b.k.n_pembina }}</td><td class="text-right">{{ b.k.n_peninjau }}</td>
+          <td class="text-right">{% if b.bertanda %}<a href="{% url 'biodata_admin:daftar' %}?kontingen={{ b.k.pk }}&tanda=ada" class="badge-tanda">{{ b.bertanda }}</a>{% else %}<span class="text-abu">0</span>{% endif %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="kartu">
+  <h2 class="mb-2 text-base font-bold">Bagikan link form biodata</h2>
+  <div class="flex flex-col items-start gap-4 sm:flex-row">
+    <img src="{% url 'biodata_admin:qr_form' %}" alt="QR menuju form biodata" class="h-40 w-40 rounded-lg border border-garis" width="160" height="160">
+    <div class="text-sm">
+      <p class="mb-1 text-abu">Link form:</p>
+      <p class="mb-3 break-all font-mono font-semibold text-navy">{{ SIGAP_URL }}/daftar/</p>
+      <a href="{% url 'biodata_admin:qr_form' %}?unduh=1" class="btn-garis btn-kecil">Unduh gambar QR</a>
+      <p class="mt-2 text-xs text-abu">Alamat diambil dari SIGAP_URL di .env. Pastikan sudah domain final sebelum dibagikan.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

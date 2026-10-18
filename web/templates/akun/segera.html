@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block judul %}{{ judul }}{% endblock %}
+{% block kelas_body %}{% endblock %}
+{% block isi %}
+<div class="kartu text-center" data-halaman-segera>
+  <h1 class="mb-2 text-xl font-bold">{{ judul }}</h1>
+  <p class="mb-4">Halaman ini sedang disiapkan dan akan tersedia pada {{ tahap }}.</p>
+  {% if request.user.superadmin %}<a href="/superadmin/" class="btn-utama">Ke dasbor superadmin</a>{% endif %}
+</div>
+{% endblock %}

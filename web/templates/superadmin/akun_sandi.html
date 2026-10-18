@@ -1,0 +1,12 @@
+{% extends "superadmin/base.html" %}
+{% block judul %}Ganti kata sandi{% endblock %}
+{% block judul_halaman %}Ganti kata sandi · {{ u.username }}{% endblock %}
+{% block konten %}
+<form method="post" novalidate class="kartu max-w-md">
+  {% csrf_token %}
+  <p class="mb-4 text-sm text-abu">Minimal 10 karakter, jangan hanya angka, jangan kata yang umum. Semua perangkat yang memakai akun <strong>{{ u.username }}</strong> akan langsung keluar{% if u.pk == request.user.pk %} (kecuali perangkat ini){% endif %}.</p>
+  {% include "komponen/isian.html" with f=form.sandi_baru %}
+  {% include "komponen/isian.html" with f=form.ulangi %}
+  <div class="flex gap-2"><button class="btn-utama" type="submit">Simpan</button><a href="{% url 'akun_admin:daftar' %}" class="btn-abu">Batal</a></div>
+</form>
+{% endblock %}

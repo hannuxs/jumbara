@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block judul %}Sedang perbaikan{% endblock %}
+{% block isi %}
+<div class="kartu text-center">
+  <h1 class="mb-2 text-xl font-bold">Sedang perbaikan sebentar</h1>
+  <p class="mb-4">SIGAP JUMBARA sedang diperbarui. Silakan coba lagi beberapa menit lagi.</p>
+  {% if tautan_wa_superadmin %}<a href="{{ tautan_wa_superadmin }}" class="btn-garis" target="_blank" rel="noopener">Hubungi superadmin</a>{% endif %}
+</div>
+{% endblock %}

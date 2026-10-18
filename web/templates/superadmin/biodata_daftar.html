@@ -1,0 +1,89 @@
+{% extends "superadmin/base.html" %}
+{% load static sigap %}
+{% block judul %}Daftar biodata{% endblock %}
+
+{% block judul_halaman %}Daftar biodata{% endblock %}
+{% block aksi_judul %}<a href="{% url 'biodata_admin:tambah' %}" class="btn-utama btn-kecil">+ Tambah</a>{% endblock %}
+{% block konten %}
+<form method="get" class="kartu mb-4" data-filter-halaman="biodata">
+  <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="sm:col-span-2">
+      <label class="label text-sm" for="q">Cari</label>
+      <input id="q" name="q" value="{{ s.q }}" class="input" placeholder="Nama, kode pendaftaran, atau 4 angka terakhir NIK">
+    </div>
+    <div>
+      <label class="label text-sm" for="f-kontingen">Kontingen</label>
+      <select id="f-kontingen" name="kontingen" class="input">
+        <option value="">Semua</option>
+        {% for k in pilihan_kontingen %}<option value="{{ k.pk }}" {% if s.kontingen == k.pk|stringformat:'s' %}selected{% endif %}>{{ k.kode }} {{ k.nama }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="label text-sm" for="f-tingkat">Tingkat</label>
+      <select id="f-tingkat" name="tingkat" class="input"><option value="">Semua</option>{% for v, l in pilihan_tingkat %}<option value="{{ v }}" {% if s.tingkat == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+    </div>
+    <div>
+      <label class="label text-sm" for="f-peran">Peran</label>
+      <select id="f-peran" name="peran" class="input"><option value="">Semua</option>{% for v, l in pilihan_peran %}<option value="{{ v }}" {% if s.peran == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+    </div>
+    <div>
+      <label class="label text-sm" for="f-jk">Jenis kelamin</label>
+      <select id="f-jk" name="jk" class="input"><option value="">Semua</option><option value="L" {% if s.jk == 'L' %}selected{% endif %}>Laki-laki</option><option value="P" {% if s.jk == 'P' %}selected{% endif %}>Perempuan</option></select>
+    </div>
+    <div>
+      <label class="label text-sm" for="f-tanda">Tanda</label>
+      <select id="f-tanda" name="tanda" class="input">
+        <option value="">Semua</option><option value="ada" {% if s.tanda == 'ada' %}selected{% endif %}>Punya tanda (perlu dicek)</option><option value="tidak" {% if s.tanda == 'tidak' %}selected{% endif %}>Tanpa tanda</option>
+        {% for v, l in pilihan_tanda %}<option value="{{ v }}" {% if s.tanda == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="label text-sm" for="f-urut">Urutkan</label>
+      <select id="f-urut" name="urut" class="input">
+        <option value="baru" {% if s.urut == 'baru' %}selected{% endif %}>Terbaru masuk</option>
+        <option value="lama" {% if s.urut == 'lama' %}selected{% endif %}>Terlama masuk</option>
+        <option value="nama" {% if s.urut == 'nama' %}selected{% endif %}>Nama A-Z</option>
+        <option value="kontingen" {% if s.urut == 'kontingen' %}selected{% endif %}>Kontingen</option>
+        <option value="tingkat" {% if s.urut == 'tingkat' %}selected{% endif %}>Tingkat</option>
+        <option value="peran" {% if s.urut == 'peran' %}selected{% endif %}>Peran</option>
+        <option value="lahir" {% if s.urut == 'lahir' %}selected{% endif %}>Termuda</option>
+      </select>
+    </div>
+  </div>
+  <div class="mt-3 flex flex-wrap gap-2">
+    <button class="btn-utama btn-kecil" type="submit">Terapkan</button>
+    <a href="?reset=1" class="btn-abu btn-kecil" data-reset-filter>Hapus saringan</a>
+    <span class="flex-1"></span>
+    <a href="{% url 'biodata_admin:unduh_umum' %}?{{ request.GET.urlencode }}" class="btn-garis btn-kecil">Unduh Excel (umum)</a>
+    <a href="{% url 'biodata_admin:unduh_lengkap' %}?{{ request.GET.urlencode }}" class="btn-abu btn-kecil">Excel lengkap…</a>
+  </div>
+</form>
+
+<p class="mb-2 text-sm text-abu">{{ jumlah|angka }} biodata{% if s.aktif %} sesuai saringan{% endif %}.</p>
+
+{% if halaman.object_list %}
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <table class="tabel">
+    <thead><tr><th>Nama</th><th>Kontingen</th><th>Tingkat</th><th>Peran</th><th>JK</th><th class="text-right">Umur</th><th>NIK</th><th>Tanda</th><th>Masuk</th></tr></thead>
+    <tbody>
+    {% for p in halaman.object_list %}
+      <tr>
+        <td class="min-w-[12rem]"><a href="{% url 'biodata_admin:detail' p.pk %}" class="font-semibold text-navy hover:underline">{{ p.nama_lengkap }}</a><div class="font-mono text-xs text-abu">{{ p.kode_pendaftaran }}</div></td>
+        <td class="min-w-[10rem]"><span class="text-xs text-abu">{{ p.kontingen.kode }}</span> {{ p.kontingen.nama }}</td>
+        <td><span class="badge-{{ p.tingkat }}">{{ p.get_tingkat_display }}</span></td>
+        <td class="whitespace-nowrap">{{ p.get_peran_display }}</td>
+        <td>{{ p.jenis_kelamin }}</td>
+        <td class="text-right">{{ p.umur }}</td>
+        <td class="whitespace-nowrap font-mono text-xs">{{ p.nik_samar }}</td>
+        <td class="min-w-[8rem]">{% for t in p.tanda_aktif %}<span class="badge-tanda mb-1 mr-1" title="{{ t.pesan }}">{{ t.get_jenis_display }}</span>{% empty %}<span class="text-abu">-</span>{% endfor %}</td>
+        <td class="whitespace-nowrap text-xs">{{ p.dibuat_pada|date:"d/m H.i" }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "komponen/paginasi.html" %}
+{% else %}
+<div class="kartu text-center text-abu">Belum ada biodata{% if s.aktif %} yang sesuai saringan{% endif %}.</div>
+{% endif %}
+{% endblock %}

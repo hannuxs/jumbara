@@ -1,0 +1,23 @@
+# Konfigurasi ruff (lint + format) SIGAP JUMBARA.
+line-length = 120
+target-version = "py312"
+extend-exclude = [".venv", "staticfiles", "*/migrations/*"]
+
+[lint]
+select = ["E", "F", "W", "I", "B", "UP", "DJ", "S", "C4", "SIM"]
+ignore = [
+  "E501",   # baris panjang diserahkan ke formatter
+  "S101",   # assert di tes
+  "S311",   # random non-kripto tidak dipakai untuk rahasia
+  "S603", "S607",  # subprocess mysqldump disengaja (argumen tetap, tanpa shell)
+  "DJ001",  # TextField/CharField null tidak dipakai
+  "SIM108", "SIM102",
+  "DJ008",  # __str__ tidak wajib untuk tabel catatan
+  "DJ012",  # urutan manager di model abstrak soft delete disengaja
+  "SIM115", # FileResponse menutup file sendiri
+  "S104",   # "0.0.0.0" hanya nilai cadangan IP, bukan bind
+  "S105",   # salt penandatangan bukan kata sandi
+]
+
+[lint.per-file-ignores]
+"tests/*" = ["S105", "S106"]

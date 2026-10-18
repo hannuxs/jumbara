@@ -1,0 +1,79 @@
+{% extends "superadmin/base.html" %}
+{% load static sigap %}
+{% block judul %}{{ p.nama_lengkap }}{% endblock %}
+
+{% block judul_halaman %}{{ p.nama_lengkap }}{% endblock %}
+{% block aksi_judul %}{% if not p.terhapus %}<a href="{% url 'biodata_admin:ubah' p.pk %}" class="btn-utama btn-kecil">Ubah</a>{% endif %}{% endblock %}
+{% block konten %}
+{% if p.terhapus %}<div class="pesan-peringatan">Biodata ini ada di tempat sampah (dihapus {{ p.dihapus_pada|date:"d/m/Y H.i" }} oleh {{ p.dihapus_oleh|default:"-" }}). <a href="{% url 'biodata_admin:sampah' %}" class="tautan">Buka tempat sampah</a></div>{% endif %}
+
+<div class="grid gap-4 lg:grid-cols-3">
+  <div class="kartu lg:col-span-2">
+    <div class="mb-3 flex flex-wrap items-center gap-2">
+      <span class="font-mono text-lg font-bold text-navy">{{ p.kode_pendaftaran }}</span>
+      <span class="badge-{{ p.tingkat }}">{{ p.get_tingkat_display }}</span>
+      <span class="badge-abu">{{ p.get_peran_display }}</span>
+      <span class="badge-abu">{{ p.get_sumber_display }}</span>
+    </div>
+    <dl class="grid gap-x-6 text-sm sm:grid-cols-2">
+      {% with kelas="border-b border-gray-100 py-2" %}
+      <div class="{{ kelas }}"><dt class="text-abu">Kontingen</dt><dd class="font-semibold text-navy"><a class="hover:underline" href="{% url 'kontingen_admin:detail' p.kontingen_id %}">{{ p.kontingen.kode }} · {{ p.kontingen.nama }}</a> <span class="badge-{{ p.kontingen.tingkat }}">{{ p.kontingen.get_tingkat_display }}</span></dd></div>
+      <div class="{{ kelas }}" x-data="{ nik: '', memuat: false }"><dt class="text-abu">NIK</dt>
+        <dd class="flex flex-wrap items-center gap-2"><span class="font-mono font-semibold text-navy" x-text="nik || '{{ p.nik_samar }}'">{{ p.nik_samar }}</span>
+          <button type="button" class="btn-abu btn-kecil" x-show="!nik" :disabled="memuat"
+                  @click="memuat = true; SIGAP_ADMIN.lihatNik('{% url 'biodata_admin:lihat_nik' p.pk %}').then(n => { nik = n; memuat = false }).catch(() => memuat = false)">Lihat NIK lengkap</button></dd>
+        <p class="text-xs text-abu" x-show="!nik">Membuka NIK tercatat di log.</p></div>
+      <div class="{{ kelas }}"><dt class="text-abu">Nama lengkap</dt><dd class="font-semibold text-navy">{{ p.nama_lengkap }}</dd></div>
+      <div class="{{ kelas }}"><dt class="text-abu">No. induk anggota PMR</dt><dd>{{ p.nomor_induk_anggota|default:"-" }}</dd></div>
+      <div class="{{ kelas }}"><dt class="text-abu">Jenis kelamin</dt><dd>{{ p.get_jenis_kelamin_display }}</dd></div>
+      <div class="{{ kelas }}"><dt class="text-abu">Tempat, tanggal lahir</dt><dd>{{ p.tempat_lahir }}, {{ p.tanggal_lahir|tanggal:False }} <span class="text-abu">({{ umur }} th per 12 Nov 2026)</span></dd></div>
+      <div class="{{ kelas }} sm:col-span-2"><dt class="text-abu">Alamat</dt><dd>{{ p.alamat }}</dd></div>
+      <div class="{{ kelas }}"><dt class="text-abu">Golongan darah</dt><dd>{{ p.get_golongan_darah_display }}</dd></div>
+      <div class="{{ kelas }}"><dt class="text-abu">Telepon</dt><dd>{% if p.telepon %}<a class="tautan" href="{{ p.telepon|wa }}" target="_blank" rel="noopener">+{{ p.telepon }}</a>{% else %}-{% endif %}</dd></div>
+      <div class="{{ kelas }}"><dt class="text-abu">Orang tua/wali</dt><dd>{{ p.nama_orang_tua|default:"-" }}</dd></div>
+      <div class="{{ kelas }}"><dt class="text-abu">Telepon orang tua/wali</dt><dd>{% if p.telepon_orang_tua %}<a class="tautan" href="{{ p.telepon_orang_tua|wa }}" target="_blank" rel="noopener">+{{ p.telepon_orang_tua }}</a>{% else %}-{% endif %}</dd></div>
+      <div class="{{ kelas }}"><dt class="text-abu">Masuk</dt><dd>{{ p.dibuat_pada|tanggal }}, {{ p.dibuat_pada|jam }}</dd></div>
+      <div class="{{ kelas }}"><dt class="text-abu">Persetujuan data</dt><dd>{% if p.persetujuan_data_pada %}{{ p.persetujuan_data_pada|date:"d/m/Y H.i" }}{% else %}-{% endif %}</dd></div>
+      <div class="{{ kelas }}"><dt class="text-abu">Terakhir diubah</dt><dd>{{ p.diubah_pada|date:"d/m/Y H.i" }}</dd></div>
+      <div class="{{ kelas }}"><dt class="text-abu">IP pengirim</dt><dd class="text-xs">{{ p.ip_pengirim|default:"-" }}</dd></div>
+      {% endwith %}
+    </dl>
+    {% if not p.terhapus %}
+    <form method="post" action="{% url 'biodata_admin:hapus' p.pk %}" class="mt-4" data-konfirmasi="Pindahkan biodata {{ p.nama_lengkap }} ke tempat sampah? Bisa dipulihkan nanti.">
+      {% csrf_token %}<button class="btn-abu btn-kecil text-merah" type="submit">Hapus (ke tempat sampah)</button>
+    </form>
+    {% endif %}
+  </div>
+
+  <div class="space-y-4">
+    <div class="kartu text-center">
+      <h2 class="mb-2 text-left text-base font-bold">Foto</h2>
+      {% if p.foto_path %}
+        <img src="{% url 'biodata_admin:foto' p.pk %}" alt="Foto {{ p.nama_lengkap }}" class="mx-auto h-64 w-48 rounded-xl object-cover" width="192" height="256" loading="lazy">
+        <a href="{% url 'biodata_admin:foto' p.pk %}?unduh=1" class="tautan mt-2 inline-block text-sm">Unduh foto</a>
+      {% else %}<p class="text-sm text-abu">Tidak ada foto.</p>{% endif %}
+    </div>
+    <div class="kartu">
+      <h2 class="mb-2 text-base font-bold">Tanda</h2>
+      {% for t in tanda %}
+        <div class="mb-2 rounded-xl border p-2.5 text-sm {% if t.diabaikan_pada %}border-gray-100 bg-gray-50 text-abu{% else %}border-amber-200 bg-amber-50{% endif %}">
+          <div class="font-semibold">{{ t.get_jenis_display }}</div>
+          <div>{{ t.pesan }}</div>
+          {% if t.diabaikan_pada %}<div class="mt-1 text-xs">Sudah dicek oleh {{ t.diabaikan_oleh|default:"-" }}, {{ t.diabaikan_pada|date:"d/m H.i" }}</div>
+          {% elif not p.terhapus %}<form method="post" action="{% url 'biodata_admin:abaikan_tanda' t.pk %}" class="mt-1.5">{% csrf_token %}<button class="btn-abu btn-kecil" type="submit">Tandai sudah dicek</button></form>{% endif %}
+        </div>
+      {% empty %}<p class="text-sm text-abu">Tidak ada tanda.</p>{% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="kartu mt-4">
+  <h2 class="mb-2 text-base font-bold">Riwayat</h2>
+  {% for r in riwayat %}
+    <div class="border-b border-gray-100 py-2 text-sm">
+      <div><strong>{{ r.aksi }}</strong> · {{ r.dibuat_pada|date:"d/m/Y H.i" }} · {{ r.nama_pelaku|default:r.peran }}{% if r.keterangan %} · <span class="text-abu">{{ r.keterangan }}</span>{% endif %}</div>
+      {% if r.data_baru and r.data_lama %}<div class="mt-1 text-xs text-abu">{% for k, v in r.data_baru.items %}<span class="mr-3">{{ k }}: <s>{{ r.data_lama|get_item:k }}</s> → {{ v }}</span>{% endfor %}</div>{% endif %}
+    </div>
+  {% empty %}<p class="text-sm text-abu">Belum ada riwayat.</p>{% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+{% block judul %}Memuat{% endblock %}
+{% block skrip %}<script src="{% static 'js/lanjut.js' %}" defer></script>{% endblock %}
+{% block isi %}
+<div class="kartu text-center" id="lanjut" data-awal="{{ halaman_awal }}" data-next="{{ next }}" data-minta-nama="{% if minta_nama %}1{% endif %}">
+  {{ awalan|json_script:"awalan-rute" }}
+  <div id="form-nama" class="hidden text-left">
+    <h1 class="mb-1 text-lg font-bold">Siapa yang memakai perangkat ini?</h1>
+    <p class="mb-4 text-sm text-abu">Akun ini dipakai bersama. Nama Anda dicatat di log setiap kali mengubah data. Cukup sekali per perangkat.</p>
+    <form id="isi-nama" class="flex flex-col gap-3">
+      <label for="nama-pelaku" class="label">Nama Anda</label>
+      <input id="nama-pelaku" class="input" maxlength="60" required placeholder="Contoh: Farhan" autocomplete="name">
+      <button type="submit" class="btn-utama">Lanjut</button>
+    </form>
+  </div>
+  <div id="memuat">
+    <p class="mb-3 font-semibold">Membuka menu terakhir…</p>
+    <a href="{{ halaman_awal }}" class="btn-utama">Lanjut ke halaman awal</a>
+  </div>
+</div>
+{% endblock %}

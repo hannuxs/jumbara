@@ -1,0 +1,39 @@
+{% extends "superadmin/base.html" %}
+{% block judul %}{{ k.nama }}{% endblock %}
+{% block judul_halaman %}{{ k.kode }} · {{ k.nama }}{% endblock %}
+{% block aksi_judul %}<a href="{% url 'kontingen_admin:ubah' k.pk %}" class="btn-utama btn-kecil">Ubah</a>{% endblock %}
+{% block konten %}
+<div class="mb-4 flex flex-wrap gap-2 text-sm">
+  <span class="badge-{{ k.tingkat }}">{{ k.get_tingkat_display }}</span>
+  <span class="badge-abu">Kuota {{ k.kuota }}</span>
+  <span class="badge-abu">Terisi {{ anggota|length }}</span>
+  {% for label, n in per_peran %}<span class="badge-abu">{{ label }}: {{ n }}</span>{% endfor %}
+</div>
+<div class="mb-4 flex flex-wrap gap-2 print:hidden">
+  <a href="{% url 'biodata_admin:unduh_umum' %}?kontingen={{ k.pk }}" class="btn-garis btn-kecil">Unduh Excel kontingen ini</a>
+  <a href="{% url 'biodata_admin:unduh_foto' %}?kontingen={{ k.pk }}" class="btn-abu btn-kecil">Unduh foto (ZIP)</a>
+  <button type="button" onclick="window.print()" class="btn-abu btn-kecil">Cetak ringkasan</button>
+</div>
+{% if k.catatan_data or k.catatan %}
+<div class="kartu mb-4 text-sm">
+  {% if k.catatan_data %}<p><strong>Catatan data GForm:</strong> {{ k.catatan_data }}</p>{% endif %}
+  {% if k.catatan %}<p class="mt-1"><strong>Catatan superadmin:</strong> {{ k.catatan }}</p>{% endif %}
+  <p class="mt-2 text-xs text-abu">Referensi GForm (hanya superadmin): pimpinan {{ k.pimpinan_gform|default:"-" }}; pendamping {{ k.pendamping_gform|default:"-" }}; peserta inti {{ k.peserta_inti_gform }}; peninjau {{ k.peninjau_dihitung }}.</p>
+</div>
+{% endif %}
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <table class="tabel">
+    <thead><tr><th>#</th><th>Nama</th><th>Peran</th><th>Tingkat</th><th>JK</th><th class="text-right">Umur</th><th>Kode</th><th>Tanda</th></tr></thead>
+    <tbody>
+    {% for p in anggota %}
+      <tr><td>{{ forloop.counter }}</td><td><a href="{% url 'biodata_admin:detail' p.pk %}" class="font-semibold hover:underline">{{ p.nama_lengkap }}</a></td><td class="whitespace-nowrap">{{ p.get_peran_display }}</td>
+        <td><span class="badge-{{ p.tingkat }}">{{ p.get_tingkat_display }}</span></td><td>{{ p.jenis_kelamin }}</td><td class="text-right">{{ p.umur }}</td><td class="font-mono text-xs">{{ p.kode_pendaftaran }}</td>
+        <td>{% if p.bertanda %}<span class="badge-tanda">perlu dicek</span>{% endif %}</td></tr>
+    {% empty %}<tr><td colspan="8" class="text-center text-abu">Belum ada biodata dari kontingen ini.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+<form method="post" action="{% url 'kontingen_admin:hapus' k.pk %}" class="mt-4 print:hidden" data-konfirmasi="Pindahkan kontingen {{ k.nama }} ke tempat sampah? Hanya bisa jika belum ada biodata.">
+  {% csrf_token %}<button class="btn-abu btn-kecil text-merah" type="submit">Hapus kontingen</button>
+</form>
+{% endblock %}

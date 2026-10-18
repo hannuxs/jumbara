@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static sigap %}
+{% block judul %}Bukti pendaftaran{% endblock %}
+{% block skrip %}<script src="{% static 'js/bukti.js' %}" defer></script>{% endblock %}
+{% block isi %}
+<div class="kartu text-center">
+  <div class="mx-auto mb-3 flex items-center justify-center gap-4">
+    <img src="{% static 'img/pmi-logo.svg' %}" alt="Logo PMI" class="h-14 w-auto" width="36" height="56">
+    <img src="{% static 'img/jumbara-v-160.webp' %}" alt="Logo Jumbara V" class="h-14 w-auto" width="45" height="56">
+  </div>
+  <div class="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-green-100" aria-hidden="true">
+    <svg viewBox="0 0 24 24" class="h-10 w-10 text-hijau" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+  </div>
+  <h1 class="mb-1 text-xl font-bold text-hijau">Biodata berhasil dikirim</h1>
+  <p class="mb-4 text-sm text-abu">Terima kasih. Simpan kode di bawah ini.</p>
+
+  <div class="mb-4 rounded-2xl bg-krem px-3 py-4">
+    <div class="text-xs text-abu">Kode pendaftaran</div>
+    <div class="font-mono text-3xl font-bold tracking-widest text-navy">{{ peserta.kode_pendaftaran }}</div>
+  </div>
+
+  <dl class="mb-4 divide-y divide-gray-100 text-left text-sm">
+    <div class="grid grid-cols-[6.5rem_1fr] gap-2 py-2"><dt class="text-abu">Nama</dt><dd class="font-semibold text-navy">{{ peserta.nama_lengkap }}</dd></div>
+    <div class="grid grid-cols-[6.5rem_1fr] gap-2 py-2"><dt class="text-abu">Sekolah</dt><dd class="font-semibold text-navy">{{ peserta.kontingen.nama }}</dd></div>
+    <div class="grid grid-cols-[6.5rem_1fr] gap-2 py-2"><dt class="text-abu">Tingkat</dt><dd><span class="badge-{{ peserta.tingkat }}">{{ peserta.get_tingkat_display }}</span></dd></div>
+    <div class="grid grid-cols-[6.5rem_1fr] gap-2 py-2"><dt class="text-abu">Peran</dt><dd class="font-semibold text-navy">{{ peserta.get_peran_display }}</dd></div>
+    <div class="grid grid-cols-[6.5rem_1fr] gap-2 py-2"><dt class="text-abu">Dikirim</dt><dd class="text-navy">{{ peserta.dibuat_pada|tanggal }}, {{ peserta.dibuat_pada|jam }}</dd></div>
+  </dl>
+
+  <a href="{% url 'biodata:bukti_pdf' token %}" class="btn-utama mb-2 w-full">Simpan bukti (PDF)</a>
+  <p class="mb-4 text-xs text-abu">Anda juga bisa mengambil tangkapan layar (screenshot) halaman ini.</p>
+
+  <div class="pesan-info text-left"><div>Jika ada data yang salah, hubungi superadmin dan sebutkan kode pendaftaran <strong>{{ peserta.kode_pendaftaran }}</strong>.
+    {% if tautan_wa_superadmin %}<a href="{{ tautan_wa_superadmin }}" class="tautan" target="_blank" rel="noopener">WhatsApp {{ kontak_nama }}</a>{% endif %}</div></div>
+
+  <a href="{% url 'biodata:daftar' %}?lagi=1" class="btn-garis w-full" data-isi-lagi data-kontingen="{{ peserta.kontingen_id }}" data-tingkat="{{ peserta.tingkat }}">Isi untuk orang lain</a>
+  <p class="mt-2 text-xs text-abu">Sekolah dan tingkat akan tetap terisi.</p>
+</div>
+{% endblock %}

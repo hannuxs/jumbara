@@ -1,0 +1,11 @@
+{% extends "superadmin/base.html" %}
+{% block judul %}{% if k %}Ubah {{ k.nama }}{% else %}Tambah kontingen{% endif %}{% endblock %}
+{% block judul_halaman %}{% if k %}Ubah kontingen · {{ k.kode }}{% else %}Tambah kontingen{% endif %}{% endblock %}
+{% block konten %}
+<form method="post" novalidate class="kartu max-w-xl">
+  {% csrf_token %}
+  {% for f in form %}{% include "komponen/isian.html" with f=f %}{% endfor %}
+  {% if k %}<p class="mb-4 text-xs text-abu">Kuota awal dari CSV: {{ k.kuota_awal }}. Mengubah nama tidak mengubah biodata yang sudah terhubung.</p>{% endif %}
+  <div class="flex gap-2"><button class="btn-utama" type="submit">Simpan</button><a href="{% url 'kontingen_admin:daftar' %}" class="btn-abu">Batal</a></div>
+</form>
+{% endblock %}
