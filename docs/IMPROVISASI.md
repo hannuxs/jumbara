@@ -92,3 +92,7 @@ Semua hal yang **tidak diminta secara eksplisit** oleh panitia/Farhan tetapi dit
 | 18 Okt 2026 | 1 | Tag template `{% aset %}`: alamat CSS/JS diberi versi otomatis (`?v=` waktu ubah file) saat pengembangan | Browser tidak pernah memadukan halaman baru dengan CSS/JS lama (R1c) | Ganti kembali ke `{% static %}` |
 | 18 Okt 2026 | 1 | Ikon kaca pembesar di kotak cari sekolah dihapus | Ikon tanpa CSS menutupi form (R1c); tulisan petunjuk sudah cukup | - |
 | 18 Okt 2026 | 1 | Migrasi `biodata.0003_hapus_tanda_nik` menghapus tanda lama NIK_TGL_LAHIR_BEDA/NIK_JK_BEDA dari database (data turunan, bukan biodata); tes otomatis memastikan pencocokan itu tidak muncul lagi | Permintaan Farhan: tidak boleh ada pencocokan NIK (REVISI R4) | - |
+| 18 Okt 2026 | 1 | Pemotong foto dipasang setelah wadah tampil + `ResizeObserver`; tinggi `clamp(280px, 65vh, 600px)` | Foto tampil kecil 200x100 bila Cropper dipasang saat wadah tersembunyi (R5) | - |
+| 18 Okt 2026 | 1 | Tombol Perbesar/Perkecil di pemotong foto | Laptop tidak bisa mencubit layar (R5) | Hapus tombol di `form.html` |
+| 18 Okt 2026 | 1 | Pemuatan foto bertingkat (blob URL, FileReader, lalu kirim foto asli tanpa pratinjau) | Pengisi tidak pernah terhalang bila browser gagal menampilkan foto tertentu (R5) | - |
+| 18 Okt 2026 | 1 | Mesin WebKit dan Firefox untuk Playwright dipasang di laptop (`%LOCALAPPDATA%\ms-playwright`), hanya untuk uji | Menguji tampilan Safari/iPhone dan Firefox tanpa perangkat fisik (R5) | `python -m playwright uninstall` |

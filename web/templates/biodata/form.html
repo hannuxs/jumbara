@@ -219,13 +219,18 @@
       </div>
       <p class="galat" data-galat="foto">{{ form.foto.errors.0 }}</p>
       <div x-show="fotoStatus === 'memuat'" x-cloak class="mt-3 text-sm text-abu">Menyiapkan foto…</div>
+      <div x-show="fotoStatus === 'asli'" x-cloak class="pesan-info mt-3 mb-0">Foto sudah dipilih. Pratinjau tidak bisa ditampilkan di HP ini, tetapi foto tetap dikirim dan otomatis dipotong di bagian tengah. <button type="button" class="tautan" @click="gantiFoto()">Ganti foto</button></div>
       <div x-show="fotoStatus === 'potong'" x-cloak class="mt-3">
-        <p class="mb-2 text-sm font-semibold text-navy">Geser dan perbesar agar wajah berada di tengah kotak (3×4).</p>
-        <div class="overflow-hidden rounded-xl bg-gray-900" style="height: 360px"><img x-ref="gambarPotong" alt="Pratinjau foto" class="block max-w-full"></div>
-        <div class="mt-2 grid grid-cols-2 gap-2">
+        <p class="mb-2 text-sm font-semibold text-navy">Geser foto dan atur kotak agar wajah berada di tengah (3×4).</p>
+        {# Tinggi mengikuti layar: minimal 280 px, sekitar 65% tinggi layar, maksimal 600 px. #}
+        <div data-wadah-potong x-ref="wadahPotong" class="w-full overflow-hidden rounded-xl bg-gray-900" style="height: clamp(280px, 65vh, 600px)"><img x-ref="gambarPotong" alt="Pratinjau foto" class="block max-w-full"></div>
+        <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <button type="button" class="btn-abu btn-kecil" @click="perbesar(-0.1)" aria-label="Perkecil foto">− Perkecil</button>
+          <button type="button" class="btn-abu btn-kecil" @click="perbesar(0.1)" aria-label="Perbesar foto">+ Perbesar</button>
           <button type="button" class="btn-abu btn-kecil" @click="putar()">↻ Putar</button>
           <button type="button" class="btn-abu btn-kecil" @click="gantiFoto()">Ganti foto</button>
         </div>
+        <p class="mt-1 text-xs text-abu">Di HP: geser dengan satu jari, cubit dengan dua jari untuk memperbesar.</p>
       </div>
     </div>
   </section>

@@ -12,6 +12,7 @@ Catatan revisi dari Farhan setelah Tahap 1 selesai di laptop. Setiap revisi puny
 | R1b | 18 Okt 2026 | Laporan Farhan: tingkat Wira dipilih tetapi sekolah Mula/Madya masih muncul, kotak cari sekolah hilang. Pencarian harus tetap ada | **Selesai** 18 Okt |
 | R1c | 18 Okt 2026 | Laporan Farhan: setelah R1b halaman rusak (ikon kaca pembesar raksasa menutupi form, tidak bisa cari/pilih sekolah, banyak galat) | **Selesai** 18 Okt |
 | R4 | 18 Okt 2026 | Tidak boleh ada pencocokan NIK dengan tanggal lahir/jenis kelamin | **Selesai** 18 Okt |
+| R5 | 18 Okt 2026 | Bagian menyesuaikan (memotong) foto terlalu kecil; harus responsif di HP, laptop, dan perangkat lain | **Selesai** 18 Okt |
 
 ---
 
@@ -193,3 +194,26 @@ Pengujian: 154 tes otomatis lulus (tes baru: tingkat beda ditolak, urutan isian,
 **Sisa yang sengaja tidak diubah:** `migrations/0001_initial.py` masih menyebut dua jenis tanda itu karena migrasi yang sudah diterapkan tidak boleh diubah (aturan `CLAUDE.md`); migrasi 0003 yang menghapusnya.
 
 **Pengujian:** tes baru `test_nik_tidak_dicocokkan_dengan_tanggal_lahir_dan_jk` (NIK yang digitnya tidak sesuai tanggal lahir dan jenis kelamin diterima tanpa tanda apa pun; halaman form dan `biodata.js` tidak berisi kalimat pencocokan; jenis tanda tidak ada lagi). Tes tanda di superadmin dipindah ke tanda usia tidak wajar. 156 tes lulus; uji browser 360 px tanpa peringatan NIK.
+
+---
+
+## R5. Pemotong foto terlalu kecil dan harus responsif (laporan Farhan, 18 Okt 2026)
+
+**Laporan:** setelah memilih foto, foto di area "Geser dan perbesar…" tampil sangat kecil di pojok kiri atas, sementara area gelapnya besar (tangkapan layar Farhan di laptop).
+
+**Penyebab:** pemotong (Cropper.js) dipasang sebelum wadahnya selesai tampil (masih tersembunyi, lebar 0). Pada kondisi itu Cropper memakai ukuran minimum bawaan 200 x 100 piksel. Kejadiannya acak (tergantung kecepatan browser), terutama saat foto dipilih atau diganti. Diulang dengan uji otomatis: 4 dari 21 kombinasi perangkat/foto menghasilkan kontainer 200 x 100. Selain itu tinggi area tetap 360 px membuat pemotong terasa kecil di laptop.
+
+**Perbaikan:**
+1. Pemotong baru dipasang setelah wadahnya benar-benar tampil dan punya ukuran (ditunggu per frame layar).
+2. Pemotong ikut menyesuaikan bila ukuran wadah berubah (HP diputar mendatar/tegak, jendela laptop diubah) memakai `ResizeObserver`.
+3. Tinggi area mengikuti layar: `clamp(280px, 65vh, 600px)` (minimal 280 px, sekitar 65% tinggi layar, maksimal 600 px); lebar penuh kolom form.
+4. Tombol baru **− Perkecil** dan **+ Perbesar** (laptop tidak bisa mencubit layar), selain **↻ Putar** dan **Ganti foto**; 2 kolom di HP, 4 kolom di layar lebar. Petunjuk: "Di HP: geser dengan satu jari, cubit dengan dua jari untuk memperbesar."
+5. Pemuatan foto bertingkat: `blob:` URL → `FileReader` → bila browser tetap tidak bisa menampilkan pratinjau, foto asli tetap dikirim tanpa galat dengan pesan "Pratinjau tidak bisa ditampilkan di HP ini, tetapi foto tetap dikirim dan otomatis dipotong di bagian tengah." Server tetap meluruskan EXIF dan memotong 3:4.
+
+**Pengujian (otomatis, Playwright):**
+- 3 mesin browser: Chromium (Chrome/Edge/Android), **WebKit (Safari, semua browser di iPhone/iPad)**, Firefox.
+- 7 ukuran layar: HP 320x568, HP 360x780, iPhone 390x844, Pixel 412x915, tablet 768x1024, laptop 1366x768, monitor 1920x1080.
+- 3 jenis foto: potret (logo Jumbara asli), lanskap besar 2400x1800, foto kecil 240x320.
+- Syarat lulus: kontainer pemotong sama dengan wadah, foto memakai >= 90% wadah, kotak potong cukup besar, tidak ada geser horizontal halaman, wadah tidak lebih tinggi dari layar, tanpa galat. Hasil: **63/63 lulus** (sebelum perbaikan 4 gagal di Chromium).
+- Tombol Perbesar/Perkecil/Putar berfungsi; HP diputar mendatar lalu tegak, pemotong tetap memenuhi wadah; kirim lewat mode tanpa pratinjau berhasil (foto tersimpan 600x800).
+- Catatan uji: WebKit versi Windows dari Playwright kadang gagal membaca berkas yang dipilih dari drive D: (`NotFoundError`), sedangkan berkas yang sama dari drive C: 10/10 berhasil. Ini kendala alat uji, bukan aplikasi; aplikasi tetap menanganinya dengan mode tanpa pratinjau. **Uji di iPhone dan Android sungguhan tetap wajib** sebelum 25 Oktober.

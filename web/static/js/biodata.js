@@ -297,11 +297,9 @@ document.addEventListener("alpine:init", function () {
           this.fotoStatus = "";
           return;
         }
-        if (!window.Cropper || !window.HTMLCanvasElement || !HTMLCanvasElement.prototype.toBlob) { this.fotoStatus = ""; return; }
+        if (!window.Cropper || !window.HTMLCanvasElement || !HTMLCanvasElement.prototype.toBlob) { this.fotoTanpaPratinjau(); return; }
         this.fotoStatus = "memuat";
-        var url = URL.createObjectURL(file);
-        var img = new Image();
-        img.onload = function () {
+        this.bukaGambar(file, function (img, selesai) {
           // Browser modern sudah meluruskan orientasi EXIF saat menggambar ke canvas.
           var skala = Math.min(1, SISI_MAKS / Math.max(img.naturalWidth, img.naturalHeight));
           var c = document.createElement("canvas");
@@ -311,31 +309,76 @@ document.addEventListener("alpine:init", function () {
           ctx.fillStyle = "#fff";
           ctx.fillRect(0, 0, c.width, c.height);
           ctx.drawImage(img, 0, 0, c.width, c.height);
-          URL.revokeObjectURL(url);
+          selesai();
           c.toBlob(function (blob) {
-            if (!blob) { self.fotoStatus = ""; return; }
+            if (!blob) { self.fotoTanpaPratinjau(); return; }
             self.fotoBlob = blob;
             self.fotoStatus = "potong";
             self.$nextTick(function () { self.pasangCropper(URL.createObjectURL(blob)); });
           }, "image/jpeg", 0.85);
-        };
-        img.onerror = function () {
-          URL.revokeObjectURL(url);
-          self.fotoStatus = "";
-          self.tampilGalat("foto", "Foto tidak bisa dibuka. Pilih foto JPG atau PNG lain.");
-          e.target.value = "";
-        };
-        img.src = url;
-      },
-      pasangCropper: function (src) {
-        var el = this.$refs.gambarPotong;
-        el.src = src;
-        this.cropper = new window.Cropper(el, {
-          aspectRatio: 3 / 4, viewMode: 1, autoCropArea: 0.9, dragMode: "move",
-          checkOrientation: false, background: false, responsive: true, movable: true, zoomable: true, rotatable: true
+        }, function () {
+          // Browser tidak bisa menampilkan foto ini (pernah terjadi di mesin Safari untuk JPEG tertentu).
+          // Foto asli tetap dikirim; server memeriksa, meluruskan, dan memotongnya di tengah.
+          self.fotoTanpaPratinjau();
         });
       },
+      // Buka foto bertingkat: 1) blob URL, 2) FileReader (data URL). `gagal` dipanggil bila keduanya gagal.
+      bukaGambar: function (file, berhasil, gagal) {
+        var coba = function (src, lepas, lanjut) {
+          var img = new Image(), selesai = false;
+          var batas = setTimeout(function () { if (!selesai) { selesai = true; lepas(); lanjut(); } }, 15000);
+          img.onload = function () { if (selesai) { return; } selesai = true; clearTimeout(batas); berhasil(img, lepas); };
+          img.onerror = function () { if (selesai) { return; } selesai = true; clearTimeout(batas); lepas(); lanjut(); };
+          img.src = src;
+        };
+        var lewatFileReader = function () {
+          if (!window.FileReader) { gagal(); return; }
+          var fr = new FileReader();
+          fr.onload = function () { coba(fr.result, function () {}, gagal); };
+          fr.onerror = gagal;
+          fr.readAsDataURL(file);
+        };
+        var url = null;
+        try { url = URL.createObjectURL(file); } catch (err) { url = null; }
+        if (!url) { lewatFileReader(); return; }
+        coba(url, function () { URL.revokeObjectURL(url); }, lewatFileReader);
+      },
+      fotoTanpaPratinjau: function () {
+        this.fotoBlob = null;
+        this.fotoStatus = "asli";
+      },
+      // Pemotong dipasang setelah wadahnya benar-benar tampil dan punya ukuran. Jika dipasang saat
+      // wadah masih tersembunyi (lebar 0), Cropper memakai ukuran minimum 200x100 dan foto tampil kecil.
+      pasangCropper: function (src) {
+        var self = this, el = this.$refs.gambarPotong, wadah = this.$refs.wadahPotong, coba = 0;
+        if (this.cropper) { this.cropper.destroy(); this.cropper = null; }
+        el.src = src;
+        var mulai = function () {
+          if ((!wadah.clientWidth || !wadah.clientHeight) && coba++ < 120) { window.requestAnimationFrame(mulai); return; }
+          self.cropper = new window.Cropper(el, {
+            aspectRatio: 3 / 4, viewMode: 1, autoCropArea: 0.85, dragMode: "move",
+            checkOrientation: false, background: false, responsive: true, restore: false,
+            movable: true, zoomable: true, rotatable: true, toggleDragModeOnDblclick: false
+          });
+          self.amatiWadah();
+        };
+        window.requestAnimationFrame(mulai);
+      },
+      // Ukuran wadah berubah (HP diputar, jendela laptop diubah, wadah baru tampil): sesuaikan pemotong.
+      amatiWadah: function () {
+        var self = this, wadah = this.$refs.wadahPotong;
+        if (this._pengamat || !window.ResizeObserver) { return; }
+        var ukuran = "";
+        this._pengamat = new window.ResizeObserver(function () {
+          var baru = wadah.clientWidth + "x" + wadah.clientHeight;
+          if (baru === ukuran || !wadah.clientWidth) { return; }
+          ukuran = baru;
+          if (self.cropper && self.cropper.ready && typeof self.cropper.resize === "function") { self.cropper.resize(); }
+        });
+        this._pengamat.observe(wadah);
+      },
       putar: function () { if (this.cropper) { this.cropper.rotate(90); } },
+      perbesar: function (n) { if (this.cropper) { this.cropper.zoom(n); } },
       gantiFoto: function () {
         var f = this.$refs.form.elements.foto;
         f.value = "";
