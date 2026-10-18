@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load static sigap %}
 {% block judul %}Isi Biodata{% endblock %}
-{% block kepala %}<link rel="stylesheet" href="{% static 'vendor/cropper-1.6.2.min.css' %}">{% endblock %}
+{% block kepala %}<link rel="stylesheet" href="{% aset 'vendor/cropper-1.6.2.min.css' %}">{% endblock %}
 {% block skrip %}
-<script src="{% static 'vendor/cropper-1.6.2.min.js' %}" defer></script>
-<script src="{% static 'js/biodata.js' %}" defer></script>
+<script src="{% aset 'vendor/cropper-1.6.2.min.js' %}" defer></script>
+<script src="{% aset 'js/biodata.js' %}" defer></script>
 {% endblock %}
 {% block isi %}
 <div x-data="formBiodata()" x-init="mulai()" data-usia-acuan="2026-11-12" data-bound="{% if form.is_bound %}1{% endif %}">
@@ -71,12 +71,11 @@
     <div class="isian" data-isian="kontingen">
       <label for="id_kontingen" class="label wajib">Utusan sekolah</label>
       <div class="relative mb-2" x-show="js" x-cloak>
-        <input type="search" class="input pr-10" x-model="cari" x-ref="cariSekolah" autocomplete="off" aria-label="Cari sekolah"
+        <input type="search" class="input" x-model="cari" x-ref="cariSekolah" autocomplete="off" aria-label="Cari sekolah"
                :disabled="!tingkatDipilih"
                :placeholder="tingkatDipilih ? 'Cari sekolah tingkat ' + labelTingkat() + '…' : 'Pilih tingkat dulu'"
                @focus="bukaCari = true" @click="bukaCari = true" @input="bukaCari = true"
                @keydown.escape="bukaCari = false" @keydown.enter.prevent="pilihPertama()">
-        <svg class="pointer-events-none absolute right-3 top-3 h-5 w-5 text-abu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         <div x-show="bukaCari && tingkatDipilih" @click.outside="bukaCari = false" class="absolute z-20 mt-1 max-h-72 w-full overflow-auto rounded-xl border border-garis bg-white shadow-lg" role="listbox">
           <template x-for="k in hasilCari()" :key="k.id">
             <button type="button" role="option" class="flex w-full items-center justify-between gap-2 border-b border-gray-50 px-3 py-3 text-left hover:bg-krem"

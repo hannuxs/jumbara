@@ -1,5 +1,7 @@
 """Filter template: tanggal dan jam gaya Indonesia, angka ribuan dengan titik."""
 
+import contextlib
+
 from django import template
 
 from apps.inti import utils
@@ -52,3 +54,23 @@ def get_item(kamus, kunci):
     if isinstance(kamus, dict):
         return kamus.get(kunci, "")
     return ""
+
+
+@register.simple_tag
+def aset(path: str) -> str:
+    """URL file statis + versi otomatis, contoh {% aset 'js/biodata.js' %}.
+
+    Produksi: nama file sudah ber-hash (ManifestStaticFilesStorage). Pengembangan: ditambah
+    ?v=<waktu ubah file> agar browser tidak pernah memakai CSS/JS lama dari cache.
+    """
+    from pathlib import Path
+
+    from django.conf import settings
+    from django.templatetags.static import static
+
+    url = static(path)
+    if settings.DEBUG:
+        berkas = Path(settings.BASE_DIR) / "static" / path
+        with contextlib.suppress(OSError):
+            url += f"?v={int(berkas.stat().st_mtime)}"
+    return url

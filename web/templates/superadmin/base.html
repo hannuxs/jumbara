@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static sigap %}
 {% block kelas_body %}bg-zebra{% endblock %}
 {% block kelas_main %}w-full{% endblock %}
 {% block atribut_body %}data-ingat-rute{% endblock %}
 {% block pesan %}{% endblock %}
-{% block skrip %}<script src="{% static 'js/admin.js' %}" defer></script>{% block skrip_tambahan %}{% endblock %}{% endblock %}
+{% block skrip %}<script src="{% aset 'js/admin.js' %}" defer></script>{% block skrip_tambahan %}{% endblock %}{% endblock %}
 {% block isi %}
 <div class="mx-auto flex w-full max-w-7xl gap-6 px-3 py-4 sm:px-4 lg:py-6" x-data="{ menu: false }">
   {% with m=menu_aktif|default:'' %}

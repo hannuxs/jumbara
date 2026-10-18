@@ -10,6 +10,7 @@ Catatan revisi dari Farhan setelah Tahap 1 selesai di laptop. Setiap revisi puny
 | R2 | 18 Okt 2026 | Perubahan manual Farhan: foto dicetak di kartu, bantuan nomor anggota (SIAMO), bantuan nama huruf kapital | **Selesai** 18 Okt (foto wajib mutlak; desain kartu berfoto di Tahap 2) |
 | R3 | 18 Okt 2026 | Semua nama disimpan dan ditampilkan dalam HURUF KAPITAL, termasuk gelar | **Selesai** 18 Okt (nama lengkap + nama orang tua/wali) |
 | R1b | 18 Okt 2026 | Laporan Farhan: tingkat Wira dipilih tetapi sekolah Mula/Madya masih muncul, kotak cari sekolah hilang. Pencarian harus tetap ada | **Selesai** 18 Okt |
+| R1c | 18 Okt 2026 | Laporan Farhan: setelah R1b halaman rusak (ikon kaca pembesar raksasa menutupi form, tidak bisa cari/pilih sekolah, banyak galat) | **Selesai** 18 Okt |
 
 ---
 
@@ -147,3 +148,22 @@ Pengujian: 154 tes otomatis lulus (tes baru: tingkat beda ditolak, urutan isian,
 **Pengujian (Chrome 360 px, browser baru):** header `Cache-Control: max-age=0` terkirim; Mula: kotak cari 3 dan dropdown 3, Madya 17/17, Wira 9/9, tidak ada sekolah dari tingkat lain; Mula + "smp" kosong dengan pesan; Mula + "006" + Enter memilih SD Negeri 006 Tanjung Palas Utara; lebar halaman 360 px; tanpa galat konsol. 154 tes otomatis lulus.
 
 **Untuk Farhan:** tekan **Ctrl+F5** sekali di halaman form (atau tutup lalu buka lagi tab) agar browser membuang `biodata.js` lama yang sudah terlanjur tersimpan.
+
+---
+
+## R1c. Halaman rusak setelah R1b (laporan Farhan, 18 Okt 2026)
+
+**Laporan:** ikon kaca pembesar sangat besar menutupi bagian Kontingen dan Peran, kotak cari tidak bisa dipakai, pilihan sekolah tidak bisa diklik, dan banyak galat.
+
+**Penyebab (diakui, kesalahan Claude):** perbaikan cache di R1b hanya berlaku untuk file yang diambil *setelah* perbaikan. Browser Farhan masih menyimpan `app.css` dan `biodata.js` lama, lalu memadukannya dengan halaman baru:
+- `app.css` lama belum punya kelas `h-5`, `w-5`, `pointer-events-none` (diperiksa dari commit sebelumnya), sehingga ikon SVG tampil seukuran kolom dan menghalangi klik.
+- `biodata.js` lama belum punya fungsi `labelTingkat`/`jumlahSekolah` yang dipanggil halaman baru, sehingga Alpine menampilkan galat dan kotak cari tidak berfungsi.
+- Uji sebelumnya hanya memakai browser bersih (tanpa cache), jadi masalah ini tidak tertangkap.
+
+**Perbaikan:**
+1. Semua CSS/JS di template memakai tag `{% aset '...' %}` yang menambahkan versi otomatis dari waktu ubah file (`/static/js/biodata.js?v=1792324869`). Setiap kali file berubah, alamatnya berubah, sehingga browser **pasti** mengambil file baru tanpa Ctrl+F5. Produksi tetap memakai nama file ber-hash dari `collectstatic`.
+2. Ikon kaca pembesar dihapus (kotak cari cukup dengan tulisan "Cari sekolah tingkat …"), sehingga tidak ada lagi elemen yang bisa menutupi form.
+
+**Pengujian:** profil Chrome yang menyimpan cache (seperti browser Farhan): halaman dimuat, `biodata.js` diubah, halaman dimuat ulang biasa → alamat `biodata.js?v=` berganti dan file baru diambil dari server (status 200), kotak cari aktif ("Cari sekolah tingkat Wira…"), 9 sekolah Wira, cari "smk 2" + Enter memilih SMK Negeri 2 Tanjung Selor, dropdown bisa dipilih, tanpa galat konsol. Alur form lengkap (draf, ringkasan, kirim, bukti, isi untuk orang lain) lulus di 360 px. 156 tes otomatis lulus (tambahan: tes alamat aset berversi).
+
+**Pelajaran untuk sesi berikutnya:** setiap perubahan CSS/JS diuji juga dengan profil browser yang sudah punya cache versi sebelumnya, bukan hanya browser bersih.

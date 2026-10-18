@@ -89,3 +89,5 @@ Semua hal yang **tidak diminta secara eksplisit** oleh panitia/Farhan tetapi dit
 | 18 Okt 2026 | 1 | Migrasi `biodata.0002_nama_kapital` mengubah nama yang sudah ada ke kapital | Data lama (saat ini hanya data uji) seragam | - |
 | 18 Okt 2026 | 1 | Mode pengembangan: statis dilayani WhiteNoise dengan `max-age=0` | Browser memakai JS lama dari cache saat uji di laptop (R1b) | Hapus `whitenoise.runserver_nostatic` dari `INSTALLED_APPS` |
 | 18 Okt 2026 | 1 | Kotak cari sekolah selalu tampil; disentuh menampilkan semua sekolah tingkat terpilih, Enter memilih hasil teratas, jumlah sekolah per tingkat ditampilkan | Permintaan Farhan: pencarian harus tetap ada; memudahkan di HP | - |
+| 18 Okt 2026 | 1 | Tag template `{% aset %}`: alamat CSS/JS diberi versi otomatis (`?v=` waktu ubah file) saat pengembangan | Browser tidak pernah memadukan halaman baru dengan CSS/JS lama (R1c) | Ganti kembali ke `{% static %}` |
+| 18 Okt 2026 | 1 | Ikon kaca pembesar di kotak cari sekolah dihapus | Ikon tanpa CSS menutupi form (R1c); tulisan petunjuk sudah cukup | - |

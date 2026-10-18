@@ -28,7 +28,7 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 - [x] Tanda otomatis: kuota penuh, tingkat beda, NIK vs tanggal lahir/JK, usia tidak wajar, foto duplikat, nama mirip
 - [x] Log aktivitas untuk setiap perubahan
 - [~] Cadangan harian: perintah `sigap_jadwal` + cadangan + pemulihan **sudah diuji**; pendaftaran Task Scheduler (`daftar-task-scheduler.ps1`) butuh Admin, **belum dijalankan**
-- [x] Tes otomatis: 154 tes lulus (`pytest`), `ruff check` bersih
+- [x] Tes otomatis: 156 tes lulus (`pytest`), `ruff check` bersih
 - [ ] Terpasang di server Windows produksi dengan HTTPS, diuji dari minimal 3 HP (Farhan)
 
 ## Tahap 2: Kartu dan QR kontingen (3 Nov)

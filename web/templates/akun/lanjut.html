@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static sigap %}
 {% block judul %}Memuat{% endblock %}
-{% block skrip %}<script src="{% static 'js/lanjut.js' %}" defer></script>{% endblock %}
+{% block skrip %}<script src="{% aset 'js/lanjut.js' %}" defer></script>{% endblock %}
 {% block isi %}
 <div class="kartu text-center" id="lanjut" data-awal="{{ halaman_awal }}" data-next="{{ next }}" data-minta-nama="{% if minta_nama %}1{% endif %}">
   {{ awalan|json_script:"awalan-rute" }}
