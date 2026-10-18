@@ -29,6 +29,8 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    # WhiteNoise juga melayani /static/ saat runserver (cache dikendalikan WHITENOISE_MAX_AGE).
+    "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
     "django.contrib.admin",
@@ -172,7 +174,8 @@ STORAGES = {
         )
     },
 }
-WHITENOISE_MAX_AGE = 60 * 60 * 24 * 30
+# Pengembangan: 0 agar browser tidak memakai JS/CSS lama (nama file belum ber-hash).
+WHITENOISE_MAX_AGE = 0 if DEBUG else 60 * 60 * 24 * 30
 
 # Folder privat (foto, cadangan sementara). WAJIB di luar static dan di luar DocumentRoot Apache.
 SIGAP_FOLDER_PRIVAT = Path(env("SIGAP_FOLDER_PRIVAT", default=str(BASE_DIR / "privat")))

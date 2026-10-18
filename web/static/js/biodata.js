@@ -63,14 +63,22 @@ document.addEventListener("alpine:init", function () {
 
       // --- Sekolah dan tingkat ------------------------------------------------
       hasilCari: function () {
-        var q = this.cari.toLowerCase().trim();
-        if (!q) { return []; }
-        var kata = q.split(/\s+/), tingkat = this.tingkatDipilih;
+        // Kosong = tampilkan semua sekolah tingkat terpilih; diketik = saring per kata.
+        var kata = this.cari.toLowerCase().trim().split(/\s+/).filter(Boolean), tingkat = this.tingkatDipilih;
         return this.daftarSekolah.filter(function (k) {
           if (k.tingkat !== tingkat) { return false; }
           var n = k.nama.toLowerCase();
           return kata.every(function (w) { return n.indexOf(w) !== -1; });
-        }).slice(0, 12);
+        });
+      },
+      labelTingkat: function () { return LABEL_TINGKAT[this.tingkatDipilih] || ""; },
+      jumlahSekolah: function () {
+        var t = this.tingkatDipilih;
+        return this.daftarSekolah.filter(function (k) { return k.tingkat === t; }).length;
+      },
+      pilihPertama: function () {
+        var hasil = this.hasilCari();
+        if (hasil.length) { this.pilihSekolah(hasil[0].id); }
       },
       pilihSekolah: function (id) {
         this.$refs.kontingen.value = id;
@@ -105,6 +113,7 @@ document.addEventListener("alpine:init", function () {
       tingkatBerubah: function () {
         this.saringSekolah();
         this.cari = "";
+        this.bukaCari = false;
         this.hapusGalat("tingkat");
         this.periksaSemua();
       },

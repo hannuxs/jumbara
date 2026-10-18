@@ -70,16 +70,21 @@
 
     <div class="isian" data-isian="kontingen">
       <label for="id_kontingen" class="label wajib">Utusan sekolah</label>
-      <div class="relative mb-2" x-show="js && tingkatDipilih" x-cloak>
-        <input type="search" class="input" placeholder="Ketik nama sekolah untuk mencari…" x-model="cari" @focus="bukaCari = true"
-               @keydown.escape="bukaCari = false" aria-label="Cari sekolah" autocomplete="off">
-        <div x-show="bukaCari && cari.length > 0" @click.outside="bukaCari = false" class="absolute z-20 mt-1 max-h-72 w-full overflow-auto rounded-xl border border-garis bg-white shadow-lg">
+      <div class="relative mb-2" x-show="js" x-cloak>
+        <input type="search" class="input pr-10" x-model="cari" x-ref="cariSekolah" autocomplete="off" aria-label="Cari sekolah"
+               :disabled="!tingkatDipilih"
+               :placeholder="tingkatDipilih ? 'Cari sekolah tingkat ' + labelTingkat() + '…' : 'Pilih tingkat dulu'"
+               @focus="bukaCari = true" @click="bukaCari = true" @input="bukaCari = true"
+               @keydown.escape="bukaCari = false" @keydown.enter.prevent="pilihPertama()">
+        <svg class="pointer-events-none absolute right-3 top-3 h-5 w-5 text-abu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <div x-show="bukaCari && tingkatDipilih" @click.outside="bukaCari = false" class="absolute z-20 mt-1 max-h-72 w-full overflow-auto rounded-xl border border-garis bg-white shadow-lg" role="listbox">
           <template x-for="k in hasilCari()" :key="k.id">
-            <button type="button" class="flex w-full items-center justify-between gap-2 px-3 py-3 text-left hover:bg-krem" @click="pilihSekolah(k.id)">
+            <button type="button" role="option" class="flex w-full items-center justify-between gap-2 border-b border-gray-50 px-3 py-3 text-left hover:bg-krem"
+                    :class="$refs.kontingen.value === k.id && 'bg-krem font-semibold'" @click="pilihSekolah(k.id)">
               <span x-text="k.nama"></span>
             </button>
           </template>
-          <p x-show="hasilCari().length === 0" class="px-3 py-3 text-sm text-abu">Tidak ditemukan. Coba kata lain, atau pilih dari daftar di bawah.</p>
+          <p x-show="hasilCari().length === 0" class="px-3 py-3 text-sm text-abu">Tidak ditemukan di tingkat <span x-text="labelTingkat()"></span>. Periksa lagi tingkat yang dipilih, atau hubungi superadmin.</p>
         </div>
       </div>
       {# Tanpa JavaScript: semua sekolah tampil per kelompok tingkat; server menolak bila tidak sesuai tingkat. #}
@@ -92,6 +97,7 @@
         {% endfor %}
       </select>
       <p class="galat" data-galat="kontingen">{{ form.kontingen.errors.0 }}</p>
+      <p class="bantuan" x-show="tingkatDipilih" x-cloak x-text="jumlahSekolah() + ' sekolah tingkat ' + labelTingkat() + '. Ketik di kotak cari atau pilih dari daftar.'"></p>
       <p class="bantuan">Sekolah Anda tidak ada? {% if tautan_wa_sekolah %}<a href="{{ tautan_wa_sekolah }}" class="tautan" target="_blank" rel="noopener">Hubungi superadmin</a>{% else %}Hubungi superadmin.{% endif %}</p>
     </div>
 

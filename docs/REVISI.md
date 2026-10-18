@@ -9,6 +9,7 @@ Catatan revisi dari Farhan setelah Tahap 1 selesai di laptop. Setiap revisi puny
 | R1 | 18 Okt 2026 | Tingkat dipilih paling atas, daftar sekolah hanya menampilkan sekolah tingkat itu | **Selesai** 18 Okt (opsi A: server menolak) |
 | R2 | 18 Okt 2026 | Perubahan manual Farhan: foto dicetak di kartu, bantuan nomor anggota (SIAMO), bantuan nama huruf kapital | **Selesai** 18 Okt (foto wajib mutlak; desain kartu berfoto di Tahap 2) |
 | R3 | 18 Okt 2026 | Semua nama disimpan dan ditampilkan dalam HURUF KAPITAL, termasuk gelar | **Selesai** 18 Okt (nama lengkap + nama orang tua/wali) |
+| R1b | 18 Okt 2026 | Laporan Farhan: tingkat Wira dipilih tetapi sekolah Mula/Madya masih muncul, kotak cari sekolah hilang. Pencarian harus tetap ada | **Selesai** 18 Okt |
 
 ---
 
@@ -126,3 +127,23 @@ Jawaban Farhan: (1) ikut saran: server **menolak** tingkat yang tidak cocok deng
 | R3 | `nama_lengkap` dan `nama_orang_tua` disimpan kapital di server (form publik dan superadmin); isian tampil kapital saat diketik; ringkasan kapital. Migrasi `biodata.0002_nama_kapital` mengubah data yang sudah ada. Excel, PDF bukti, ZIP foto, halaman superadmin otomatis kapital. |
 
 Pengujian: 154 tes otomatis lulus (tes baru: tingkat beda ditolak, urutan isian, foto wajib mutlak walau pengaturan lama masih ada di database, nama dan gelar kapital, tambah superadmin tanpa foto ditolak, ubah tanpa foto baru). Uji browser Chrome 360 px: sekolah tersaring per tingkat (Mula 3, Wira 9), cari "sma" saat Madya tidak menemukan apa pun, ganti tingkat mengosongkan sekolah, draf dipulihkan, kiriman tersimpan `DEWI KARTIKA SARI` / `BUDI SANTOSO, S.PD`, lebar halaman 360 px, tanpa galat konsol.
+
+---
+
+## R1b. Sekolah tingkat lain masih muncul dan kotak cari hilang (laporan Farhan, 18 Okt 2026)
+
+**Laporan:** setelah memilih Wira, dropdown sekolah masih berisi kelompok "Tingkat Mula" dan "Tingkat Madya", dan kotak cari sekolah tidak ada (tangkapan layar Farhan, teks dropdown "Pilih sekolah").
+
+**Penyebab:** browser Farhan memakai `biodata.js` **versi lama dari cache**, sementara template sudah versi baru. Server pengembangan (`runserver`) mengirim file statis dengan nama yang sama tanpa `Cache-Control`, sehingga browser boleh memakai salinan lama. Dengan JS lama, kode penyaring sekolah tidak ada, jadi yang tampil adalah daftar cadangan (semua sekolah per kelompok tingkat, untuk HP tanpa JavaScript), dan kotak cari ikut tersembunyi. Di server produksi masalah ini tidak terjadi karena nama file statis ber-hash (`biodata.<hash>.js`), tetapi tetap diperbaiki agar uji di laptop dapat dipercaya.
+
+**Perbaikan:**
+1. Mode pengembangan: statis dilayani WhiteNoise (`whitenoise.runserver_nostatic`) dengan `WHITENOISE_MAX_AGE = 0` (header `Cache-Control: max-age=0`), sehingga browser selalu mengambil JS/CSS terbaru. Produksi tetap 30 hari dengan nama ber-hash.
+2. Kotak cari sekolah **selalu tampil** (dengan ikon cari). Sebelum tingkat dipilih: nonaktif, tulisan "Pilih tingkat dulu". Setelah tingkat dipilih: "Cari sekolah tingkat Wira…".
+3. Menyentuh kotak cari langsung menampilkan **semua sekolah dari tingkat terpilih saja** (Mula 3, Madya 17, Wira 9); mengetik menyaring per kata; tombol Enter memilih hasil teratas; sekolah yang sedang terpilih disorot.
+4. Jika kata yang dicari tidak ada di tingkat itu (misalnya "smp" saat Mula): "Tidak ditemukan di tingkat Mula. Periksa lagi tingkat yang dipilih, atau hubungi superadmin."
+5. Di bawah dropdown: "9 sekolah tingkat Wira. Ketik di kotak cari atau pilih dari daftar."
+6. Dropdown asli tetap ada di bawah kotak cari dan juga hanya berisi sekolah tingkat terpilih.
+
+**Pengujian (Chrome 360 px, browser baru):** header `Cache-Control: max-age=0` terkirim; Mula: kotak cari 3 dan dropdown 3, Madya 17/17, Wira 9/9, tidak ada sekolah dari tingkat lain; Mula + "smp" kosong dengan pesan; Mula + "006" + Enter memilih SD Negeri 006 Tanjung Palas Utara; lebar halaman 360 px; tanpa galat konsol. 154 tes otomatis lulus.
+
+**Untuk Farhan:** tekan **Ctrl+F5** sekali di halaman form (atau tutup lalu buka lagi tab) agar browser membuang `biodata.js` lama yang sudah terlanjur tersimpan.
