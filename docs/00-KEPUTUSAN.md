@@ -68,7 +68,7 @@ Uji coba bersama panitia 7 sampai 8 November. Pelatihan panitia dan juri 10 Nove
 - Kuota kontingen penuh: **form tetap menerima**, superadmin melihat tanda.
 - Tingkat yang dipilih berbeda dengan tingkat kontingen: superadmin melihat tanda.
 - NIK yang sama tidak bisa dikirim dua kali. Kalau seseorang salah isi atau mengisi dua kali, ia menghubungi superadmin.
-- Foto JPG atau PNG, maksimal 5 MB, otomatis dikecilkan dan dipotong rasio 3x4. **Foto hanya arsip, tidak dicetak di kartu.**
+- Foto JPG atau PNG, maksimal 5 MB, otomatis dikecilkan dan dipotong rasio 3x4. **Foto hanya arsip, dicetak di kartu.**
 - Superadmin bisa melihat, mencari, memperbaiki, dan mengunduh seluruh biodata dalam Excel.
 
 ## Kartu dan QR

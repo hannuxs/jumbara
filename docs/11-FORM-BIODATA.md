@@ -61,7 +61,7 @@ Tampilkan bagian ini **wajib untuk peran Peserta dan Peninjau**, dan **tidak waj
 | **Upload foto** | File gambar | **Wajib** (bisa dimatikan lewat pengaturan `biodata.foto_wajib`). Hanya JPG/JPEG atau PNG, **maksimal 5 MB** (ukuran file asli). Validasi tipe dari isi file (MIME sebenarnya), bukan hanya ekstensi |
 
 Perilaku foto:
-- Teks bantuan: "Foto wajah terbaru, tampak depan, latar polos jika ada. Foto hanya disimpan sebagai arsip panitia dan **tidak dicetak di kartu**."
+- Teks bantuan: "Foto wajah terbaru, tampak depan, latar polos jika ada. Foto hanya disimpan sebagai arsip panitia dan **dicetak di kartu**."
 - Setelah memilih foto, tampilkan **pemotong 3:4** (Cropper.js) dengan area potong otomatis di tengah; pengguna boleh menggeser/memperbesar. Tombol "Putar" untuk foto miring.
 - Di browser, kecilkan dulu sebelum unggah (sisi terpanjang sekitar 1600 px, JPEG kualitas 0,85) agar unggahan ringan. Tetap kirim koordinat potong ke server.
 - Di server (wajib, jangan percaya browser): baca orientasi EXIF dan luruskan, potong 3:4 sesuai koordinat (atau tengah jika tidak ada), ubah ukuran menjadi **600 x 800 px**, simpan JPEG kualitas 85, **hapus metadata EXIF** (termasuk lokasi GPS). Simpan di disk **privat** (`{SIGAP_FOLDER_PRIVAT}\foto\{tahun}\{kode_pendaftaran}.jpg`), bukan di folder `static` atau `media` publik. Pemrosesan dengan Pillow (`ImageOps.exif_transpose`).

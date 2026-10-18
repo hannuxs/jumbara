@@ -118,7 +118,7 @@
       <label for="id_nama_lengkap" class="label wajib">Nama lengkap</label>
       <input type="text" name="nama_lengkap" id="id_nama_lengkap" class="input {% if form.nama_lengkap.errors %}input-galat{% endif %}" maxlength="100" autocomplete="name" autocapitalize="words" required value="{{ form.nama_lengkap.value|default_if_none:'' }}" @blur="cekIsian($event.target)">
       <p class="galat" data-galat="nama_lengkap">{{ form.nama_lengkap.errors.0 }}</p>
-      <p class="bantuan">Tulis nama lengkap sesuai Kartu Keluarga, beserta gelar jika ada.</p>
+      <p class="bantuan">Tulis nama lengkap dengan <b>huruf KAPITAL/Huruf Besar,</b> beserta gelar jika ada.</p>
     </div>
 
     <div class="isian" data-isian="nik">
@@ -133,7 +133,7 @@
       <label for="id_nomor_induk_anggota" class="label">Nomor Induk Anggota PMR (jika ada)</label>
       <input type="text" name="nomor_induk_anggota" id="id_nomor_induk_anggota" class="input" maxlength="50" value="{{ form.nomor_induk_anggota.value|default_if_none:'' }}">
       <p class="galat" data-galat="nomor_induk_anggota">{{ form.nomor_induk_anggota.errors.0 }}</p>
-      <p class="bantuan">Ada di KTA PMR. Kosongkan jika belum punya.</p>
+      <p class="bantuan">Terdapat pada aplikasi SIAMO</p>
     </div>
 
     <fieldset class="isian" data-isian="jenis_kelamin">
@@ -207,7 +207,7 @@
     <h2 class="judul-bagian"><span class="nomor-bagian">4</span> Foto</h2>
     <div class="isian mb-0" data-isian="foto">
       <label for="id_foto" class="label {% if foto_wajib %}wajib{% endif %}">Unggah foto</label>
-      <p class="mb-3 text-sm text-abu">Foto wajah terbaru, tampak depan, latar polos jika ada. Format JPG atau PNG, maksimal 5 MB. Foto hanya disimpan sebagai arsip panitia dan <strong>tidak dicetak di kartu</strong>.</p>
+      <p class="mb-3 text-sm text-abu">Foto wajah terbaru, tampak depan, latar polos jika ada. Format JPG atau PNG, maksimal 5 MB. Foto hanya disimpan sebagai arsip panitia dan <strong>dicetak di kartu</strong>.</p>
       <input type="file" name="foto" id="id_foto" accept="image/jpeg,image/png" class="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-oranye file:px-4 file:py-2.5 file:font-semibold file:text-white" :class="js && 'hidden'" @change="fotoDipilih($event); namaFoto = $event.target.files[0] ? $event.target.files[0].name : ''" {% if foto_wajib %}required{% endif %}>
       <div x-show="js" x-cloak class="flex items-center gap-3">
         <label for="id_foto" class="btn-utama cursor-pointer" x-show="fotoStatus !== 'potong'">Pilih foto</label>
