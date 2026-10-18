@@ -98,8 +98,6 @@ class Peserta(ModelHapusLunak):
 class JenisPenanda(models.TextChoices):
     KUOTA_PENUH = "KUOTA_PENUH", "Kuota kontingen sudah penuh"
     TINGKAT_BEDA = "TINGKAT_BEDA", "Tingkat beda dengan kontingen"
-    NIK_TGL_LAHIR_BEDA = "NIK_TGL_LAHIR_BEDA", "NIK tidak cocok dengan tanggal lahir"
-    NIK_JK_BEDA = "NIK_JK_BEDA", "NIK tidak cocok dengan jenis kelamin"
     USIA_TIDAK_WAJAR = "USIA_TIDAK_WAJAR", "Usia tidak wajar"
     FOTO_DUPLIKAT = "FOTO_DUPLIKAT", "Foto sama dengan orang lain"
     NAMA_MIRIP = "NAMA_MIRIP", "Nama mirip dalam kontingen"

@@ -104,8 +104,8 @@ def file_foto(isi: bytes | None = None, nama: str = "foto.jpg", tipe: str = "ima
     return SimpleUploadedFile(nama, isi if isi is not None else gambar(), content_type=tipe)
 
 
-# NIK contoh: digit 7-12 = 410112 -> tanggal 1 (perempuan, +40), Januari, 2012.
-NIK_PEREMPUAN_2012 = "6501014101120003"
+# NIK contoh 16 angka (isi NIK tidak dicocokkan dengan tanggal lahir/jenis kelamin, REVISI R4).
+NIK_CONTOH = "6501014101120003"
 
 
 def data_valid(k: Kontingen, **ubah) -> dict:
@@ -114,7 +114,7 @@ def data_valid(k: Kontingen, **ubah) -> dict:
         "tingkat": k.tingkat,
         "peran": "PESERTA",
         "nama_lengkap": "Siti Aminah",
-        "nik": NIK_PEREMPUAN_2012,
+        "nik": NIK_CONTOH,
         "nomor_induk_anggota": "",
         "jenis_kelamin": "P",
         "tempat_lahir": "Tanjung Selor",

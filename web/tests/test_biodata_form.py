@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+from pathlib import Path
 
 import pytest
 from PIL import Image
@@ -13,7 +14,7 @@ from apps.biodata.models import JenisPenanda, Peserta, TokenKiriman
 from apps.inti import pengaturan
 from apps.inti.models import LogAktivitas
 
-from .conftest import NIK_PEREMPUAN_2012, data_valid, file_foto, gambar, token_lama
+from .conftest import NIK_CONTOH, data_valid, file_foto, gambar, token_lama
 
 URL = "/daftar/"
 
@@ -40,8 +41,8 @@ def test_kiriman_valid_tersimpan_dan_foto_600x800(client, kontingen_madya):
     assert p.telepon_orang_tua == "6281234567890"
     assert p.persetujuan_data_pada is not None
     # NIK tidak tersimpan sebagai teks biasa.
-    assert NIK_PEREMPUAN_2012 not in p.nik_terenkripsi
-    assert nik_mod.dekripsi(p.nik_terenkripsi) == NIK_PEREMPUAN_2012
+    assert NIK_CONTOH not in p.nik_terenkripsi
+    assert nik_mod.dekripsi(p.nik_terenkripsi) == NIK_CONTOH
     assert p.nik_samar == "6501********0003"
     # Foto 600x800, JPEG, tanpa EXIF, di folder privat.
     path = path_lengkap(p.foto_path)
@@ -61,7 +62,7 @@ def test_bukti_tampil_tanpa_nik(client, kontingen_madya):
     isi = bukti.content.decode()
     assert bukti.status_code == 200
     assert p.kode_pendaftaran in isi and "SITI AMINAH" in isi
-    assert NIK_PEREMPUAN_2012 not in isi and "6501" not in isi
+    assert NIK_CONTOH not in isi and "6501" not in isi
     pdf = client.get(r["Location"] + "pdf/")
     assert pdf["Content-Type"] == "application/pdf" and pdf.content.startswith(b"%PDF")
 
@@ -204,10 +205,14 @@ def test_kuota_penuh_diterima_dan_ditandai(client, kontingen_madya):
     assert [JenisPenanda.KUOTA_PENUH in jenis_tanda(p) for p in urut] == [False, False, False, True]
 
 
-def test_nik_tidak_cocok_tanggal_lahir_dan_jk(client, kontingen_madya):
-    kirim(client, data_valid(kontingen_madya, jenis_kelamin="L", tanggal_lahir_0="2"))
-    p = Peserta.objects.get()
-    assert {JenisPenanda.NIK_JK_BEDA, JenisPenanda.NIK_TGL_LAHIR_BEDA} <= jenis_tanda(p)
+def test_nik_tidak_dicocokkan_dengan_tanggal_lahir_dan_jk(client, kontingen_madya):
+    # REVISI R4: tidak ada pencocokan isi NIK dengan tanggal lahir/jenis kelamin.
+    r = kirim(client, data_valid(kontingen_madya, nik="6501019999990003", jenis_kelamin="L", tanggal_lahir_0="2"))
+    assert r.status_code == 302
+    assert jenis_tanda(Peserta.objects.get()) == set()
+    assert "cocok dengan NIK" not in client.get(URL).content.decode()
+    assert "cocok dengan NIK" not in Path("static/js/biodata.js").read_text(encoding="utf-8")
+    assert not {"NIK_TGL_LAHIR_BEDA", "NIK_JK_BEDA"} & set(JenisPenanda.values)
 
 
 def test_usia_tidak_wajar_ditandai(client, kontingen_madya):

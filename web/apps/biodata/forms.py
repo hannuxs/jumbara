@@ -322,17 +322,6 @@ class BiodataForm(forms.Form):
                 raise forms.ValidationError("Kiriman tidak dapat diproses. Muat ulang halaman lalu coba lagi.")
         return data
 
-    def peringatan(self) -> list[str]:
-        """Peringatan lembut (tidak menolak) untuk ditampilkan sebelum kirim."""
-        hasil = []
-        d = self.cleaned_data
-        if d.get("nik") and d.get("tanggal_lahir") and d.get("jenis_kelamin"):
-            if not nik_mod.cocok_tanggal_lahir(d["nik"], d["tanggal_lahir"]) or not nik_mod.cocok_jenis_kelamin(
-                d["nik"], d["jenis_kelamin"]
-            ):
-                hasil.append("Tanggal lahir atau jenis kelamin tidak cocok dengan NIK.")
-        return hasil
-
 
 # --- Token kiriman sekali pakai (juga pengukur waktu pengisian) ------------------
 

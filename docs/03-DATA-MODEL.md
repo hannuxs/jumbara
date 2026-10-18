@@ -30,7 +30,7 @@ Ditulis dalam istilah tabel/kolom; implementasikan sebagai model Django. Semua m
 
 Pertimbangkan **NIK disimpan terenkripsi** (enkripsi tingkat field, misalnya Fernet dari paket `cryptography` dengan kunci di `.env`) plus kolom `nik_hash` (HMAC-SHA256 dengan kunci aplikasi) yang UNIQUE untuk cek dobel. Jika dipakai, pencarian NIK memakai hash. Putuskan di Tahap 0 dan catat.
 
-**penanda_peserta** (atau kolom JSON `penanda` di `peserta`): `peserta_id`, `jenis` (KUOTA_PENUH, TINGKAT_BEDA, NIK_TGL_LAHIR_BEDA, NIK_JK_BEDA, USIA_TIDAK_WAJAR, FOTO_DUPLIKAT, NAMA_MIRIP), `pesan`, `diabaikan_oleh`, `diabaikan_pada`. Superadmin bisa menandai "sudah dicek" agar tanda hilang dari daftar.
+**penanda_peserta** (atau kolom JSON `penanda` di `peserta`): `peserta_id`, `jenis` (KUOTA_PENUH, TINGKAT_BEDA, USIA_TIDAK_WAJAR, FOTO_DUPLIKAT, NAMA_MIRIP; NIK_TGL_LAHIR_BEDA dan NIK_JK_BEDA dihapus, REVISI R4), `pesan`, `diabaikan_oleh`, `diabaikan_pada`. Superadmin bisa menandai "sudah dicek" agar tanda hilang dari daftar.
 
 **kartu_riwayat**: `peserta_id`, `versi`, `qr_token_lama`, `alasan` (hilang/rusak/data berubah), `oleh`, `created_at`. Token lama yang dipindai menghasilkan merah "kartu sudah dinonaktifkan".
 

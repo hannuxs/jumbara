@@ -69,6 +69,7 @@ Uji coba bersama panitia 7 sampai 8 November. Pelatihan panitia dan juri 10 Nove
 - Kuota kontingen penuh: **form tetap menerima**, superadmin melihat tanda.
 - **Tingkat dipilih paling atas** di bagian Kontingen; daftar utusan sekolah hanya menampilkan sekolah dari tingkat itu. Di form publik, server **menolak** kiriman bila tingkat tidak sama dengan tingkat sekolah. Superadmin (tambah/ubah biodata) tetap boleh berbeda dan mendapat tanda TINGKAT_BEDA (REVISI R1, 18 Okt 2026).
 - NIK yang sama tidak bisa dikirim dua kali. Kalau seseorang salah isi atau mengisi dua kali, ia menghubungi superadmin.
+- **Isi NIK tidak dicocokkan** dengan tanggal lahir atau jenis kelamin: tidak ada peringatan di form dan tidak ada tanda untuk superadmin. NIK hanya diperiksa 16 angka, bukan angka yang sama semua, dan tidak dobel (REVISI R4, 18 Okt 2026).
 - Foto JPG atau PNG, maksimal 5 MB, otomatis dikecilkan dan dipotong rasio 3x4. **Foto dicetak di kartu peserta** dan disimpan sebagai arsip panitia. **Foto wajib mutlak** (tidak bisa dimatikan), juga untuk biodata yang ditambah superadmin (REVISI R2, 18 Okt 2026).
 - Superadmin bisa melihat, mencari, memperbaiki, dan mengunduh seluruh biodata dalam Excel.
 

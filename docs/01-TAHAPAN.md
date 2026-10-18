@@ -23,7 +23,7 @@ Kriteria selesai:
 - [ ] Halaman bukti pendaftaran dengan kode pendaftaran.
 - [ ] Login tiga akun, sesi mutlak 2 jam, ingat menu terakhir per perangkat, ganti kata sandi mengeluarkan semua perangkat.
 - [ ] Superadmin: dasbor progres per kontingen dan kuota, daftar biodata (cari, saring, urut), detail, ubah, hapus ke tempat sampah, pulihkan, unduh Excel (versi disamarkan dan versi lengkap), kelola kontingen dan kuota, pengaturan form, kelola kata sandi akun.
-- [ ] Tanda (flag) otomatis: kuota penuh/terlampaui, tingkat beda dengan kontingen, NIK tidak cocok dengan tanggal lahir/jenis kelamin, usia tidak wajar untuk tingkat.
+- [ ] Tanda (flag) otomatis: kuota penuh/terlampaui, tingkat beda dengan kontingen (hanya dari superadmin, REVISI R1), usia tidak wajar untuk tingkat, foto duplikat, nama mirip. (Pencocokan NIK dengan tanggal lahir/jenis kelamin dihapus, REVISI R4.)
 - [ ] Log aktivitas untuk setiap perubahan oleh superadmin.
 - [ ] Cadangan database harian berjalan lewat Task Scheduler.
 - [ ] Tes otomatis untuk validasi form, NIK unik, jadwal buka/tutup, hak akses.

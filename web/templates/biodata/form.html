@@ -161,7 +161,6 @@
       <legend class="label wajib">Tanggal lahir</legend>
       <div class="grid grid-cols-[1fr_1.6fr_1.3fr] gap-2">{{ form.tanggal_lahir }}</div>
       <p class="galat" data-galat="tanggal_lahir">{{ form.tanggal_lahir.errors.0 }}</p>
-      <div x-show="peringatanNik" x-cloak class="pesan-peringatan mt-2 mb-0">Tanggal lahir atau jenis kelamin tidak cocok dengan NIK. Periksa lagi. Jika sudah benar, lanjutkan.</div>
       <div x-show="peringatanUsia" x-cloak class="pesan-peringatan mt-2 mb-0" x-text="peringatanUsia"></div>
     </fieldset>
 

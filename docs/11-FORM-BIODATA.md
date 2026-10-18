@@ -73,9 +73,9 @@ Perilaku foto:
 - Kotak centang wajib: "Saya menyatakan data ini benar. Saya (atau orang tua/wali saya) menyetujui data ini dipakai panitia Jumbara PMR Kabupaten Bulungan V 2026 untuk keperluan acara, termasuk kartu peserta, absensi, dan piagam." Simpan waktu persetujuan.
 - Ini improvisasi untuk perlindungan data pribadi anak (UU 27/2022).
 
-## Cek NIK dan usia (memberi tanda, bukan menolak)
+## Cek usia, kuota, dan nama (memberi tanda, bukan menolak)
 
-- **NIK vs tanggal lahir dan jenis kelamin:** digit ke-7 dan 8 = tanggal lahir (ditambah 40 untuk perempuan), digit 9-10 = bulan, digit 11-12 = dua digit tahun. Jika tidak cocok dengan tanggal lahir atau jenis kelamin yang diisi, kiriman **tetap diterima** tetapi diberi tanda NIK_TGL_LAHIR_BEDA / NIK_JK_BEDA. Di form, tampilkan peringatan lembut sebelum kirim: "Tanggal lahir atau jenis kelamin tidak cocok dengan NIK. Periksa lagi. Jika sudah benar, lanjutkan."
+- **Isi NIK tidak dicocokkan dengan tanggal lahir atau jenis kelamin** (REVISI R4, 18 Okt 2026): tidak ada peringatan di form, di ringkasan, maupun tanda untuk superadmin. NIK hanya divalidasi 16 angka, tidak semua angka sama, dan unik.
 - **Usia wajar per tingkat untuk peran Peserta** (dihitung per 12 November 2026): Mula 8-13 tahun, Madya 11-16, Wira 14-19. Di luar itu: tanda USIA_TIDAK_WAJAR + peringatan lembut. Untuk peran lain tidak dicek, kecuali usia di bawah 17 untuk Pimpinan Kontingen/Pembina Pendamping (tanda).
 - **Kuota kontingen:** jika jumlah biodata kontingen itu sudah mencapai kuota, kiriman **tetap diterima**, dan kontingen ditandai KUOTA_PENUH di dasbor superadmin. Pengisi tidak perlu melihat pesan apa pun tentang kuota.
 - **Nama mirip dalam kontingen yang sama** (misalnya beda spasi/huruf besar): tanda NAMA_MIRIP untuk dicek superadmin.
@@ -126,7 +126,7 @@ Perilaku foto:
 - Kiriman valid tersimpan dan foto 600x800.
 - NIK bukan 16 digit ditolak; NIK dobel ditolak tanpa membocorkan data.
 - Form tertutup menolak kiriman di server.
-- Kuota penuh, NIK tidak cocok -> diterima + tanda. Tingkat beda dengan sekolah -> ditolak di form publik (REVISI R1).
+- Kuota penuh, usia tidak wajar -> diterima + tanda. NIK dengan isi apa pun (16 angka) tidak dicocokkan dengan tanggal lahir/jenis kelamin (REVISI R4). Tingkat beda dengan sekolah -> ditolak di form publik (REVISI R1).
 - Nama huruf kecil tersimpan HURUF KAPITAL termasuk gelar; tanpa foto selalu ditolak.
 - Peran dewasa tanpa data ortu diterima; peran Peserta tanpa data ortu ditolak.
 - File bukan gambar atau > 5 MB ditolak.

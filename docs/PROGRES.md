@@ -5,7 +5,7 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 ## Status singkat
 
 - Tahap aktif: **Tahap 1 (Biodata dan superadmin)**. Kode selesai dan teruji di laptop; **tinggal pemasangan di server produksi + HTTPS + uji 3 HP** (dikerjakan Farhan, lihat "Yang harus dikerjakan Farhan").
-- Revisi R1-R3 dari Farhan (tingkat dulu, foto wajib dan dicetak di kartu, nama kapital) **selesai** 18 Okt; lihat `docs/REVISI.md`.
+- Revisi R1-R4 dari Farhan (tingkat dulu + cari sekolah, foto wajib dan dicetak di kartu, nama kapital, tanpa pencocokan NIK) **selesai** 18 Okt; lihat `docs/REVISI.md`.
 - Terakhir diperbarui: 18 Oktober 2026
 - Tenggat terdekat: **25 Oktober 2026** (form biodata siap), dibuka 26 Oktober 00.00 WITA
 
@@ -25,7 +25,7 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 - [x] Halaman bukti + kode pendaftaran + PDF bukti
 - [x] Login tiga akun, sesi mutlak 2 jam, ingat menu terakhir dan saringan per perangkat, ganti sandi mengeluarkan semua perangkat
 - [x] Superadmin: dasbor + QR link form, daftar (cari/saring/urut/halaman), detail (lihat NIK tercatat log), ubah, tambah manual, tempat sampah/pulihkan/hapus permanen, Excel umum + lengkap (konfirmasi sandi), ZIP foto per kontingen, kontingen dan kuota, pengaturan form, akun dan sandi, log aktivitas (+Excel), cadangan
-- [x] Tanda otomatis: kuota penuh, tingkat beda, NIK vs tanggal lahir/JK, usia tidak wajar, foto duplikat, nama mirip
+- [x] Tanda otomatis: kuota penuh, tingkat beda (superadmin), usia tidak wajar, foto duplikat, nama mirip (pencocokan NIK dihapus, REVISI R4)
 - [x] Log aktivitas untuk setiap perubahan
 - [~] Cadangan harian: perintah `sigap_jadwal` + cadangan + pemulihan **sudah diuji**; pendaftaran Task Scheduler (`daftar-task-scheduler.ps1`) butuh Admin, **belum dijalankan**
 - [x] Tes otomatis: 156 tes lulus (`pytest`), `ruff check` bersih

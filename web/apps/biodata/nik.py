@@ -1,4 +1,6 @@
-"""NIK: enkripsi (Fernet), hash HMAC untuk cek dobel, penyamaran, dan cek isi NIK.
+"""NIK: enkripsi (Fernet), hash HMAC untuk cek dobel, dan penyamaran.
+
+Isi NIK tidak dicocokkan dengan tanggal lahir atau jenis kelamin (REVISI R4).
 
 NIK tidak pernah disimpan dalam teks biasa di database. Kolom `nik_hash` (HMAC-SHA256 dengan
 kunci aplikasi) bersifat UNIQUE untuk data aktif sehingga NIK dobel ditolak database.
@@ -8,7 +10,6 @@ from __future__ import annotations
 
 import hashlib
 import hmac
-from datetime import date
 from functools import lru_cache
 
 from cryptography.fernet import Fernet, MultiFernet
@@ -47,32 +48,3 @@ def samarkan(nik: str) -> str:
 
 def format_valid(nik: str) -> bool:
     return len(nik) == 16 and nik.isdigit() and len(set(nik)) > 1
-
-
-def info_dari_nik(nik: str) -> tuple[int, int, int, str] | None:
-    """(tanggal, bulan, dua digit tahun, jenis kelamin 'L'/'P') dari digit 7-12 NIK."""
-    if not format_valid(nik):
-        return None
-    tgl = int(nik[6:8])
-    bln = int(nik[8:10])
-    thn = int(nik[10:12])
-    jk = "L"
-    if tgl > 40:
-        tgl -= 40
-        jk = "P"
-    return tgl, bln, thn, jk
-
-
-def cocok_tanggal_lahir(nik: str, tanggal_lahir: date) -> bool:
-    info = info_dari_nik(nik)
-    if info is None:
-        return False
-    tgl, bln, thn, _ = info
-    return (tgl, bln, thn) == (tanggal_lahir.day, tanggal_lahir.month, tanggal_lahir.year % 100)
-
-
-def cocok_jenis_kelamin(nik: str, jenis_kelamin: str) -> bool:
-    info = info_dari_nik(nik)
-    if info is None:
-        return False
-    return info[3] == jenis_kelamin

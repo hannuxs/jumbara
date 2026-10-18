@@ -22,7 +22,6 @@ document.addEventListener("alpine:init", function () {
       daftarSekolah: [],
       tingkatDipilih: "",
       peranDewasa: false,
-      peringatanNik: false,
       peringatanUsia: "",
       nikDobel: false,
       adaDraf: false,
@@ -144,14 +143,7 @@ document.addEventListener("alpine:init", function () {
         var peran = this.nilai("peran");
         this.peranDewasa = peran === "PIMPINAN_KONTINGEN" || peran === "PEMBINA_PENDAMPING";
 
-        var nik = this.nilai("nik"), jk = this.nilai("jenis_kelamin"), tgl = this.tanggalLahir();
-        this.peringatanNik = false;
-        if (nik.length === 16 && jk && tgl) {
-          var hn = parseInt(nik.slice(6, 8), 10), bn = parseInt(nik.slice(8, 10), 10), tn = parseInt(nik.slice(10, 12), 10);
-          var jkNik = "L";
-          if (hn > 40) { hn -= 40; jkNik = "P"; }
-          this.peringatanNik = hn !== tgl.h || bn !== tgl.b || tn !== tgl.t % 100 || jkNik !== jk;
-        }
+        var tgl = this.tanggalLahir();
 
         this.peringatanUsia = "";
         if (tgl && peran) {
@@ -401,7 +393,6 @@ document.addEventListener("alpine:init", function () {
           { label: "HP orang tua/wali", nilai: this.nilai("telepon_orang_tua") || "-" }
         ];
         this.peringatanRingkasan = [];
-        if (this.peringatanNik) { this.peringatanRingkasan.push("Tanggal lahir atau jenis kelamin tidak cocok dengan NIK."); }
         if (this.peringatanUsia) { this.peringatanRingkasan.push(this.peringatanUsia); }
         this.pratinjauFoto = "";
         if (this.cropper) {

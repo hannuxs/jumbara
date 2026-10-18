@@ -18,7 +18,7 @@ Semua hal yang **tidak diminta secara eksplisit** oleh panitia/Farhan tetapi dit
 | 1 | ~~Foto wajib, bisa dimatikan lewat pengaturan~~ (diganti REVISI R2: foto wajib mutlak, dicetak di kartu) | Pedoman meminta foto 3x4; dibuat bisa dimatikan jika menghambat |
 | 1 | Pemotong foto 3:4 di browser + pengecilan sebelum unggah + pembersihan EXIF/GPS di server | Unggahan ringan, privasi anak |
 | 1 | Kotak centang persetujuan data | Perlindungan data anak (UU 27/2022) |
-| 1 | Cek NIK vs tanggal lahir/jenis kelamin, cek usia wajar per tingkat, nama mirip, foto duplikat -> hanya tanda, tidak menolak | Membantu superadmin menemukan salah isi tanpa menghambat pengisi |
+| 1 | ~~Cek NIK vs tanggal lahir/jenis kelamin~~ (dihapus REVISI R4), cek usia wajar per tingkat, nama mirip, foto duplikat -> hanya tanda, tidak menolak | Membantu superadmin menemukan salah isi tanpa menghambat pengisi |
 | 1 | Draf otomatis, layar ringkasan sebelum kirim, kode pendaftaran + bukti, tombol "Isi untuk orang lain" | Pembina sering mengisikan untuk banyak anak |
 | 1 | Honeypot, rate limit, token kiriman sekali pakai | Mencegah spam dan kiriman ganda |
 | 1 | Sakelar paksa buka/tutup form | Uji coba sebelum 26 Okt dan perpanjangan |
@@ -91,3 +91,4 @@ Semua hal yang **tidak diminta secara eksplisit** oleh panitia/Farhan tetapi dit
 | 18 Okt 2026 | 1 | Kotak cari sekolah selalu tampil; disentuh menampilkan semua sekolah tingkat terpilih, Enter memilih hasil teratas, jumlah sekolah per tingkat ditampilkan | Permintaan Farhan: pencarian harus tetap ada; memudahkan di HP | - |
 | 18 Okt 2026 | 1 | Tag template `{% aset %}`: alamat CSS/JS diberi versi otomatis (`?v=` waktu ubah file) saat pengembangan | Browser tidak pernah memadukan halaman baru dengan CSS/JS lama (R1c) | Ganti kembali ke `{% static %}` |
 | 18 Okt 2026 | 1 | Ikon kaca pembesar di kotak cari sekolah dihapus | Ikon tanpa CSS menutupi form (R1c); tulisan petunjuk sudah cukup | - |
+| 18 Okt 2026 | 1 | Migrasi `biodata.0003_hapus_tanda_nik` menghapus tanda lama NIK_TGL_LAHIR_BEDA/NIK_JK_BEDA dari database (data turunan, bukan biodata); tes otomatis memastikan pencocokan itu tidak muncul lagi | Permintaan Farhan: tidak boleh ada pencocokan NIK (REVISI R4) | - |

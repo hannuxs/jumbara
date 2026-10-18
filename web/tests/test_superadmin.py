@@ -14,7 +14,7 @@ from apps.inti import cadangan, pengaturan
 from apps.inti.models import LogAktivitas
 from apps.kontingen.models import Kontingen
 
-from .conftest import NIK_PEREMPUAN_2012, data_valid, token_lama
+from .conftest import NIK_CONTOH, data_valid, token_lama
 
 
 @pytest.fixture
@@ -49,7 +49,7 @@ def data_ubah(p: Peserta, **ubah) -> dict:
 
 def test_daftar_menyamarkan_nik(klien_superadmin, peserta):
     isi = klien_superadmin.get("/superadmin/biodata/").content.decode()
-    assert "6501********0003" in isi and NIK_PEREMPUAN_2012 not in isi
+    assert "6501********0003" in isi and NIK_CONTOH not in isi
 
 
 def test_cari_4_digit_nik_dan_kode(klien_superadmin, peserta):
@@ -63,10 +63,10 @@ def test_cari_4_digit_nik_dan_kode(klien_superadmin, peserta):
 
 def test_lihat_nik_tercatat_di_log(klien_superadmin, peserta):
     r = klien_superadmin.post(f"/superadmin/biodata/{peserta.pk}/nik/")
-    assert r.json()["nik"] == NIK_PEREMPUAN_2012
+    assert r.json()["nik"] == NIK_CONTOH
     log = LogAktivitas.objects.get(aksi="nik.dilihat")
     assert log.nama_pelaku == "Penguji"
-    assert NIK_PEREMPUAN_2012 not in str(log.keterangan)
+    assert NIK_CONTOH not in str(log.keterangan)
 
 
 def test_foto_hanya_lewat_superadmin(klien_superadmin, peserta):
@@ -87,7 +87,7 @@ def test_ubah_biodata_dan_riwayat(klien_superadmin, peserta, kontingen_wira):
     assert peserta.penanda.filter(jenis=JenisPenanda.TINGKAT_BEDA).exists()
     log = LogAktivitas.objects.get(aksi="biodata.diubah")
     assert log.data_lama["tempat_lahir"] == "Tanjung Selor" and log.data_baru["tempat_lahir"] == "Bulungan"
-    assert NIK_PEREMPUAN_2012 not in str(log.data_baru) + str(log.data_lama)
+    assert NIK_CONTOH not in str(log.data_baru) + str(log.data_lama)
 
 
 def test_ubah_nik_ke_nik_orang_lain_ditolak(klien_superadmin, client, peserta, kontingen_madya):
@@ -98,7 +98,7 @@ def test_ubah_nik_ke_nik_orang_lain_ditolak(klien_superadmin, client, peserta, k
         ),
     )
     lain = Peserta.objects.get(nama_lengkap="RINA DEWI")
-    r = klien_superadmin.post(f"/superadmin/biodata/{lain.pk}/ubah/", data_ubah(lain, nik=NIK_PEREMPUAN_2012))
+    r = klien_superadmin.post(f"/superadmin/biodata/{lain.pk}/ubah/", data_ubah(lain, nik=NIK_CONTOH))
     assert r.status_code == 200 and "nik" in r.context["form"].errors
 
 
@@ -159,8 +159,9 @@ def test_hapus_permanen_butuh_konfirmasi_kode(klien_superadmin, peserta):
 
 
 def test_tanda_ditandai_sudah_dicek(klien_superadmin, client, kontingen_madya):
-    client.post("/daftar/", data_valid(kontingen_madya, jenis_kelamin="L"))
-    t = PenandaPeserta.objects.get(jenis=JenisPenanda.NIK_JK_BEDA)
+    # Lahir 2004 = 22 tahun, bukan usia peserta Madya -> tanda usia tidak wajar.
+    client.post("/daftar/", data_valid(kontingen_madya, tanggal_lahir_2="2004"))
+    t = PenandaPeserta.objects.get(jenis=JenisPenanda.USIA_TIDAK_WAJAR)
     PenandaPeserta.objects.exclude(pk=t.pk).delete()
     klien_superadmin.post(f"/superadmin/tanda/{t.pk}/abaikan/")
     t.refresh_from_db()
@@ -173,7 +174,7 @@ def test_excel_umum_tanpa_data_rahasia(klien_superadmin, peserta):
     wb = openpyxl.load_workbook(io.BytesIO(r.content))
     teks = str([list(row) for row in wb["Semua"].iter_rows(values_only=True)])
     assert "SITI AMINAH" in teks and "6501********0003" in teks
-    assert NIK_PEREMPUAN_2012 not in teks and "Sengkawit" not in teks and "BUDI SANTOSO" not in teks
+    assert NIK_CONTOH not in teks and "Sengkawit" not in teks and "BUDI SANTOSO" not in teks
     assert set(wb.sheetnames) >= {"Semua", "Mula", "Madya", "Wira", "Kontingen"}
     assert LogAktivitas.objects.filter(aksi="ekspor.umum").exists()
 
@@ -187,7 +188,7 @@ def test_excel_lengkap_wajib_sandi(klien_superadmin, peserta):
     r = klien_superadmin.post("/superadmin/biodata/unduh/lengkap/", {"password": SANDI})
     wb = openpyxl.load_workbook(io.BytesIO(r.content))
     teks = str([list(row) for row in wb["Semua"].iter_rows(values_only=True)])
-    assert NIK_PEREMPUAN_2012 in teks and "Sengkawit" in teks and "BUDI SANTOSO" in teks
+    assert NIK_CONTOH in teks and "Sengkawit" in teks and "BUDI SANTOSO" in teks
     assert LogAktivitas.objects.filter(aksi="ekspor.lengkap").exists()
 
 

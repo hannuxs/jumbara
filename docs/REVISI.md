@@ -11,6 +11,7 @@ Catatan revisi dari Farhan setelah Tahap 1 selesai di laptop. Setiap revisi puny
 | R3 | 18 Okt 2026 | Semua nama disimpan dan ditampilkan dalam HURUF KAPITAL, termasuk gelar | **Selesai** 18 Okt (nama lengkap + nama orang tua/wali) |
 | R1b | 18 Okt 2026 | Laporan Farhan: tingkat Wira dipilih tetapi sekolah Mula/Madya masih muncul, kotak cari sekolah hilang. Pencarian harus tetap ada | **Selesai** 18 Okt |
 | R1c | 18 Okt 2026 | Laporan Farhan: setelah R1b halaman rusak (ikon kaca pembesar raksasa menutupi form, tidak bisa cari/pilih sekolah, banyak galat) | **Selesai** 18 Okt |
+| R4 | 18 Okt 2026 | Tidak boleh ada pencocokan NIK dengan tanggal lahir/jenis kelamin | **Selesai** 18 Okt |
 
 ---
 
@@ -167,3 +168,28 @@ Pengujian: 154 tes otomatis lulus (tes baru: tingkat beda ditolak, urutan isian,
 **Pengujian:** profil Chrome yang menyimpan cache (seperti browser Farhan): halaman dimuat, `biodata.js` diubah, halaman dimuat ulang biasa → alamat `biodata.js?v=` berganti dan file baru diambil dari server (status 200), kotak cari aktif ("Cari sekolah tingkat Wira…"), 9 sekolah Wira, cari "smk 2" + Enter memilih SMK Negeri 2 Tanjung Selor, dropdown bisa dipilih, tanpa galat konsol. Alur form lengkap (draf, ringkasan, kirim, bukti, isi untuk orang lain) lulus di 360 px. 156 tes otomatis lulus (tambahan: tes alamat aset berversi).
 
 **Pelajaran untuk sesi berikutnya:** setiap perubahan CSS/JS diuji juga dengan profil browser yang sudah punya cache versi sebelumnya, bukan hanya browser bersih.
+
+---
+
+## R4. Hapus pencocokan NIK dengan tanggal lahir dan jenis kelamin (18 Okt 2026)
+
+**Permintaan:** peringatan "Tanggal lahir atau jenis kelamin tidak cocok dengan NIK. Periksa lagi. Jika sudah benar, lanjutkan." tidak boleh ada. Tidak boleh ada protokol pencocokan seperti itu di mana pun.
+
+**Yang dihapus (diperiksa dengan pencarian di seluruh repositori):**
+
+| Tempat | Yang dihapus |
+|---|---|
+| `web/templates/biodata/form.html` | Kotak peringatan kuning di bawah tanggal lahir |
+| `web/static/js/biodata.js` | Perhitungan digit 7-12 NIK di browser (`peringatanNik`) dan baris peringatan di layar ringkasan sebelum kirim |
+| `web/apps/biodata/nik.py` | Fungsi `info_dari_nik`, `cocok_tanggal_lahir`, `cocok_jenis_kelamin` |
+| `web/apps/biodata/forms.py` | Metode `peringatan()` (pencocokan di server) |
+| `web/apps/biodata/services.py` | Tanda `NIK_TGL_LAHIR_BEDA` dan `NIK_JK_BEDA` di `hitung_tanda` (fungsi tidak lagi menerima NIK sama sekali) |
+| `web/apps/biodata/models.py` | Dua jenis tanda itu dari pilihan `JenisPenanda` (halaman superadmin, saringan tanda, Excel ikut tidak menampilkannya) |
+| Database | Migrasi `biodata.0003_hapus_tanda_nik`: tanda lama dua jenis itu dihapus (data turunan, biodata tidak berubah) |
+| Dokumen | `00-KEPUTUSAN.md` (aturan baru), `01-TAHAPAN.md`, `03-DATA-MODEL.md`, `11-FORM-BIODATA.md`, `IMPROVISASI.md`, `PROGRES.md` |
+
+**Yang tetap ada (bukan pencocokan NIK):** NIK wajib 16 angka, tidak boleh semua angka sama, dan tidak boleh dobel; NIK disimpan terenkripsi dan disamarkan. Tanda lain tetap: kuota penuh, usia tidak wajar per tingkat (dari tanggal lahir saja), foto duplikat, nama mirip, tingkat beda (dari superadmin).
+
+**Sisa yang sengaja tidak diubah:** `migrations/0001_initial.py` masih menyebut dua jenis tanda itu karena migrasi yang sudah diterapkan tidak boleh diubah (aturan `CLAUDE.md`); migrasi 0003 yang menghapusnya.
+
+**Pengujian:** tes baru `test_nik_tidak_dicocokkan_dengan_tanggal_lahir_dan_jk` (NIK yang digitnya tidak sesuai tanggal lahir dan jenis kelamin diterima tanpa tanda apa pun; halaman form dan `biodata.js` tidak berisi kalimat pencocokan; jenis tanda tidak ada lagi). Tes tanda di superadmin dipindah ke tanda usia tidak wajar. 156 tes lulus; uji browser 360 px tanpa peringatan NIK.

@@ -120,7 +120,7 @@ def tanggal_acuan_usia() -> date:
 # --- Tanda otomatis -----------------------------------------------------------
 
 
-def hitung_tanda(peserta: Peserta, nik: str) -> dict[str, str]:
+def hitung_tanda(peserta: Peserta) -> dict[str, str]:
     """Daftar tanda {jenis: pesan} untuk satu peserta. Tidak pernah menolak kiriman."""
     tanda: dict[str, str] = {}
     kontingen = peserta.kontingen
@@ -135,11 +135,6 @@ def hitung_tanda(peserta: Peserta, nik: str) -> dict[str, str]:
         sebelum = sebelum.filter(dibuat_pada__lt=peserta.dibuat_pada)
     if kontingen.kuota and sebelum.count() >= kontingen.kuota:
         tanda[JenisPenanda.KUOTA_PENUH] = f"Masuk saat kuota kontingen ({kontingen.kuota}) sudah terisi"
-
-    if not nik_mod.cocok_tanggal_lahir(nik, peserta.tanggal_lahir):
-        tanda[JenisPenanda.NIK_TGL_LAHIR_BEDA] = "Tanggal lahir tidak cocok dengan NIK"
-    if not nik_mod.cocok_jenis_kelamin(nik, peserta.jenis_kelamin):
-        tanda[JenisPenanda.NIK_JK_BEDA] = "Jenis kelamin tidak cocok dengan NIK"
 
     usia = usia_pada(peserta.tanggal_lahir, tanggal_acuan_usia())
     if peserta.peran == Peran.PESERTA:
@@ -293,7 +288,7 @@ def buat_peserta(request, data: dict, hasil_foto: foto_mod.HasilFoto | None, sum
     try:
         with transaction.atomic():
             peserta.save()
-            tanda = hitung_tanda(peserta, data["nik"])
+            tanda = hitung_tanda(peserta)
             terapkan_tanda(peserta, tanda)
             _tandai_pasangan(peserta, tanda)
             aksi = "biodata.dibuat" if sumber == Sumber.FORM_PUBLIK else "biodata.ditambah_superadmin"
@@ -322,7 +317,7 @@ def ubah_peserta(request, peserta: Peserta, data: dict, hasil_foto: foto_mod.Has
     try:
         with transaction.atomic():
             peserta.save()
-            tanda = hitung_tanda(peserta, data["nik"])
+            tanda = hitung_tanda(peserta)
             terapkan_tanda(peserta, tanda)
             _tandai_pasangan(peserta, tanda)
             baru = ringkasan_log(peserta)
