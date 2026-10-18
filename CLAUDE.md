@@ -76,10 +76,11 @@ python manage.py makemigrations
 python manage.py migrate
 python manage.py sigap_seed
 python manage.py sigap_cek_lingkungan
+python manage.py sigap_jadwal --paksa-cadangan
 pytest
 ruff check . ; ruff format .
-tools\tailwindcss.exe -i tailwind\input.css -o static\css\app.css --watch      (pengembangan)
-tools\tailwindcss.exe -i tailwind\input.css -o static\css\app.css --minify     (produksi, commit hasilnya)
+tools\tailwindcss.exe -c tailwind\tailwind.config.js -i tailwind\input.css -o static\css\app.css --watch    (pengembangan)
+tools\tailwindcss.exe -c tailwind\tailwind.config.js -i tailwind\input.css -o static\css\app.css --minify   (produksi, commit hasilnya)
 ```
 
 Untuk uji kamera di HP saat pengembangan, butuh HTTPS: pakai `cloudflared tunnel --url http://localhost:8000` (lihat `docs/21-DEPLOY-WINDOWS.md`).
