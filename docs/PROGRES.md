@@ -5,6 +5,7 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 ## Status singkat
 
 - Tahap aktif: **Tahap 1 (Biodata dan superadmin)**. Kode selesai dan teruji di laptop; **tinggal pemasangan di server produksi + HTTPS + uji 3 HP** (dikerjakan Farhan, lihat "Yang harus dikerjakan Farhan").
+- **Revisi baru dari Farhan (R1-R3) tercatat di `docs/REVISI.md`, belum dikerjakan.**
 - Terakhir diperbarui: 18 Oktober 2026
 - Tenggat terdekat: **25 Oktober 2026** (form biodata siap), dibuka 26 Oktober 00.00 WITA
 
