@@ -4,6 +4,7 @@ Semua nilai yang berbeda antara laptop pengembangan dan server produksi dibaca d
 `web\\.env` (lihat `.env.example`). Jangan menulis rahasia di file ini.
 """
 
+import sys
 from pathlib import Path
 
 import environ
@@ -21,7 +22,7 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 SIGAP_URL = env("SIGAP_URL", default="http://localhost:8000").rstrip("/")
 
 # Mode tes (pytest) mematikan hal yang tidak perlu saat tes, misalnya manifest statis.
-SEDANG_TES = env.bool("SIGAP_SEDANG_TES", default=False)
+SEDANG_TES = env.bool("SIGAP_SEDANG_TES", default=False) or "pytest" in sys.modules
 
 INSTALLED_APPS = [
     "django.contrib.auth",
@@ -48,11 +49,11 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
     "apps.akun.middleware.SesiMutlakMiddleware",
     "apps.inti.middleware.PelakuMiddleware",
     "apps.inti.middleware.PerawatanMiddleware",
     "apps.inti.middleware.HeaderKeamananMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
@@ -144,6 +145,10 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
+
+if SEDANG_TES:
+    # Hash cepat khusus tes otomatis (tidak pernah dipakai di produksi).
+    PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
 # --- Bahasa dan waktu ----------------------------------------------------------
 LANGUAGE_CODE = "id"

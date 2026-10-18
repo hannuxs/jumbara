@@ -17,7 +17,7 @@ from django.views.decorators.http import require_POST
 from apps.akun.decorators import superadmin_wajib
 from apps.inti.log import catat
 from apps.inti.models import LogAktivitas, Tingkat
-from apps.kontingen.models import Kontingen
+from apps.kontingen.models import URUTAN_TINGKAT, Kontingen
 
 from . import ekspor, kueri, services
 from . import foto as foto_mod
@@ -68,7 +68,7 @@ def _konteks_saringan(request):
     s = kueri.Saringan.dari_get(request.GET)
     return s, {
         "s": s,
-        "pilihan_kontingen": Kontingen.objects.order_by("kode"),
+        "pilihan_kontingen": Kontingen.objects.order_by(URUTAN_TINGKAT, "kode"),
         "pilihan_tingkat": Tingkat.choices,
         "pilihan_peran": Peran.choices,
         "pilihan_tanda": JenisPenanda.choices,

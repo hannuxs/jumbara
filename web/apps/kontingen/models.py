@@ -36,3 +36,11 @@ class Kontingen(ModelHapusLunak):
 
     def __str__(self) -> str:
         return self.nama
+
+
+URUTAN_TINGKAT = models.Case(
+    models.When(tingkat=Tingkat.MULA, then=0),
+    models.When(tingkat=Tingkat.MADYA, then=1),
+    models.When(tingkat=Tingkat.WIRA, then=2),
+    default=3,
+)

@@ -8,7 +8,7 @@ from django.db.models import Count, Exists, OuterRef, Q, QuerySet
 from django.db.models.functions import TruncDate
 
 from apps.inti.models import Tingkat
-from apps.kontingen.models import Kontingen
+from apps.kontingen.models import URUTAN_TINGKAT, Kontingen
 
 from . import nik as nik_mod
 from .models import JenisPenanda, PenandaPeserta, Peran, Peserta
@@ -109,7 +109,7 @@ def tabel_kontingen() -> list[dict]:
     anotasi = {nama: Count("peserta", filter=Q(peserta__dihapus_pada__isnull=True, peserta__peran=p))
                for p, nama in hitung.items()}  # fmt: skip
     anotasi["terisi"] = Count("peserta", filter=Q(peserta__dihapus_pada__isnull=True))
-    baris = list(Kontingen.objects.annotate(**anotasi).order_by("kode"))
+    baris = list(Kontingen.objects.annotate(**anotasi).order_by(URUTAN_TINGKAT, "kode"))
     bertanda = dict(Peserta.objects.filter(ada_tanda_aktif()).values_list("kontingen_id").annotate(n=Count("id")))
     hasil = []
     for k in baris:
