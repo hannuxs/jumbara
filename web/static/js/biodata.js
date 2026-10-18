@@ -20,7 +20,7 @@ document.addEventListener("alpine:init", function () {
       cari: "",
       bukaCari: false,
       daftarSekolah: [],
-      tingkatBeda: false,
+      tingkatDipilih: "",
       peranDewasa: false,
       peringatanNik: false,
       peringatanUsia: "",
@@ -41,8 +41,10 @@ document.addEventListener("alpine:init", function () {
         var self = this;
         var pilih = this.$refs.kontingen;
         Array.prototype.forEach.call(pilih.options, function (o) {
-          if (o.value) { self.daftarSekolah.push({ id: o.value, nama: o.textContent.trim(), tingkat: o.dataset.tingkat, tingkatLabel: LABEL_TINGKAT[o.dataset.tingkat] || "" }); }
+          if (o.value) { self.daftarSekolah.push({ id: o.value, nama: o.textContent.trim(), tingkat: o.dataset.tingkat }); }
         });
+        // Daftar sekolah hanya berisi sekolah dari tingkat yang dipilih (REVISI R1).
+        this.saringSekolah();
         var bound = this.$root.dataset.bound === "1";
         if (!bound) {
           var params = new URLSearchParams(location.search);
@@ -63,8 +65,9 @@ document.addEventListener("alpine:init", function () {
       hasilCari: function () {
         var q = this.cari.toLowerCase().trim();
         if (!q) { return []; }
-        var kata = q.split(/\s+/);
+        var kata = q.split(/\s+/), tingkat = this.tingkatDipilih;
         return this.daftarSekolah.filter(function (k) {
+          if (k.tingkat !== tingkat) { return false; }
           var n = k.nama.toLowerCase();
           return kata.every(function (w) { return n.indexOf(w) !== -1; });
         }).slice(0, 12);
@@ -76,16 +79,36 @@ document.addEventListener("alpine:init", function () {
         this.sekolahBerubah();
         this.simpanDraf();
       },
-      tingkatSekolah: function () {
-        var o = this.$refs.kontingen.selectedOptions[0];
-        return o && o.dataset.tingkat ? o.dataset.tingkat : "";
+      // Bangun ulang pilihan sekolah sesuai tingkat. Opsi dihapus/ditambah (bukan disembunyikan),
+      // karena <option hidden> tidak berlaku di Safari iPhone.
+      saringSekolah: function () {
+        var pilih = this.$refs.kontingen, lama = pilih.value, tingkat = this.nilai("tingkat");
+        this.tingkatDipilih = tingkat;
+        while (pilih.firstChild) { pilih.removeChild(pilih.firstChild); }
+        var kosong = document.createElement("option");
+        kosong.value = "";
+        kosong.textContent = tingkat ? "Pilih sekolah tingkat " + LABEL_TINGKAT[tingkat] : "Pilih tingkat dulu";
+        pilih.appendChild(kosong);
+        var masihAda = false;
+        this.daftarSekolah.forEach(function (k) {
+          if (k.tingkat !== tingkat) { return; }
+          var o = document.createElement("option");
+          o.value = k.id;
+          o.textContent = k.nama;
+          o.dataset.tingkat = k.tingkat;
+          if (k.id === lama) { o.selected = true; masihAda = true; }
+          pilih.appendChild(o);
+        });
+        if (!masihAda) { pilih.value = ""; }
+        pilih.disabled = !tingkat;
+      },
+      tingkatBerubah: function () {
+        this.saringSekolah();
+        this.cari = "";
+        this.hapusGalat("tingkat");
+        this.periksaSemua();
       },
       sekolahBerubah: function () {
-        var t = this.tingkatSekolah();
-        if (t) {
-          var r = this.$refs.form.querySelector('input[name=tingkat][value="' + t + '"]');
-          if (r) { r.checked = true; }
-        }
         this.hapusGalat("kontingen");
         this.periksaSemua();
       },
@@ -109,8 +132,6 @@ document.addEventListener("alpine:init", function () {
 
       periksaSemua: function () {
         var tingkat = this.nilai("tingkat");
-        var ts = this.tingkatSekolah();
-        this.tingkatBeda = !!(tingkat && ts && tingkat !== ts);
         var peran = this.nilai("peran");
         this.peranDewasa = peran === "PIMPINAN_KONTINGEN" || peran === "PEMBINA_PENDAMPING";
 
@@ -228,8 +249,13 @@ document.addEventListener("alpine:init", function () {
       },
       isiNilai: function (data) {
         var f = this.$refs.form;
+        // Tingkat diisi dulu agar pilihan sekolahnya tersedia sebelum sekolah dipilih.
+        if (data.tingkat) {
+          Array.prototype.forEach.call(f.elements.tingkat, function (r) { r.checked = r.value === data.tingkat; });
+          this.saringSekolah();
+        }
         Object.keys(data).forEach(function (nama) {
-          if (nama.charAt(0) === "_") { return; }
+          if (nama.charAt(0) === "_" || nama === "tingkat") { return; }
           var el = f.elements[nama];
           if (!el) { return; }
           if (el instanceof RadioNodeList) {
@@ -354,7 +380,7 @@ document.addEventListener("alpine:init", function () {
           { label: "Sekolah", nilai: this.teksPilihan("kontingen") },
           { label: "Tingkat", nilai: this.teksPilihan("tingkat") },
           { label: "Peran", nilai: this.teksPilihan("peran") },
-          { label: "Nama lengkap", nilai: this.nilai("nama_lengkap") },
+          { label: "Nama lengkap", nilai: this.nilai("nama_lengkap").toUpperCase() },
           { label: "NIK", nilai: nik.slice(0, 4) + "********" + nik.slice(-4) },
           { label: "No. anggota", nilai: this.nilai("nomor_induk_anggota") || "-" },
           { label: "Jenis kelamin", nilai: this.teksPilihan("jenis_kelamin") },
@@ -362,11 +388,10 @@ document.addEventListener("alpine:init", function () {
           { label: "Alamat", nilai: this.nilai("alamat") },
           { label: "Golongan darah", nilai: this.teksPilihan("golongan_darah") },
           { label: "Nomor HP", nilai: this.nilai("telepon") || "-" },
-          { label: "Orang tua/wali", nilai: this.nilai("nama_orang_tua") || "-" },
+          { label: "Orang tua/wali", nilai: this.nilai("nama_orang_tua").toUpperCase() || "-" },
           { label: "HP orang tua/wali", nilai: this.nilai("telepon_orang_tua") || "-" }
         ];
         this.peringatanRingkasan = [];
-        if (this.tingkatBeda) { this.peringatanRingkasan.push("Tingkat berbeda dengan tingkat sekolah."); }
         if (this.peringatanNik) { this.peringatanRingkasan.push("Tanggal lahir atau jenis kelamin tidak cocok dengan NIK."); }
         if (this.peringatanUsia) { this.peringatanRingkasan.push(this.peringatanUsia); }
         this.pratinjauFoto = "";

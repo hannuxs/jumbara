@@ -30,7 +30,6 @@ BAWAAN: dict[str, Any] = {
     "biodata.buka_pada": "2026-10-26T00:00:00+08:00",
     "biodata.tutup_pada": "2026-11-02T23:59:59+08:00",
     "biodata.paksa_status": StatusPaksa.OTOMATIS,
-    "biodata.foto_wajib": True,
     "biodata.terkunci": False,
     "biodata.waktu_minimal_detik": 10,
     "kontak.superadmin_wa": "",

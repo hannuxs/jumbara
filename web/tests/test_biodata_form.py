@@ -34,7 +34,8 @@ def test_kiriman_valid_tersimpan_dan_foto_600x800(client, kontingen_madya):
     r = kirim(client, data_valid(kontingen_madya, nama_lengkap="  Siti   Aminah ", foto=file_foto(gambar(exif=True))))
     assert r.status_code == 302 and "/daftar/bukti/" in r["Location"]
     p = Peserta.objects.get()
-    assert p.nama_lengkap == "Siti Aminah"
+    assert p.nama_lengkap == "SITI AMINAH"
+    assert p.nama_orang_tua == "BUDI SANTOSO"
     assert p.kode_pendaftaran.startswith("SJ-") and len(p.kode_pendaftaran) == 9
     assert p.telepon_orang_tua == "6281234567890"
     assert p.persetujuan_data_pada is not None
@@ -59,7 +60,7 @@ def test_bukti_tampil_tanpa_nik(client, kontingen_madya):
     p = Peserta.objects.get()
     isi = bukti.content.decode()
     assert bukti.status_code == 200
-    assert p.kode_pendaftaran in isi and "Siti Aminah" in isi
+    assert p.kode_pendaftaran in isi and "SITI AMINAH" in isi
     assert NIK_PEREMPUAN_2012 not in isi and "6501" not in isi
     pdf = client.get(r["Location"] + "pdf/")
     assert pdf["Content-Type"] == "application/pdf" and pdf.content.startswith(b"%PDF")
@@ -170,11 +171,18 @@ def test_status_form_unit():
 # --- Tanda (diterima + ditandai) --------------------------------------------------
 
 
-def test_tingkat_beda_diterima_dan_ditandai(client, kontingen_madya):
-    kirim(client, data_valid(kontingen_madya, tingkat="WIRA"))
-    p = Peserta.objects.get()
-    assert p.tingkat == "WIRA"
-    assert JenisPenanda.TINGKAT_BEDA in jenis_tanda(p)
+def test_tingkat_beda_dengan_sekolah_ditolak(client, kontingen_madya):
+    # REVISI R1: tingkat dipilih dulu; sekolah dari tingkat lain ditolak server.
+    r = kirim(client, data_valid(kontingen_madya, tingkat="WIRA"))
+    assert r.status_code == 400
+    assert "bukan sekolah tingkat Wira" in r.context["form"].errors["kontingen"][0]
+    assert Peserta.objects.count() == 0
+
+
+def test_form_tingkat_tampil_sebelum_sekolah(client, kontingen_madya):
+    isi = client.get(URL).content.decode()
+    assert isi.index('data-isian="tingkat"') < isi.index('data-isian="kontingen"') < isi.index('data-isian="peran"')
+    assert 'data-tingkat="MADYA"' in isi
 
 
 def test_kuota_penuh_diterima_dan_ditandai(client, kontingen_madya):
@@ -244,10 +252,23 @@ def test_peserta_tanpa_data_ortu_ditolak(client, kontingen_madya, peran):
 # --- Isian ----------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("nama", ["M. Fuad", "As'ad", "Sri Handayani, S.Pd", "Ni Luh Putu-Ayu", "Ahmad Farhan"])
-def test_nama_wajar_diterima(client, kontingen_madya, nama):
-    r = kirim(client, data_valid(kontingen_madya, nama_lengkap=nama))
+@pytest.mark.parametrize(
+    "nama,disimpan",
+    [
+        ("M. Fuad", "M. FUAD"),
+        ("As’ad", "AS'AD"),
+        ("sri handayani, s.pd", "SRI HANDAYANI, S.PD"),
+        ("Ni Luh Putu-Ayu", "NI LUH PUTU-AYU"),
+        ("AHMAD FARHAN", "AHMAD FARHAN"),
+    ],
+)
+def test_nama_wajar_diterima_dan_disimpan_kapital(client, kontingen_madya, nama, disimpan):
+    # REVISI R3: nama (termasuk gelar) disimpan HURUF KAPITAL.
+    r = kirim(client, data_valid(kontingen_madya, nama_lengkap=nama, nama_orang_tua="ibu siti, s.e"))
     assert r.status_code == 302, r.context["form"].errors if r.context else r
+    p = Peserta.objects.get()
+    assert p.nama_lengkap == disimpan
+    assert p.nama_orang_tua == "IBU SITI, S.E"
 
 
 @pytest.mark.parametrize("nama", ["Budi123", "Si", "<script>", "Budi@Mail", "...."])
@@ -323,12 +344,12 @@ def test_png_transparan_diterima(client, kontingen_madya):
         assert img.size == (600, 800) and img.mode == "RGB"
 
 
-def test_foto_wajib_bisa_dimatikan(client, kontingen_madya):
+def test_foto_wajib_mutlak(client, kontingen_madya):
+    # REVISI R2: foto dicetak di kartu, jadi selalu wajib (pengaturan lama tidak berpengaruh).
+    pengaturan.simpan("biodata.foto_wajib", False)
     r = kirim(client, data_valid(kontingen_madya, foto=None))
     assert r.status_code == 400 and "foto" in r.context["form"].errors
-    pengaturan.simpan("biodata.foto_wajib", False)
-    r = kirim(client, data_valid(kontingen_madya, foto=None, token=token_lama()))
-    assert r.status_code == 302 and Peserta.objects.get().foto_path == ""
+    assert Peserta.objects.count() == 0
 
 
 def test_koordinat_potong_dipakai(client, kontingen_madya):

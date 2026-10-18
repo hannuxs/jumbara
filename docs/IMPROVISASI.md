@@ -12,10 +12,10 @@ Semua hal yang **tidak diminta secara eksplisit** oleh panitia/Farhan tetapi dit
 
 | Tahap | Improvisasi | Alasan |
 |---|---|---|
-| 1 | Tingkat otomatis terisi dari sekolah yang dipilih, tetap bisa diubah dengan peringatan | 1 sekolah = 1 kontingen = 1 tingkat menurut pedoman; mengurangi salah pilih. Keputusan brief (pilih sendiri + tanda beda) tetap dihormati |
+| 1 | ~~Tingkat otomatis terisi dari sekolah yang dipilih, tetap bisa diubah dengan peringatan~~ (diganti REVISI R1: tingkat dipilih dulu, sekolah disaring) | 1 sekolah = 1 kontingen = 1 tingkat menurut pedoman; mengurangi salah pilih. Keputusan brief (pilih sendiri + tanda beda) tetap dihormati |
 | 1 | Telepon pribadi wajib hanya untuk Pimpinan Kontingen dan Pembina Pendamping; data orang tua wajib hanya untuk Peserta dan Peninjau | Banyak anak belum punya HP; orang dewasa tidak perlu data orang tua |
 | 1 | Nomor induk anggota tidak wajib | Tidak semua punya KTA; pembina mungkin tidak punya |
-| 1 | Foto wajib, bisa dimatikan lewat pengaturan | Pedoman meminta foto 3x4; dibuat bisa dimatikan jika menghambat |
+| 1 | ~~Foto wajib, bisa dimatikan lewat pengaturan~~ (diganti REVISI R2: foto wajib mutlak, dicetak di kartu) | Pedoman meminta foto 3x4; dibuat bisa dimatikan jika menghambat |
 | 1 | Pemotong foto 3:4 di browser + pengecilan sebelum unggah + pembersihan EXIF/GPS di server | Unggahan ringan, privasi anak |
 | 1 | Kotak centang persetujuan data | Perlindungan data anak (UU 27/2022) |
 | 1 | Cek NIK vs tanggal lahir/jenis kelamin, cek usia wajar per tingkat, nama mirip, foto duplikat -> hanya tanda, tidak menolak | Membantu superadmin menemukan salah isi tanpa menghambat pengisi |
@@ -81,3 +81,9 @@ Semua hal yang **tidak diminta secara eksplisit** oleh panitia/Farhan tetapi dit
 | 18 Okt 2026 | 1 | Cadangan berupa satu ZIP (database.sql + foto + BACA-SAYA.txt), sandi database lewat file opsi sementara, kunci berkas agar tidak dobel, cadangan otomatis sebelum `perbarui.ps1` | Pemulihan sederhana dan aman | - |
 | 18 Okt 2026 | 1 | Service Waitress memakai WinSW (bergantung pada service MariaDB, restart otomatis, log bergulir) | Spesifikasi 21 | `pasang-service.ps1 -Hapus` |
 | 18 Okt 2026 | 1 | Playwright (hanya di virtualenv laptop, tidak di `requirements.txt`) untuk uji tampilan 360 px dengan Chrome terpasang | Memeriksa tampilan HP dan alur JavaScript secara otomatis | `pip uninstall playwright` |
+| 18 Okt 2026 | 1 | Daftar sekolah dibangun ulang (opsi dihapus/ditambah) saat tingkat berganti, bukan disembunyikan | `<option hidden>` tidak berlaku di Safari iPhone | - |
+| 18 Okt 2026 | 1 | Teks bantuan tingkat: "Mula = SD/MI, Madya = SMP/MTs, Wira = SMA/SMK/MA" | Membantu anak/guru memilih tingkat sebelum sekolah | Ubah teks di `form.html` |
+| 18 Okt 2026 | 1 | Superadmin tetap boleh menyimpan tingkat yang beda dengan sekolah (diberi tanda TINGKAT_BEDA); hanya form publik yang menolak | Superadmin perlu memindahkan orang antar kontingen dan menangani kasus khusus | Tambahkan cek di `BiodataForm.clean` untuk mode superadmin |
+| 18 Okt 2026 | 1 | Teks bantuan SIAMO ditambah "Kosongkan jika belum punya."; teks foto dirapikan menjadi "Foto akan dicetak di kartu peserta dan disimpan sebagai arsip panitia." | Teks lama "Foto hanya arsip, dicetak di kartu" bertentangan; anak tanpa nomor SIAMO tidak bingung | Ubah teks di `form.html`/`forms.py` |
+| 18 Okt 2026 | 1 | Isian nama tampil kapital saat diketik (`uppercase`, `autocapitalize=characters`) dan ringkasan sebelum kirim menampilkan kapital | Pengisi melihat bentuk yang akan disimpan | - |
+| 18 Okt 2026 | 1 | Migrasi `biodata.0002_nama_kapital` mengubah nama yang sudah ada ke kapital | Data lama (saat ini hanya data uji) seragam | - |

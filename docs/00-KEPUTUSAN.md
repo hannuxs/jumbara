@@ -64,17 +64,18 @@ Uji coba bersama panitia 7 sampai 8 November. Pelatihan panitia dan juri 10 Nove
 - Isian: nama lengkap, NIK, nomor induk anggota, jenis kelamin, tempat lahir, tanggal lahir, alamat rumah, golongan darah, telepon, utusan sekolah, tingkat, peran, nama ayah atau ibu, telepon ayah atau ibu, upload foto. Rincian di `11-FORM-BIODATA.md`.
 - **Utusan sekolah** dipilih dari dropdown daftar kontingen (`data/kontingen.csv`), bukan diketik bebas.
 - **Nama peserta tetap diketik manual** oleh peserta. Data lain yang belum lengkap juga diisi di form.
+- **Semua nama disimpan dan ditampilkan HURUF KAPITAL**, termasuk gelar (contoh `SRI HANDAYANI, S.PD`), walau diketik huruf kecil. Berlaku untuk nama lengkap dan nama ayah/ibu/wali. Tempat lahir dan alamat tetap sesuai ketikan (REVISI R3, 18 Okt 2026).
 - **JANGAN memakai daftar nama peserta dari spreadsheet panitia.** Satu-satunya data awal yang dipakai adalah daftar kontingen hasil Google Form pendaftaran (nama sekolah, tingkat, jumlah orang).
 - Kuota kontingen penuh: **form tetap menerima**, superadmin melihat tanda.
-- Tingkat yang dipilih berbeda dengan tingkat kontingen: superadmin melihat tanda.
+- **Tingkat dipilih paling atas** di bagian Kontingen; daftar utusan sekolah hanya menampilkan sekolah dari tingkat itu. Di form publik, server **menolak** kiriman bila tingkat tidak sama dengan tingkat sekolah. Superadmin (tambah/ubah biodata) tetap boleh berbeda dan mendapat tanda TINGKAT_BEDA (REVISI R1, 18 Okt 2026).
 - NIK yang sama tidak bisa dikirim dua kali. Kalau seseorang salah isi atau mengisi dua kali, ia menghubungi superadmin.
-- Foto JPG atau PNG, maksimal 5 MB, otomatis dikecilkan dan dipotong rasio 3x4. **Foto hanya arsip, dicetak di kartu.**
+- Foto JPG atau PNG, maksimal 5 MB, otomatis dikecilkan dan dipotong rasio 3x4. **Foto dicetak di kartu peserta** dan disimpan sebagai arsip panitia. **Foto wajib mutlak** (tidak bisa dimatikan), juga untuk biodata yang ditambah superadmin (REVISI R2, 18 Okt 2026).
 - Superadmin bisa melihat, mencari, memperbaiki, dan mengunduh seluruh biodata dalam Excel.
 
 ## Kartu dan QR
 
 - Kartu ukuran **B-2** (sekitar 8,8 x 12,5 cm, potret), **4 kartu per lembar F4** (215 x 330 mm) dengan garis potong.
-- Isi kartu: nama, kontingen, tingkat, peran, QR. **Tanpa foto.**
+- Isi kartu: **foto 3x4**, nama, kontingen, tingkat, peran, QR (REVISI R2, 18 Okt 2026).
 - QR berisi **kode acak**, bukan NIK atau nama. Kartu hilang bisa dinonaktifkan dan dicetak ulang dengan kode baru.
 - Kartu dicetak per kontingen dalam satu PDF.
 - Setiap kontingen mendapat **satu lembar QR kontingen ukuran F4** untuk ditempel di tenda (dipakai Anjangsana).

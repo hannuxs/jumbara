@@ -62,7 +62,6 @@ def _konteks_form(request, form, status, peringatan_umum=None):
         "form": form,
         "status": status,
         "penjelasan_peran": PENJELASAN_PERAN,
-        "foto_wajib": bool(nilai.get("biodata.foto_wajib", True)),
         "peringatan_umum": peringatan_umum or [],
         "tautan_wa_sekolah": tautan_wa(
             wa, "Halo Superadmin, sekolah saya tidak ada di daftar form biodata SIGAP JUMBARA."
@@ -84,12 +83,11 @@ def _tolak(request, form, status, pesan: str, kode_status: int = 400, token_baru
 def daftar(request):
     nilai = pengaturan.untuk_request(request)
     status = services.status_form(nilai)
-    foto_wajib = bool(nilai.get("biodata.foto_wajib", True))
 
     if request.method == "GET":
         if not status.terbuka:
             return render(request, "biodata/tutup.html", {"status": status})
-        form = BiodataForm(foto_wajib=foto_wajib, initial={"token": buat_token()})
+        form = BiodataForm(initial={"token": buat_token()})
         return render(request, "biodata/form.html", _konteks_form(request, form, status))
 
     # --- POST ----------------------------------------------------------------
@@ -100,16 +98,16 @@ def daftar(request):
         return render(request, "biodata/tutup.html", {"status": status}, status=403)
 
     if is_ratelimited(request, group="biodata.kirim", key="ip", rate=BATAS_KIRIM, method="POST", increment=False):
-        return _tolak(request, BiodataForm(request.POST, foto_wajib=foto_wajib), status,
+        return _tolak(request, BiodataForm(request.POST), status,
                       "Terlalu banyak kiriman dari jaringan ini. Tunggu 10 menit lalu coba lagi.", 429)  # fmt: skip
 
-    form = BiodataForm(request.POST, request.FILES, foto_wajib=foto_wajib)
+    form = BiodataForm(request.POST, request.FILES)
 
     token = baca_token(request.POST.get("token", ""))
     if token is None:
         data = request.POST.copy()
         data["token"] = buat_token()
-        form = BiodataForm(data, foto_wajib=foto_wajib)
+        form = BiodataForm(data)
         return _tolak(request, form, status, "Halaman sudah terlalu lama terbuka. Periksa isian lalu tekan Kirim sekali lagi.",
                       token_baru=data["token"])  # fmt: skip
     nonce, umur_detik = token

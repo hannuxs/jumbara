@@ -124,7 +124,7 @@ class BiodataForm(forms.Form):
         label="Nomor Induk Anggota PMR (jika ada)",
         max_length=50,
         required=False,
-        help_text="Terdapat pada aplikasi SIAMO",
+        help_text="Terdapat pada aplikasi SIAMO. Kosongkan jika belum punya.",
     )
     jenis_kelamin = forms.ChoiceField(
         choices=JenisKelamin.choices,
@@ -182,10 +182,9 @@ class BiodataForm(forms.Form):
     situs_web = forms.CharField(required=False, label="Jangan diisi")
     token = forms.CharField(required=False, widget=forms.HiddenInput)
 
-    def __init__(self, *args, mode: str = "publik", foto_wajib: bool = True, peserta=None, **kwargs):
+    def __init__(self, *args, mode: str = "publik", peserta=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.mode = mode
-        self.foto_wajib = foto_wajib
         self.peserta = peserta
         self.hasil_foto: foto_mod.HasilFoto | None = None
         self.nik_dobel = False
@@ -215,7 +214,8 @@ class BiodataForm(forms.Form):
             raise forms.ValidationError(
                 "Nama hanya boleh berisi huruf, spasi, titik, koma, apostrof ('), dan tanda hubung (-)."
             )
-        return nama
+        # Semua nama disimpan HURUF KAPITAL, termasuk gelar (REVISI R3).
+        return services.kapital(nama)
 
     def clean_nik(self) -> str:
         nik = "".join(self.cleaned_data["nik"].split())
@@ -280,12 +280,20 @@ class BiodataForm(forms.Form):
         nama = services.rapikan_spasi(self.cleaned_data.get("nama_orang_tua", "")).replace("’", "'")
         if nama and (len(nama) < 3 or not services.nama_valid(nama)):
             raise forms.ValidationError("Nama orang tua/wali hanya huruf, minimal 3 huruf.")
-        return nama[:100]
+        return services.kapital(nama[:100])
 
     # --- Validasi gabungan ----------------------------------------------------
 
     def clean(self):
         data = super().clean()
+        kontingen, tingkat = data.get("kontingen"), data.get("tingkat")
+        if self.mode == "publik" and kontingen and tingkat and kontingen.tingkat != tingkat:
+            # REVISI R1: tingkat dipilih dulu, sekolah harus sesuai tingkat. Superadmin tetap boleh
+            # (misalnya memindahkan orang), dan akan mendapat tanda TINGKAT_BEDA.
+            self.add_error(
+                "kontingen",
+                f"{kontingen.nama} bukan sekolah tingkat {Tingkat(tingkat).label}. Pilih lagi tingkat atau sekolah.",
+            )
         peran = data.get("peran")
         if peran:
             dewasa = peran in PERAN_DEWASA
@@ -303,7 +311,8 @@ class BiodataForm(forms.Form):
                 self.hasil_foto = foto_mod.proses(berkas, foto_mod.baca_potongan(data.get("foto_potong", "")))
             except foto_mod.FotoTidakValid as e:
                 self.add_error("foto", str(e))
-        elif self.foto_wajib and not (self.peserta and self.peserta.foto_path):
+        elif not (self.peserta and self.peserta.foto_path):
+            # Foto wajib mutlak karena dicetak di kartu (REVISI R2).
             self.add_error("foto", "Foto wajib diunggah.")
 
         if self.mode == "publik":

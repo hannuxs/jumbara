@@ -34,7 +34,6 @@ class FormPengaturan(forms.Form):
         label="Ditutup pada (WITA)",
         widget=forms.DateTimeInput(attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"),
     )
-    foto_wajib = forms.BooleanField(label="Foto wajib diunggah", required=False)
     kontak_nama = forms.CharField(
         label="Nama kontak superadmin",
         max_length=60,
@@ -88,7 +87,6 @@ PETA = {
     "paksa_status": "biodata.paksa_status",
     "buka_pada": "biodata.buka_pada",
     "tutup_pada": "biodata.tutup_pada",
-    "foto_wajib": "biodata.foto_wajib",
     "kontak_nama": "kontak.superadmin_nama",
     "kontak_wa": "kontak.superadmin_wa",
     "pengumuman": "pengumuman.teks",

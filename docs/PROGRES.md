@@ -5,7 +5,7 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 ## Status singkat
 
 - Tahap aktif: **Tahap 1 (Biodata dan superadmin)**. Kode selesai dan teruji di laptop; **tinggal pemasangan di server produksi + HTTPS + uji 3 HP** (dikerjakan Farhan, lihat "Yang harus dikerjakan Farhan").
-- **Revisi baru dari Farhan (R1-R3) tercatat di `docs/REVISI.md`, belum dikerjakan.**
+- Revisi R1-R3 dari Farhan (tingkat dulu, foto wajib dan dicetak di kartu, nama kapital) **selesai** 18 Okt; lihat `docs/REVISI.md`.
 - Terakhir diperbarui: 18 Oktober 2026
 - Tenggat terdekat: **25 Oktober 2026** (form biodata siap), dibuka 26 Oktober 00.00 WITA
 
@@ -28,7 +28,7 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 - [x] Tanda otomatis: kuota penuh, tingkat beda, NIK vs tanggal lahir/JK, usia tidak wajar, foto duplikat, nama mirip
 - [x] Log aktivitas untuk setiap perubahan
 - [~] Cadangan harian: perintah `sigap_jadwal` + cadangan + pemulihan **sudah diuji**; pendaftaran Task Scheduler (`daftar-task-scheduler.ps1`) butuh Admin, **belum dijalankan**
-- [x] Tes otomatis: 151 tes lulus (`pytest`), `ruff check` bersih
+- [x] Tes otomatis: 154 tes lulus (`pytest`), `ruff check` bersih
 - [ ] Terpasang di server Windows produksi dengan HTTPS, diuji dari minimal 3 HP (Farhan)
 
 ## Tahap 2: Kartu dan QR kontingen (3 Nov)
@@ -55,6 +55,10 @@ Belum dimulai. Tabel `kegiatan`, `kuota_kegiatan`, `titik_absen` (60 baris teris
 10. Konfirmasi panitia: kuota SD Negeri 006 Tanjung Palas Utara (25 peserta inti, batas Mula 20).
 
 ## Catatan sesi
+
+### 18 Oktober 2026 (Claude Code, sesi 1 lanjutan: revisi R1-R3)
+
+Perubahan manual Farhan (foto dicetak di kartu, teks SIAMO, teks nama kapital) di-commit terpisah. Dikerjakan R1 (tingkat dulu, sekolah disaring, server menolak tingkat beda), R2 (foto wajib mutlak, dokumen kartu berfoto), R3 (nama + nama orang tua kapital, migrasi data). 154 tes lulus, uji browser 360 px lulus. Catatan untuk Tahap 2: desain kartu B-2 sekarang memuat foto 3x4 (`13-KARTU-QR.md`).
 
 ### 18 Oktober 2026 (Claude Code, sesi 1: Tahap 0 + Tahap 1)
 

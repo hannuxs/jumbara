@@ -54,20 +54,35 @@
   <section class="kartu mb-5">
     <h2 class="judul-bagian"><span class="nomor-bagian">1</span> Kontingen</h2>
 
+    <fieldset class="isian" data-isian="tingkat">
+      <legend class="label wajib">Tingkat</legend>
+      <div class="grid grid-cols-3 gap-2">
+        {% for r in form.tingkat %}
+        <label class="pilihan items-center justify-center text-center font-semibold">
+          <input type="radio" name="tingkat" value="{{ r.data.value }}" {% if r.data.selected %}checked{% endif %} @change="tingkatBerubah()">
+          <span>{{ r.choice_label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+      <p class="galat" data-galat="tingkat">{{ form.tingkat.errors.0 }}</p>
+      <p class="bantuan">Mula = SD/MI, Madya = SMP/MTs, Wira = SMA/SMK/MA. Pilih tingkat dulu, lalu sekolah.</p>
+    </fieldset>
+
     <div class="isian" data-isian="kontingen">
       <label for="id_kontingen" class="label wajib">Utusan sekolah</label>
-      <div class="relative mb-2" x-show="js" x-cloak>
+      <div class="relative mb-2" x-show="js && tingkatDipilih" x-cloak>
         <input type="search" class="input" placeholder="Ketik nama sekolah untuk mencari…" x-model="cari" @focus="bukaCari = true"
                @keydown.escape="bukaCari = false" aria-label="Cari sekolah" autocomplete="off">
         <div x-show="bukaCari && cari.length > 0" @click.outside="bukaCari = false" class="absolute z-20 mt-1 max-h-72 w-full overflow-auto rounded-xl border border-garis bg-white shadow-lg">
           <template x-for="k in hasilCari()" :key="k.id">
             <button type="button" class="flex w-full items-center justify-between gap-2 px-3 py-3 text-left hover:bg-krem" @click="pilihSekolah(k.id)">
-              <span x-text="k.nama"></span><span class="shrink-0 text-xs" :class="'badge-' + k.tingkat" x-text="k.tingkatLabel"></span>
+              <span x-text="k.nama"></span>
             </button>
           </template>
           <p x-show="hasilCari().length === 0" class="px-3 py-3 text-sm text-abu">Tidak ditemukan. Coba kata lain, atau pilih dari daftar di bawah.</p>
         </div>
       </div>
+      {# Tanpa JavaScript: semua sekolah tampil per kelompok tingkat; server menolak bila tidak sesuai tingkat. #}
       <select name="kontingen" id="id_kontingen" class="input {% if form.kontingen.errors %}input-galat{% endif %}" required x-ref="kontingen" @change="sekolahBerubah()">
         <option value="">Pilih sekolah</option>
         {% for label, daftar in form.pilihan_kontingen_berkelompok %}
@@ -79,21 +94,6 @@
       <p class="galat" data-galat="kontingen">{{ form.kontingen.errors.0 }}</p>
       <p class="bantuan">Sekolah Anda tidak ada? {% if tautan_wa_sekolah %}<a href="{{ tautan_wa_sekolah }}" class="tautan" target="_blank" rel="noopener">Hubungi superadmin</a>{% else %}Hubungi superadmin.{% endif %}</p>
     </div>
-
-    <fieldset class="isian" data-isian="tingkat">
-      <legend class="label wajib">Tingkat</legend>
-      <div class="grid grid-cols-3 gap-2">
-        {% for r in form.tingkat %}
-        <label class="pilihan items-center justify-center text-center font-semibold">
-          <input type="radio" name="tingkat" value="{{ r.data.value }}" {% if r.data.selected %}checked{% endif %} @change="periksaSemua()">
-          <span>{{ r.choice_label }}</span>
-        </label>
-        {% endfor %}
-      </div>
-      <p class="galat" data-galat="tingkat">{{ form.tingkat.errors.0 }}</p>
-      <p class="bantuan" x-show="js" x-cloak>Terisi otomatis sesuai sekolah. Ubah hanya jika memang berbeda.</p>
-      <div x-show="tingkatBeda" x-cloak class="pesan-peringatan mt-2 mb-0">Tingkat ini berbeda dengan tingkat sekolah Anda. Pastikan sudah benar.</div>
-    </fieldset>
 
     <fieldset class="isian mb-0" data-isian="peran">
       <legend class="label wajib">Peran</legend>
@@ -116,9 +116,9 @@
 
     <div class="isian" data-isian="nama_lengkap">
       <label for="id_nama_lengkap" class="label wajib">Nama lengkap</label>
-      <input type="text" name="nama_lengkap" id="id_nama_lengkap" class="input {% if form.nama_lengkap.errors %}input-galat{% endif %}" maxlength="100" autocomplete="name" autocapitalize="words" required value="{{ form.nama_lengkap.value|default_if_none:'' }}" @blur="cekIsian($event.target)">
+      <input type="text" name="nama_lengkap" id="id_nama_lengkap" class="input uppercase {% if form.nama_lengkap.errors %}input-galat{% endif %}" maxlength="100" autocomplete="name" autocapitalize="characters" required value="{{ form.nama_lengkap.value|default_if_none:'' }}" @blur="cekIsian($event.target)">
       <p class="galat" data-galat="nama_lengkap">{{ form.nama_lengkap.errors.0 }}</p>
-      <p class="bantuan">Tulis nama lengkap dengan <b>huruf KAPITAL/Huruf Besar,</b> beserta gelar jika ada.</p>
+      <p class="bantuan">Tulis nama lengkap dengan <b>huruf KAPITAL/Huruf Besar,</b> beserta gelar jika ada. Huruf kecil otomatis diubah menjadi kapital.</p>
     </div>
 
     <div class="isian" data-isian="nik">
@@ -133,7 +133,7 @@
       <label for="id_nomor_induk_anggota" class="label">Nomor Induk Anggota PMR (jika ada)</label>
       <input type="text" name="nomor_induk_anggota" id="id_nomor_induk_anggota" class="input" maxlength="50" value="{{ form.nomor_induk_anggota.value|default_if_none:'' }}">
       <p class="galat" data-galat="nomor_induk_anggota">{{ form.nomor_induk_anggota.errors.0 }}</p>
-      <p class="bantuan">Terdapat pada aplikasi SIAMO</p>
+      <p class="bantuan">Terdapat pada aplikasi SIAMO. Kosongkan jika belum punya.</p>
     </div>
 
     <fieldset class="isian" data-isian="jenis_kelamin">
@@ -191,7 +191,7 @@
     <p class="mb-4 text-sm text-abu" x-show="peranDewasa" x-cloak>Untuk Pimpinan Kontingen dan Pembina Pendamping, bagian ini <strong>tidak wajib</strong>. Boleh dikosongkan.</p>
     <div class="isian" data-isian="nama_orang_tua">
       <label for="id_nama_orang_tua" class="label" :class="peranDewasa ? '' : 'wajib'">Nama ayah atau ibu (atau wali)</label>
-      <input type="text" name="nama_orang_tua" id="id_nama_orang_tua" class="input {% if form.nama_orang_tua.errors %}input-galat{% endif %}" maxlength="100" autocapitalize="words" value="{{ form.nama_orang_tua.value|default_if_none:'' }}" @blur="cekIsian($event.target)">
+      <input type="text" name="nama_orang_tua" id="id_nama_orang_tua" class="input uppercase {% if form.nama_orang_tua.errors %}input-galat{% endif %}" maxlength="100" autocapitalize="characters" value="{{ form.nama_orang_tua.value|default_if_none:'' }}" @blur="cekIsian($event.target)">
       <p class="galat" data-galat="nama_orang_tua">{{ form.nama_orang_tua.errors.0 }}</p>
     </div>
     <div class="isian mb-0" data-isian="telepon_orang_tua">
@@ -206,9 +206,9 @@
   <section class="kartu mb-5">
     <h2 class="judul-bagian"><span class="nomor-bagian">4</span> Foto</h2>
     <div class="isian mb-0" data-isian="foto">
-      <label for="id_foto" class="label {% if foto_wajib %}wajib{% endif %}">Unggah foto</label>
-      <p class="mb-3 text-sm text-abu">Foto wajah terbaru, tampak depan, latar polos jika ada. Format JPG atau PNG, maksimal 5 MB. Foto hanya disimpan sebagai arsip panitia dan <strong>dicetak di kartu</strong>.</p>
-      <input type="file" name="foto" id="id_foto" accept="image/jpeg,image/png" class="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-oranye file:px-4 file:py-2.5 file:font-semibold file:text-white" :class="js && 'hidden'" @change="fotoDipilih($event); namaFoto = $event.target.files[0] ? $event.target.files[0].name : ''" {% if foto_wajib %}required{% endif %}>
+      <label for="id_foto" class="label wajib">Unggah foto</label>
+      <p class="mb-3 text-sm text-abu">Foto wajah terbaru, tampak depan, latar polos jika ada. Format JPG atau PNG, maksimal 5 MB. Foto akan <strong>dicetak di kartu peserta</strong> dan disimpan sebagai arsip panitia.</p>
+      <input type="file" name="foto" id="id_foto" accept="image/jpeg,image/png" class="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-oranye file:px-4 file:py-2.5 file:font-semibold file:text-white" :class="js && 'hidden'" @change="fotoDipilih($event); namaFoto = $event.target.files[0] ? $event.target.files[0].name : ''" required>
       <div x-show="js" x-cloak class="flex items-center gap-3">
         <label for="id_foto" class="btn-utama cursor-pointer" x-show="fotoStatus !== 'potong'">Pilih foto</label>
         <span class="min-w-0 truncate text-sm text-abu" x-text="namaFoto || 'Belum ada foto dipilih'" x-show="fotoStatus !== 'potong'"></span>

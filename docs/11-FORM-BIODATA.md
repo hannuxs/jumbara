@@ -25,19 +25,19 @@ Urutan di layar dibagi beberapa bagian dengan judul kecil. Semua label dalam Bah
 
 | Isian | Tipe | Aturan |
 |---|---|---|
-| **Utusan sekolah** | Dropdown yang bisa dicari (29 pilihan, dikelompokkan per tingkat: Mula, Madya, Wira) | Wajib. Isi dari tabel `kontingen` (sumber awal `data/kontingen.csv`). **Bukan ketikan bebas.** Di bawahnya tulis: "Sekolah Anda tidak ada? Hubungi superadmin" + link WhatsApp |
-| **Tingkat** | Pilihan Mula / Madya / Wira | Wajib. **Otomatis terisi sesuai tingkat sekolah yang dipilih**, tetapi tetap bisa diubah. Jika diubah menjadi berbeda dari tingkat kontingen, tampilkan peringatan kuning "Tingkat ini berbeda dengan tingkat sekolah Anda. Pastikan sudah benar." Kiriman tetap diterima, superadmin melihat tanda TINGKAT_BEDA |
+| **Tingkat** | Pilihan Mula / Madya / Wira, **paling atas** | Wajib. Dipilih dulu sebelum sekolah (REVISI R1). Teks bantuan: "Mula = SD/MI, Madya = SMP/MTs, Wira = SMA/SMK/MA. Pilih tingkat dulu, lalu sekolah." |
+| **Utusan sekolah** | Dropdown yang bisa dicari, **hanya berisi sekolah dari tingkat yang dipilih** (sebelum tingkat dipilih: nonaktif, "Pilih tingkat dulu"). Mengganti tingkat mengosongkan sekolah yang tidak sesuai | Wajib. Server menolak sekolah yang tingkatnya beda: "[sekolah] bukan sekolah tingkat [X]. Pilih lagi tingkat atau sekolah.". Isi dari tabel `kontingen` (sumber awal `data/kontingen.csv`). **Bukan ketikan bebas.** Di bawahnya tulis: "Sekolah Anda tidak ada? Hubungi superadmin" + link WhatsApp |
 | **Peran** | Pilihan (kartu/tombol besar): Peserta, Pimpinan Kontingen, Pembina Pendamping, Peninjau | Wajib. Beri penjelasan singkat di bawah setiap pilihan: Peserta = anggota PMR yang ikut lomba/kegiatan; Pimpinan Kontingen = guru/pembina yang memimpin kontingen; Pembina Pendamping = guru/pembina yang mendampingi; Peninjau = pembina atau anggota PMR yang ikut mengamati |
 
-Catatan: tingkat otomatis dari sekolah adalah improvisasi karena 1 sekolah = 1 kontingen = 1 tingkat menurut pedoman. Keputusan brief tetap dihormati: pengguna masih bisa memilih sendiri dan perbedaan ditandai.
+Catatan: urutan dan penyaringan ini mengikuti REVISI R1 (18 Okt 2026), menggantikan improvisasi lama "tingkat otomatis dari sekolah". Tanpa JavaScript, dropdown menampilkan semua sekolah per kelompok tingkat dan server yang menjaga kecocokan.
 
 ### Bagian 2: Data diri
 
 | Isian | Tipe | Aturan |
 |---|---|---|
-| **Nama lengkap** | Teks | Wajib. 3-100 karakter. Rapikan spasi ganda dan spasi di awal/akhir. Simpan sesuai ketikan (huruf besar-kecil asli); kartu menampilkan HURUF BESAR. Tolak angka dan simbol aneh, tapi izinkan titik, koma, apostrof, tanda hubung (contoh: "M. Fuad", "As'ad", "Sri Handayani, S.Pd") |
+| **Nama lengkap** | Teks | Wajib. 3-100 karakter. Rapikan spasi ganda dan spasi di awal/akhir. **Disimpan HURUF KAPITAL termasuk gelar** (REVISI R3); isian ditampilkan kapital saat diketik. Tolak angka dan simbol aneh, tapi izinkan titik, koma, apostrof, tanda hubung (contoh: "M. Fuad" -> "M. FUAD", "As'ad" -> "AS'AD", "Sri Handayani, S.Pd" -> "SRI HANDAYANI, S.PD") |
 | **NIK** | Teks angka (`inputmode="numeric"`) | Wajib. Tepat 16 angka. Tidak boleh semua angka sama. **UNIK**: jika sudah terdaftar, tolak dengan pesan "NIK ini sudah terdaftar. Jika Anda merasa belum pernah mengisi atau ingin memperbaiki data, hubungi superadmin" + tombol WhatsApp. Teks bantuan: "NIK ada di Kartu Keluarga (KK)". Lihat cek NIK di bawah |
-| **Nomor induk anggota** | Teks | Tidak wajib. Label: "Nomor Induk Anggota PMR (jika ada)". Teks bantuan: "Ada di KTA PMR. Kosongkan jika belum punya" |
+| **Nomor induk anggota** | Teks | Tidak wajib. Label: "Nomor Induk Anggota PMR (jika ada)". Teks bantuan: "Terdapat pada aplikasi SIAMO. Kosongkan jika belum punya." Format bebas (tidak divalidasi khusus) |
 | **Jenis kelamin** | Pilihan Laki-laki / Perempuan | Wajib |
 | **Tempat lahir** | Teks | Wajib. 2-60 karakter |
 | **Tanggal lahir** | Tanggal (tampilkan 3 dropdown hari-bulan-tahun atau date picker yang ramah HP; jangan memaksa format ketik) | Wajib. Tidak boleh di masa depan. Lihat cek usia di bawah |
@@ -51,17 +51,17 @@ Tampilkan bagian ini **wajib untuk peran Peserta dan Peninjau**, dan **tidak waj
 
 | Isian | Tipe | Aturan |
 |---|---|---|
-| **Nama ayah atau ibu (atau wali)** | Teks | Wajib sesuai peran di atas |
+| **Nama ayah atau ibu (atau wali)** | Teks | Wajib sesuai peran di atas. Disimpan HURUF KAPITAL (REVISI R3) |
 | **Telepon ayah atau ibu (atau wali)** | Teks angka | Wajib sesuai peran di atas. Format sama dengan telepon. Untuk kontak darurat |
 
 ### Bagian 4: Foto
 
 | Isian | Tipe | Aturan |
 |---|---|---|
-| **Upload foto** | File gambar | **Wajib** (bisa dimatikan lewat pengaturan `biodata.foto_wajib`). Hanya JPG/JPEG atau PNG, **maksimal 5 MB** (ukuran file asli). Validasi tipe dari isi file (MIME sebenarnya), bukan hanya ekstensi |
+| **Upload foto** | File gambar | **Wajib mutlak** karena dicetak di kartu (REVISI R2); pengaturan `biodata.foto_wajib` dihapus. Hanya JPG/JPEG atau PNG, **maksimal 5 MB** (ukuran file asli). Validasi tipe dari isi file (MIME sebenarnya), bukan hanya ekstensi |
 
 Perilaku foto:
-- Teks bantuan: "Foto wajah terbaru, tampak depan, latar polos jika ada. Foto hanya disimpan sebagai arsip panitia dan **dicetak di kartu**."
+- Teks bantuan: "Foto wajah terbaru, tampak depan, latar polos jika ada. Format JPG atau PNG, maksimal 5 MB. Foto akan **dicetak di kartu peserta** dan disimpan sebagai arsip panitia."
 - Setelah memilih foto, tampilkan **pemotong 3:4** (Cropper.js) dengan area potong otomatis di tengah; pengguna boleh menggeser/memperbesar. Tombol "Putar" untuk foto miring.
 - Di browser, kecilkan dulu sebelum unggah (sisi terpanjang sekitar 1600 px, JPEG kualitas 0,85) agar unggahan ringan. Tetap kirim koordinat potong ke server.
 - Di server (wajib, jangan percaya browser): baca orientasi EXIF dan luruskan, potong 3:4 sesuai koordinat (atau tengah jika tidak ada), ubah ukuran menjadi **600 x 800 px**, simpan JPEG kualitas 85, **hapus metadata EXIF** (termasuk lokasi GPS). Simpan di disk **privat** (`{SIGAP_FOLDER_PRIVAT}\foto\{tahun}\{kode_pendaftaran}.jpg`), bukan di folder `static` atau `media` publik. Pemrosesan dengan Pillow (`ImageOps.exif_transpose`).
@@ -119,14 +119,15 @@ Perilaku foto:
   - versi lengkap: semua kolom, hanya dengan konfirmasi ulang kata sandi superadmin, tercatat di log.
   - satu sheet per tingkat atau satu sheet gabungan + filter yang sedang aktif.
 - **Unduh foto** per kontingen dalam ZIP (nama file = nama orang + kode pendaftaran).
-- **Pengaturan form:** jadwal buka/tutup, sakelar paksa, foto wajib, nomor WhatsApp dan nama superadmin, teks pengumuman di halaman form.
+- **Pengaturan form:** jadwal buka/tutup, sakelar paksa, nomor WhatsApp dan nama superadmin, teks pengumuman di halaman form.
 
 ## Tes yang wajib ada
 
 - Kiriman valid tersimpan dan foto 600x800.
 - NIK bukan 16 digit ditolak; NIK dobel ditolak tanpa membocorkan data.
 - Form tertutup menolak kiriman di server.
-- Tingkat beda, kuota penuh, NIK tidak cocok -> diterima + tanda.
+- Kuota penuh, NIK tidak cocok -> diterima + tanda. Tingkat beda dengan sekolah -> ditolak di form publik (REVISI R1).
+- Nama huruf kecil tersimpan HURUF KAPITAL termasuk gelar; tanpa foto selalu ditolak.
 - Peran dewasa tanpa data ortu diterima; peran Peserta tanpa data ortu ditolak.
 - File bukan gambar atau > 5 MB ditolak.
 - Akun panitia/juri tidak bisa membuka halaman biodata superadmin.

@@ -6,9 +6,9 @@ Catatan revisi dari Farhan setelah Tahap 1 selesai di laptop. Setiap revisi puny
 
 | No | Tanggal | Revisi | Status |
 |---|---|---|---|
-| R1 | 18 Okt 2026 | Tingkat dipilih paling atas, daftar sekolah hanya menampilkan sekolah tingkat itu | Belum dikerjakan |
-| R2 | 18 Okt 2026 | Perubahan manual Farhan: foto dicetak di kartu, bantuan nomor anggota (SIAMO), bantuan nama huruf kapital | Teks sudah diubah Farhan, dampak ke kode/dokumen belum ditindaklanjuti |
-| R3 | 18 Okt 2026 | Semua nama disimpan dan ditampilkan dalam HURUF KAPITAL, termasuk gelar | Belum dikerjakan |
+| R1 | 18 Okt 2026 | Tingkat dipilih paling atas, daftar sekolah hanya menampilkan sekolah tingkat itu | **Selesai** 18 Okt (opsi A: server menolak) |
+| R2 | 18 Okt 2026 | Perubahan manual Farhan: foto dicetak di kartu, bantuan nomor anggota (SIAMO), bantuan nama huruf kapital | **Selesai** 18 Okt (foto wajib mutlak; desain kartu berfoto di Tahap 2) |
+| R3 | 18 Okt 2026 | Semua nama disimpan dan ditampilkan dalam HURUF KAPITAL, termasuk gelar | **Selesai** 18 Okt (nama lengkap + nama orang tua/wali) |
 
 ---
 
@@ -112,3 +112,17 @@ Dampak teknis:
 2. R3 (nama kapital) dan R1 (tingkat dulu): kecil, menyentuh form publik, harus selesai dan diuji di HP sebelum 25 Oktober.
 3. Rapikan dokumen yang bertentangan (R2.1-R2.5) dan perbarui `00-KEPUTUSAN.md`.
 4. Desain kartu dengan foto (R2.1) dikerjakan di Tahap 2.
+
+---
+
+## Keputusan Farhan dan hasil pengerjaan (18 Okt 2026)
+
+Jawaban Farhan: (1) ikut saran: server **menolak** tingkat yang tidak cocok dengan sekolah; (2) nama ayah/ibu/wali **ikut kapital**, tempat lahir dan alamat tetap sesuai ketikan; (3) **foto wajib mutlak**; (4) format nomor SIAMO tetap bebas.
+
+| Revisi | Yang dikerjakan |
+|---|---|
+| R1 | Urutan bagian 1: Tingkat → Utusan sekolah → Peran. Sebelum tingkat dipilih, dropdown sekolah nonaktif ("Pilih tingkat dulu"). Daftar sekolah dan kotak cari hanya berisi sekolah tingkat terpilih; ganti tingkat mengosongkan sekolah yang tidak sesuai. Draf HP dan "Isi untuk orang lain" mengisi tingkat dulu lalu sekolah. Server menolak di form publik: "[sekolah] bukan sekolah tingkat [X]. Pilih lagi tingkat atau sekolah." Superadmin tetap boleh berbeda (tanda TINGKAT_BEDA). Peringatan kuning lama dihapus. |
+| R2 | Pengaturan `biodata.foto_wajib` dihapus dari kode dan menu Pengaturan form; foto wajib di form publik dan tambah biodata superadmin (ubah biodata boleh memakai foto lama). Teks foto: "Foto akan dicetak di kartu peserta dan disimpan sebagai arsip panitia." Teks SIAMO: "Terdapat pada aplikasi SIAMO. Kosongkan jika belum punya." `00-KEPUTUSAN.md` (isi kartu dengan foto) dan `13-KARTU-QR.md` (foto 3x4 di kartu) diperbarui. Desain kartu dikerjakan di Tahap 2. |
+| R3 | `nama_lengkap` dan `nama_orang_tua` disimpan kapital di server (form publik dan superadmin); isian tampil kapital saat diketik; ringkasan kapital. Migrasi `biodata.0002_nama_kapital` mengubah data yang sudah ada. Excel, PDF bukti, ZIP foto, halaman superadmin otomatis kapital. |
+
+Pengujian: 154 tes otomatis lulus (tes baru: tingkat beda ditolak, urutan isian, foto wajib mutlak walau pengaturan lama masih ada di database, nama dan gelar kapital, tambah superadmin tanpa foto ditolak, ubah tanpa foto baru). Uji browser Chrome 360 px: sekolah tersaring per tingkat (Mula 3, Wira 9), cari "sma" saat Madya tidak menemukan apa pun, ganti tingkat mengosongkan sekolah, draf dipulihkan, kiriman tersimpan `DEWI KARTIKA SARI` / `BUDI SANTOSO, S.PD`, lebar halaman 360 px, tanpa galat konsol.

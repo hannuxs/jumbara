@@ -155,7 +155,7 @@ def _data_awal(p: Peserta) -> dict:
 def ubah(request, pk: int):
     p = _ambil(pk)
     if request.method == "POST":
-        form = BiodataForm(request.POST, request.FILES, mode="superadmin", foto_wajib=False, peserta=p)
+        form = BiodataForm(request.POST, request.FILES, mode="superadmin", peserta=p)
         if form.is_valid():
             try:
                 services.ubah_peserta(request, p, form.cleaned_data, form.hasil_foto)
@@ -165,14 +165,14 @@ def ubah(request, pk: int):
                 messages.success(request, f"Biodata {p.nama_lengkap} ({p.kode_pendaftaran}) disimpan.")
                 return redirect("biodata_admin:detail", pk=p.pk)
     else:
-        form = BiodataForm(mode="superadmin", foto_wajib=False, peserta=p, initial=_data_awal(p))
+        form = BiodataForm(mode="superadmin", peserta=p, initial=_data_awal(p))
     return render(request, "superadmin/biodata_form.html", {"menu_aktif": "biodata", "form": form, "p": p})
 
 
 @superadmin_wajib
 def tambah(request):
     if request.method == "POST":
-        form = BiodataForm(request.POST, request.FILES, mode="superadmin", foto_wajib=False)
+        form = BiodataForm(request.POST, request.FILES, mode="superadmin")
         if form.is_valid():
             try:
                 p = services.buat_peserta(request, form.cleaned_data, form.hasil_foto, Sumber.SUPERADMIN)
@@ -182,7 +182,7 @@ def tambah(request):
                 messages.success(request, f"Biodata {p.nama_lengkap} ditambahkan dengan kode {p.kode_pendaftaran}.")
                 return redirect("biodata_admin:detail", pk=p.pk)
     else:
-        form = BiodataForm(mode="superadmin", foto_wajib=False)
+        form = BiodataForm(mode="superadmin")
     return render(request, "superadmin/biodata_form.html", {"menu_aktif": "tambah", "form": form, "p": None})
 
 

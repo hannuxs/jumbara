@@ -21,12 +21,13 @@
 - Isi kartu (atas ke bawah):
   1. Kepala berlatar putih: **logo PMI (wajib, permintaan panitia)** di kiri (`assets/brand/pmi-logo.png`) dan logo Jumbara V di kanan (`assets/brand/jumbara-v-logo.jpg`), di antaranya teks "JUMBARA PMR TINGKAT KABUPATEN BULUNGAN V 2026" dan tema "Unggul - Responsif - Berkarakter". Ikuti aturan logo di `assets/brand/README.md` (logo PMI tidak boleh diubah warna/bentuk, latar terang, ruang kosong di sekeliling).
   2. Pita warna peran/tingkat (lihat warna di bawah) bertuliskan PERAN (PESERTA / PIMPINAN KONTINGEN / PEMBINA PENDAMPING / PENINJAU).
-  3. **NAMA** (huruf besar, tebal, ukuran otomatis mengecil agar muat maksimal 2 baris).
-  4. Kontingen (nama sekolah) dan tingkat.
-  5. **QR besar** (minimal 45 x 45 mm, error correction level M atau Q, margin putih cukup).
-  6. `kode_kartu` di bawah QR, huruf monospace.
-  7. Kaki kecil: "Kartu wajib dipakai selama kegiatan" dan kode kontingen.
-- **Tanpa foto.**
+  3. **Foto 3x4** peserta (REVISI R2; sekitar 24 x 32 mm, dari foto 600x800 di folder privat, bingkai tipis) di samping atau di atas nama.
+  4. **NAMA** (huruf besar, tebal, ukuran otomatis mengecil agar muat maksimal 2 baris).
+  5. Kontingen (nama sekolah) dan tingkat.
+  6. **QR besar** (minimal 45 x 45 mm, error correction level M atau Q, margin putih cukup).
+  7. `kode_kartu` di bawah QR, huruf monospace.
+  8. Kaki kecil: "Kartu wajib dipakai selama kegiatan" dan kode kontingen.
+- **Dengan foto** (REVISI R2, 18 Okt 2026; sebelumnya tanpa foto). Foto wajib mutlak di form, jadi setiap biodata punya foto. Penggantian foto setelah kartu dicetak menandai `perlu_cetak_ulang`. Tata letak harus tetap memberi QR minimal 45 x 45 mm.
 - Warna tingkat diambil dari makna logo Jumbara V: **Mula hijau, Madya biru, Wira kuning**. Warna peran boleh dibedakan dengan pita kedua atau ikon. Pastikan tetap terbaca bila dicetak hitam putih (teks tingkat dan peran tetap tertulis).
 - Tidak ada data pribadi lain di kartu.
 

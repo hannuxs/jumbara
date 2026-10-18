@@ -77,6 +77,11 @@ def nama_valid(nama: str) -> bool:
     return bool(POLA_NAMA.match(nama)) and any(c.isalpha() for c in nama)
 
 
+def kapital(teks: str) -> str:
+    """Nama disimpan HURUF KAPITAL (termasuk gelar). Apostrof miring diseragamkan."""
+    return teks.replace("’", "'").upper()
+
+
 def normalisasi_telepon(teks: str) -> str | None:
     """'0812...', '+62812...', '62812...' -> '62812...'. None jika tidak valid."""
     digit = re.sub(r"[\s\-().]", "", teks or "")

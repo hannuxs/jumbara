@@ -97,20 +97,39 @@ def test_ubah_nik_ke_nik_orang_lain_ditolak(klien_superadmin, client, peserta, k
             kontingen_madya, nik="6501014201120004", tanggal_lahir_0="2", nama_lengkap="Rina Dewi", token=token_lama()
         ),
     )
-    lain = Peserta.objects.get(nama_lengkap="Rina Dewi")
+    lain = Peserta.objects.get(nama_lengkap="RINA DEWI")
     r = klien_superadmin.post(f"/superadmin/biodata/{lain.pk}/ubah/", data_ubah(lain, nik=NIK_PEREMPUAN_2012))
     assert r.status_code == 200 and "nik" in r.context["form"].errors
 
 
 def test_tambah_manual(klien_superadmin, kontingen_madya):
-    data = data_valid(kontingen_madya, foto=None)
+    data = data_valid(kontingen_madya, nama_lengkap="dewi lestari")
     for k in ("token", "persetujuan", "situs_web"):
         data.pop(k)
     r = klien_superadmin.post("/superadmin/biodata/tambah/", data)
     assert r.status_code == 302
     p = Peserta.objects.get()
     assert p.sumber == "SUPERADMIN"
+    assert p.nama_lengkap == "DEWI LESTARI"
+    assert p.foto_path
     assert LogAktivitas.objects.filter(aksi="biodata.ditambah_superadmin").exists()
+
+
+def test_tambah_manual_tanpa_foto_ditolak(klien_superadmin, kontingen_madya):
+    data = data_valid(kontingen_madya, foto=None)
+    for k in ("token", "persetujuan", "situs_web"):
+        data.pop(k)
+    r = klien_superadmin.post("/superadmin/biodata/tambah/", data)
+    assert r.status_code == 200 and "foto" in r.context["form"].errors
+
+
+def test_ubah_tanpa_foto_baru_memakai_foto_lama(klien_superadmin, peserta):
+    r = klien_superadmin.post(
+        f"/superadmin/biodata/{peserta.pk}/ubah/", data_ubah(peserta, nama_lengkap="siti aminah putri")
+    )
+    assert r.status_code == 302
+    peserta.refresh_from_db()
+    assert peserta.nama_lengkap == "SITI AMINAH PUTRI" and peserta.foto_path
 
 
 def test_hapus_pulihkan_dan_bentrok_nik(klien_superadmin, client, peserta, kontingen_madya):
@@ -140,8 +159,9 @@ def test_hapus_permanen_butuh_konfirmasi_kode(klien_superadmin, peserta):
 
 
 def test_tanda_ditandai_sudah_dicek(klien_superadmin, client, kontingen_madya):
-    client.post("/daftar/", data_valid(kontingen_madya, tingkat="WIRA"))
-    t = PenandaPeserta.objects.get()
+    client.post("/daftar/", data_valid(kontingen_madya, jenis_kelamin="L"))
+    t = PenandaPeserta.objects.get(jenis=JenisPenanda.NIK_JK_BEDA)
+    PenandaPeserta.objects.exclude(pk=t.pk).delete()
     klien_superadmin.post(f"/superadmin/tanda/{t.pk}/abaikan/")
     t.refresh_from_db()
     assert t.diabaikan_pada and t.diabaikan_oleh == "Penguji"
@@ -152,8 +172,8 @@ def test_excel_umum_tanpa_data_rahasia(klien_superadmin, peserta):
     r = klien_superadmin.get("/superadmin/biodata/unduh/umum/")
     wb = openpyxl.load_workbook(io.BytesIO(r.content))
     teks = str([list(row) for row in wb["Semua"].iter_rows(values_only=True)])
-    assert "Siti Aminah" in teks and "6501********0003" in teks
-    assert NIK_PEREMPUAN_2012 not in teks and "Sengkawit" not in teks and "Budi Santoso" not in teks
+    assert "SITI AMINAH" in teks and "6501********0003" in teks
+    assert NIK_PEREMPUAN_2012 not in teks and "Sengkawit" not in teks and "BUDI SANTOSO" not in teks
     assert set(wb.sheetnames) >= {"Semua", "Mula", "Madya", "Wira", "Kontingen"}
     assert LogAktivitas.objects.filter(aksi="ekspor.umum").exists()
 
@@ -167,7 +187,7 @@ def test_excel_lengkap_wajib_sandi(klien_superadmin, peserta):
     r = klien_superadmin.post("/superadmin/biodata/unduh/lengkap/", {"password": SANDI})
     wb = openpyxl.load_workbook(io.BytesIO(r.content))
     teks = str([list(row) for row in wb["Semua"].iter_rows(values_only=True)])
-    assert NIK_PEREMPUAN_2012 in teks and "Sengkawit" in teks and "Budi Santoso" in teks
+    assert NIK_PEREMPUAN_2012 in teks and "Sengkawit" in teks and "BUDI SANTOSO" in teks
     assert LogAktivitas.objects.filter(aksi="ekspor.lengkap").exists()
 
 
@@ -176,7 +196,7 @@ def test_zip_foto(klien_superadmin, peserta):
 
     r = klien_superadmin.get(f"/superadmin/biodata/unduh/foto/?kontingen={peserta.kontingen_id}")
     z = zipfile.ZipFile(io.BytesIO(r.content))
-    assert z.namelist() == [f"Siti Aminah - {peserta.kode_pendaftaran}.jpg"]
+    assert z.namelist() == [f"SITI AMINAH - {peserta.kode_pendaftaran}.jpg"]
 
 
 def test_ubah_kuota_tercatat_dan_tanda_dihitung_ulang(klien_superadmin, client, kontingen_madya):
