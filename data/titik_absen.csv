@@ -1,0 +1,61 @@
+kode,tanggal,mulai,selesai,kegiatan_kode,tingkat,nama_tampil,lokasi,catatan
+TA-001,2026-11-12,08:00,12:00,daftar-ulang,SEMUA,Daftar Ulang,Sekretariat Panitia,Registrasi peserta (jadwal no. 2)
+TA-002,2026-11-12,13:00,15:00,jurnalistik,MULA,Jurnalistik Remaja (Pendalaman Materi) Mula,Tenda Utama,
+TA-003,2026-11-12,13:00,15:00,jurnalistik,MADYA,Jurnalistik Remaja (Pendalaman Materi) Madya,Tenda Utama,
+TA-004,2026-11-12,13:00,15:00,jurnalistik,WIRA,Jurnalistik Remaja (Pendalaman Materi) Wira,Tenda Utama,
+TA-005,2026-11-12,13:00,15:00,kewirausahaan,MULA,Kewirausahaan dan Pameran (Pendalaman Materi) Mula,Tenda Utama,
+TA-006,2026-11-12,13:00,15:00,kewirausahaan,MADYA,Kewirausahaan dan Pameran (Pendalaman Materi) Madya,Tenda Utama,
+TA-007,2026-11-12,13:00,15:00,kewirausahaan,WIRA,Kewirausahaan dan Pameran (Pendalaman Materi) Wira,Tenda Utama,
+TA-008,2026-11-12,20:00,23:00,drama,MULA,Pentas Seni Drama Malam 1 Mula,Panggung Utama,
+TA-009,2026-11-12,20:00,23:00,drama,MADYA,Pentas Seni Drama Malam 1 Madya,Panggung Utama,
+TA-010,2026-11-12,20:00,23:00,drama,WIRA,Pentas Seni Drama Malam 1 Wira,Panggung Utama,
+TA-011,2026-11-13,08:00,,jurnalistik,MULA,Jurnalistik Remaja (Penugasan) Jumat Mula,Kebun Raya Bundayati,Selesai tidak ditentukan
+TA-012,2026-11-13,08:00,,jurnalistik,MADYA,Jurnalistik Remaja (Penugasan) Jumat Madya,Kebun Raya Bundayati,Selesai tidak ditentukan
+TA-013,2026-11-13,08:00,,jurnalistik,WIRA,Jurnalistik Remaja (Penugasan) Jumat Wira,Kebun Raya Bundayati,Selesai tidak ditentukan
+TA-014,2026-11-13,08:00,,kewirausahaan,MULA,Kewirausahaan dan Pameran (Produksi dan Pameran) Jumat Mula,Kaveling Kontingen,Selesai tidak ditentukan
+TA-015,2026-11-13,08:00,,kewirausahaan,MADYA,Kewirausahaan dan Pameran (Produksi dan Pameran) Jumat Madya,Kaveling Kontingen,Selesai tidak ditentukan
+TA-016,2026-11-13,08:00,,kewirausahaan,WIRA,Kewirausahaan dan Pameran (Produksi dan Pameran) Jumat Wira,Kaveling Kontingen,Selesai tidak ditentukan
+TA-017,2026-11-13,08:00,,ranking-1,MULA,Ranking 1 Mula,Panggung Utama,Selesai tidak ditentukan
+TA-018,2026-11-13,08:00,,ranking-1,MADYA,Ranking 1 Madya,Panggung Utama,Selesai tidak ditentukan
+TA-019,2026-11-13,08:00,,ranking-1,WIRA,Ranking 1 Wira,Panggung Utama,Selesai tidak ditentukan
+TA-020,2026-11-13,08:00,11:30,sarasehan-medsos,MULA,Sarasehan Sehat Bermedia Sosial Mula,Tenda Utama,
+TA-021,2026-11-13,08:00,11:30,sarasehan-medsos,MADYA,Sarasehan Sehat Bermedia Sosial Madya,Tenda Utama,
+TA-022,2026-11-13,08:00,11:30,sarasehan-medsos,WIRA,Sarasehan Sehat Bermedia Sosial Wira,Tenda Utama,
+TA-023,2026-11-13,08:00,,traveling,MULA,Traveling Kepalangmerahan Jumat Mula,Kebun Raya Bundayati,Selesai tidak ditentukan
+TA-024,2026-11-13,08:00,,traveling,MADYA,Traveling Kepalangmerahan Jumat Madya,Kebun Raya Bundayati,Selesai tidak ditentukan
+TA-025,2026-11-13,08:00,,traveling,WIRA,Traveling Kepalangmerahan Jumat Wira,Kebun Raya Bundayati,Selesai tidak ditentukan
+TA-026,2026-11-13,14:00,17:00,ngobrol-bareng,MULA,Ngobrol Bareng PMR Mula,Tenda Utama,
+TA-027,2026-11-13,14:00,17:00,ngobrol-bareng,MADYA,Ngobrol Bareng PMR Madya,Tenda Utama,
+TA-028,2026-11-13,14:00,17:00,ngobrol-bareng,WIRA,Ngobrol Bareng PMR Wira,Tenda Utama,
+TA-029,2026-11-13,16:00,18:00,got-talent,SEMUA,Jumbara Got Talent Jumat,Panggung Utama,Titik absen gabungan semua tingkat
+TA-030,2026-11-13,16:00,18:00,wahana,MULA,Wahana Kepalangmerahan Jumat Mula,Lapangan Utama,
+TA-031,2026-11-13,16:00,18:00,wahana,MADYA,Wahana Kepalangmerahan Jumat Madya,Lapangan Utama,
+TA-032,2026-11-13,16:00,18:00,wahana,WIRA,Wahana Kepalangmerahan Jumat Wira,Lapangan Utama,
+TA-033,2026-11-13,17:00,18:00,bakti-masyarakat,MULA,Bakti Masyarakat (Pembekalan dan Pembagian Kelompok) Mula,Tenda Utama,
+TA-034,2026-11-13,17:00,18:00,bakti-masyarakat,MADYA,Bakti Masyarakat (Pembekalan dan Pembagian Kelompok) Madya,Tenda Utama,
+TA-035,2026-11-13,17:00,18:00,bakti-masyarakat,WIRA,Bakti Masyarakat (Pembekalan dan Pembagian Kelompok) Wira,Tenda Utama,
+TA-036,2026-11-13,20:00,23:00,drama,MULA,Pentas Seni Drama Malam 2 Mula,Panggung Utama,
+TA-037,2026-11-13,20:00,23:00,drama,MADYA,Pentas Seni Drama Malam 2 Madya,Panggung Utama,
+TA-038,2026-11-13,20:00,23:00,drama,WIRA,Pentas Seni Drama Malam 2 Wira,Panggung Utama,
+TA-039,2026-11-14,08:00,11:00,bakti-masyarakat,MULA,Bakti Masyarakat (Kunjungan Panti) Mula,Panti Asuhan / Panti Jompo Tresna Werdha,Di luar lokasi perkemahan
+TA-040,2026-11-14,08:00,11:00,bakti-masyarakat,MADYA,Bakti Masyarakat (Kunjungan Panti) Madya,Panti Asuhan / Panti Jompo Tresna Werdha,Di luar lokasi perkemahan
+TA-041,2026-11-14,08:00,11:00,bakti-masyarakat,WIRA,Bakti Masyarakat (Kunjungan Panti) Wira,Panti Asuhan / Panti Jompo Tresna Werdha,Di luar lokasi perkemahan
+TA-042,2026-11-14,08:00,,jurnalistik,MULA,Jurnalistik Remaja (Penugasan) Sabtu Mula,Kebun Raya Bundayati,Selesai tidak ditentukan
+TA-043,2026-11-14,08:00,,jurnalistik,MADYA,Jurnalistik Remaja (Penugasan) Sabtu Madya,Kebun Raya Bundayati,Selesai tidak ditentukan
+TA-044,2026-11-14,08:00,,jurnalistik,WIRA,Jurnalistik Remaja (Penugasan) Sabtu Wira,Kebun Raya Bundayati,Selesai tidak ditentukan
+TA-045,2026-11-14,08:00,,kewirausahaan,MULA,Kewirausahaan dan Pameran (Produksi dan Pameran) Sabtu Mula,Kaveling Kontingen,Selesai tidak ditentukan
+TA-046,2026-11-14,08:00,,kewirausahaan,MADYA,Kewirausahaan dan Pameran (Produksi dan Pameran) Sabtu Madya,Kaveling Kontingen,Selesai tidak ditentukan
+TA-047,2026-11-14,08:00,,kewirausahaan,WIRA,Kewirausahaan dan Pameran (Produksi dan Pameran) Sabtu Wira,Kaveling Kontingen,Selesai tidak ditentukan
+TA-048,2026-11-14,08:00,,traveling,MULA,Traveling Kepalangmerahan Sabtu Mula,Kebun Raya Bundayati,Selesai tidak ditentukan
+TA-049,2026-11-14,08:00,,traveling,MADYA,Traveling Kepalangmerahan Sabtu Madya,Kebun Raya Bundayati,Selesai tidak ditentukan
+TA-050,2026-11-14,08:00,,traveling,WIRA,Traveling Kepalangmerahan Sabtu Wira,Kebun Raya Bundayati,Selesai tidak ditentukan
+TA-051,2026-11-14,13:30,17:00,sarasehan-pergaulan,MULA,Sarasehan Menjaga Diri dari Pergaulan Bebas Mula,Tenda Utama,
+TA-052,2026-11-14,13:30,17:00,sarasehan-pergaulan,MADYA,Sarasehan Menjaga Diri dari Pergaulan Bebas Madya,Tenda Utama,
+TA-053,2026-11-14,13:30,17:00,sarasehan-pergaulan,WIRA,Sarasehan Menjaga Diri dari Pergaulan Bebas Wira,Tenda Utama,
+TA-054,2026-11-14,16:00,18:00,got-talent,SEMUA,Jumbara Got Talent Sabtu,Panggung Utama,Titik absen gabungan semua tingkat
+TA-055,2026-11-14,16:00,18:00,wahana,MULA,Wahana Kepalangmerahan Sabtu Mula,Lapangan Utama,
+TA-056,2026-11-14,16:00,18:00,wahana,MADYA,Wahana Kepalangmerahan Sabtu Madya,Lapangan Utama,
+TA-057,2026-11-14,16:00,18:00,wahana,WIRA,Wahana Kepalangmerahan Sabtu Wira,Lapangan Utama,
+TA-058,2026-11-14,20:00,23:00,drama,MULA,Pentas Seni Drama Malam 3 Mula,Panggung Utama,
+TA-059,2026-11-14,20:00,23:00,drama,MADYA,Pentas Seni Drama Malam 3 Madya,Panggung Utama,
+TA-060,2026-11-14,20:00,23:00,drama,WIRA,Pentas Seni Drama Malam 3 Wira,Panggung Utama,

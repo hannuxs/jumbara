@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(py:*)",
+      "Bash(pip:*)",
+      "Bash(pytest:*)",
+      "Bash(ruff:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git log:*)",
+      "Bash(git init:*)",
+      "Bash(mysql --version:*)"
+    ],
+    "deny": [
+      "Bash(git push:*)",
+      "Bash(python manage.py flush:*)",
+      "Bash(python manage.py sigap_anonimkan:*)"
+    ]
+  }
+}

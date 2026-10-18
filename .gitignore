@@ -1,0 +1,28 @@
+# Python / Django (di dalam web/)
+web/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+web/.env
+web/.env.*
+!web/.env.example
+web/staticfiles/
+web/privat/
+web/media/
+web/logs/
+web/tools/*.exe
+*.sqlite3
+
+# Cadangan dan data pribadi
+cadangan/
+backup/
+*.sql
+*.sql.gz
+data/private/
+
+# Sistem
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/

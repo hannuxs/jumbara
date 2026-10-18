@@ -1,0 +1,193 @@
+{
+  "_catatan": "Contoh awal form penilaian mode 2, diambil dari Pedoman Jumbara V 2026 (BAB IV). Ini BUKAN form final. Panitia akan mengirim aspek dan bobot final paling lambat 5 November 2026. Seeder boleh membuat form-form ini dalam status DRAFT agar superadmin tinggal menyesuaikan. Bobot dalam persen. 'poin_kehadiran' adalah kolom otomatis dari absensi.",
+  "templates": [
+    {
+      "kegiatan": "traveling",
+      "judul": "Penilaian Traveling Kepalangmerahan",
+      "per_tingkat": true,
+      "subjek": "kontingen",
+      "kolom_input": [
+        {"kode": "pengetahuan", "label": "Pengetahuan (tes tertulis, tanya jawab)", "min": 0, "max": 100},
+        {"kode": "sikap", "label": "Sikap (kerja sama tim, pembagian peran)", "min": 0, "max": 100},
+        {"kode": "keterampilan", "label": "Keterampilan (peragaan, kreativitas, penyampaian materi)", "min": 0, "max": 100}
+      ],
+      "kolom_rumus": [
+        {"kode": "nilai_akhir", "label": "Nilai Akhir", "rumus": "0.25*[pengetahuan] + 0.25*[sikap] + 0.5*[keterampilan] + [poin_kehadiran]"}
+      ],
+      "urut_berdasarkan": "nilai_akhir",
+      "catatan": "7 posko. Bisa juga dipecah per posko jika panitia mau (7 kolom per aspek)."
+    },
+    {
+      "kegiatan": "jurnalistik",
+      "judul": "Penilaian Jurnalistik Remaja",
+      "per_tingkat": true,
+      "subjek": "kontingen",
+      "kolom_input": [
+        {"kode": "pengetahuan", "label": "Pengetahuan (fotografi, videografi, penulisan dan reportase)", "min": 0, "max": 100},
+        {"kode": "sikap", "label": "Sikap (kerja sama, pembagian peran)", "min": 0, "max": 100},
+        {"kode": "keterampilan", "label": "Keterampilan (hasil reportase, konten media)", "min": 0, "max": 100}
+      ],
+      "kolom_rumus": [
+        {"kode": "nilai_akhir", "label": "Nilai Akhir", "rumus": "0.2*[pengetahuan] + 0.2*[sikap] + 0.6*[keterampilan] + [poin_kehadiran]"}
+      ],
+      "urut_berdasarkan": "nilai_akhir"
+    },
+    {
+      "kegiatan": "kewirausahaan",
+      "judul": "Penilaian Kewirausahaan dan Pameran",
+      "per_tingkat": true,
+      "subjek": "kontingen",
+      "kolom_input": [
+        {"kode": "pengetahuan", "label": "Pengetahuan (dasar kewirausahaan sosial, produksi, pemasaran, pembukuan)", "min": 0, "max": 100},
+        {"kode": "sikap", "label": "Sikap (mandiri, optimis, peduli)", "min": 0, "max": 100},
+        {"kode": "keterampilan", "label": "Keterampilan (ide kreatif, demonstrasi produksi, presentasi, pemasaran)", "min": 0, "max": 100}
+      ],
+      "kolom_rumus": [
+        {"kode": "nilai_akhir", "label": "Nilai Akhir", "rumus": "0.3*[pengetahuan] + 0.3*[sikap] + 0.4*[keterampilan] + [poin_kehadiran]"}
+      ],
+      "urut_berdasarkan": "nilai_akhir"
+    },
+    {
+      "kegiatan": "drama",
+      "judul": "Penilaian Pentas Seni Drama Kepalangmerahan",
+      "per_tingkat": true,
+      "subjek": "kontingen",
+      "kolom_input": [
+        {"kode": "tema", "label": "Kesesuaian dengan tema kepalangmerahan", "min": 0, "max": 100},
+        {"kode": "akting", "label": "Kualitas akting dan penjiwaan karakter", "min": 0, "max": 100},
+        {"kode": "kekompakan", "label": "Kekompakan dan penguasaan panggung", "min": 0, "max": 100},
+        {"kode": "properti", "label": "Properti dan kreativitas penyajian", "min": 0, "max": 100}
+      ],
+      "kolom_rumus": [
+        {"kode": "nilai_akhir", "label": "Nilai Akhir", "rumus": "AVG([tema],[akting],[kekompakan],[properti]) + [poin_kehadiran]"}
+      ],
+      "urut_berdasarkan": "nilai_akhir"
+    },
+    {
+      "kegiatan": "got-talent",
+      "judul": "Penilaian Final Jumbara Got Talent",
+      "per_tingkat": false,
+      "subjek": "kontingen",
+      "kolom_input": [
+        {"kode": "teknik", "label": "Penguasaan teknik dan bakat (vokal/gerak/ketepatan)", "min": 0, "max": 100},
+        {"kode": "kreativitas", "label": "Kreativitas dan keunikan penampilan", "min": 0, "max": 100},
+        {"kode": "panggung", "label": "Penampilan panggung (stage presence dan kostum)", "min": 0, "max": 100},
+        {"kode": "hibur", "label": "Daya hibur", "min": 0, "max": 100}
+      ],
+      "kolom_rumus": [
+        {"kode": "nilai_akhir", "label": "Nilai Akhir", "rumus": "0.3*[teknik] + 0.3*[kreativitas] + 0.2*[panggung] + 0.2*[hibur]"}
+      ],
+      "urut_berdasarkan": "nilai_akhir",
+      "catatan": "Tabel bobot di pedoman hlm 31-32 terpotong (30%, ?, 30%, 20%, 20%). Bobot di sini tebakan, WAJIB dikonfirmasi panitia. 3 juri; nilai antarjuri dirata-rata. Hanya 8 finalis."
+    },
+    {
+      "kegiatan": "ranking-1",
+      "judul": "Hasil Ranking 1",
+      "per_tingkat": true,
+      "subjek": "kontingen",
+      "jenis": "gugur",
+      "kolom_input": [
+        {"kode": "peringkat", "label": "Peringkat akhir", "min": 1, "max": 99}
+      ],
+      "urut_berdasarkan": "peringkat",
+      "arah_urut": "naik"
+    },
+    {
+      "kegiatan": "wahana",
+      "judul": "Hasil Wahana Kepalangmerahan - Bakiak",
+      "per_tingkat": true,
+      "subjek": "kontingen",
+      "jenis": "gugur",
+      "cabang": "Bakiak",
+      "kolom_input": [{"kode": "peringkat", "label": "Peringkat akhir", "min": 1, "max": 99}],
+      "urut_berdasarkan": "peringkat",
+      "arah_urut": "naik"
+    },
+    {
+      "kegiatan": "wahana",
+      "judul": "Hasil Wahana Kepalangmerahan - Voli Tutup Terpal",
+      "per_tingkat": true,
+      "subjek": "kontingen",
+      "jenis": "gugur",
+      "cabang": "Voli Tutup Terpal",
+      "kolom_input": [{"kode": "peringkat", "label": "Peringkat akhir", "min": 1, "max": 99}],
+      "urut_berdasarkan": "peringkat",
+      "arah_urut": "naik"
+    },
+    {
+      "kegiatan": "wahana",
+      "judul": "Hasil Wahana Kepalangmerahan - Gobak Sodor",
+      "per_tingkat": true,
+      "subjek": "kontingen",
+      "jenis": "gugur",
+      "cabang": "Gobak Sodor",
+      "kolom_input": [{"kode": "peringkat", "label": "Peringkat akhir", "min": 1, "max": 99}],
+      "urut_berdasarkan": "peringkat",
+      "arah_urut": "naik"
+    },
+    {
+      "kegiatan": "bakti-masyarakat",
+      "judul": "Penilaian Bakti Masyarakat",
+      "per_tingkat": true,
+      "subjek": "kontingen",
+      "kolom_input": [
+        {"kode": "pengetahuan", "label": "Penguasaan materi", "min": 0, "max": 100},
+        {"kode": "kreativitas", "label": "Kreativitas", "min": 0, "max": 100},
+        {"kode": "sebaya", "label": "Penerapan pendidikan sebaya", "min": 0, "max": 100},
+        {"kode": "kerjasama", "label": "Kerja sama tim", "min": 0, "max": 100},
+        {"kode": "peran", "label": "Pembagian peran dalam kelompok", "min": 0, "max": 100}
+      ],
+      "kolom_rumus": [
+        {"kode": "nilai_akhir", "label": "Nilai Akhir", "rumus": "AVG([pengetahuan],[kreativitas],[sebaya],[kerjasama],[peran]) + [poin_kehadiran]"}
+      ],
+      "urut_berdasarkan": "nilai_akhir",
+      "catatan": "Pedoman tidak memberi bobot. Rata-rata sementara."
+    },
+    {
+      "kegiatan": "ngobrol-bareng",
+      "judul": "Penilaian Ngobrol Bareng PMR",
+      "per_tingkat": true,
+      "subjek": "kontingen",
+      "kolom_input": [
+        {"kode": "pemahaman", "label": "Memahami pengembangan program PMR", "min": 0, "max": 100},
+        {"kode": "implementasi", "label": "Mampu mengembangkan dan mengimplementasikan program di unit", "min": 0, "max": 100},
+        {"kode": "kepemimpinan", "label": "Menerapkan nilai kepemimpinan dan pengambilan keputusan", "min": 0, "max": 100}
+      ],
+      "kolom_rumus": [
+        {"kode": "nilai_akhir", "label": "Nilai Akhir", "rumus": "AVG([pemahaman],[implementasi],[kepemimpinan]) + [poin_kehadiran]"}
+      ],
+      "urut_berdasarkan": "nilai_akhir"
+    },
+    {
+      "kegiatan": "sarasehan-medsos",
+      "judul": "Poin Keaktifan Sarasehan Sehat Bermedia Sosial",
+      "per_tingkat": true,
+      "subjek": "kontingen",
+      "kolom_input": [{"kode": "poin_aktif", "label": "Poin keaktifan (menjawab pertanyaan narasumber)", "min": 0, "max": 100}],
+      "kolom_rumus": [{"kode": "nilai_akhir", "label": "Nilai Akhir", "rumus": "[poin_aktif] + [poin_kehadiran]"}],
+      "urut_berdasarkan": "nilai_akhir",
+      "catatan": "Pedoman: poin tambahan untuk kontingen favorit."
+    },
+    {
+      "kegiatan": "sarasehan-pergaulan",
+      "judul": "Poin Keaktifan Sarasehan Menjaga Diri dari Pergaulan Bebas",
+      "per_tingkat": true,
+      "subjek": "kontingen",
+      "kolom_input": [{"kode": "poin_aktif", "label": "Poin keaktifan (menjawab pertanyaan narasumber)", "min": 0, "max": 100}],
+      "kolom_rumus": [{"kode": "nilai_akhir", "label": "Nilai Akhir", "rumus": "[poin_aktif] + [poin_kehadiran]"}],
+      "urut_berdasarkan": "nilai_akhir"
+    },
+    {
+      "kegiatan": null,
+      "judul": "Juara Umum",
+      "per_tingkat": true,
+      "subjek": "kontingen",
+      "kolom_rumus": [
+        {"kode": "poin_traveling", "label": "Poin Traveling", "rumus": "POIN_PERINGKAT(REF(\"penilaian-traveling\", \"peringkat\"), 10, 8, 6, 4, 2)"},
+        {"kode": "total", "label": "Total Poin", "rumus": "SUM([poin_traveling])"}
+      ],
+      "urut_berdasarkan": "total",
+      "catatan": "Contoh saja. Rumus juara umum disusun panitia bersama superadmin. REF menarik kolom dari form lain pada tingkat yang sama untuk kontingen yang sama."
+    }
+  ]
+}

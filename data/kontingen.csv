@@ -1,0 +1,30 @@
+kode,nama_resmi,tingkat,nama_di_gform,pimpinan_gform,pendamping_gform,jumlah_pendamping_tambahan,peserta_inti_gform,peninjau_gform_asli,peninjau_dihitung,kuota_awal,catatan
+MU-01,SD Negeri 003 Tanjung Palas Utara,MULA,SD NEGERI 003 TANJUNG PALAS UTARA,Nurul Choiriyah,Muharno; Wirantono; Febriana Sari; Ahmad Zaki; Indah; Wahyu Erliandari; Yustika; Sulikah,8,16,0,0,25,
+MU-02,SD Negeri 006 Tanjung Palas Utara,MULA,SD Negeri 006 Tanjung Palas Utara,"Yuniventaria Hasugian, S.Pd","Louis, S.Th; Rusmanto, S.Pd; Sri Wahyuni, S.Pd",3,25,1,1,30,Peserta inti 25 melebihi batas pedoman untuk Mula (20). Konfirmasi ke panitia.
+MU-03,SD Negeri 010 Tanjung Palas Timur,MULA,SD Negeri 010 Tanjung Palas Timur,"Khusniar, S.Pd","Romy, S.Pd",1,20,10,10,32,
+MA-01,MTs Al-Anshar Tanjung Selor,MADYA,Mts Al-Anshar Tanjung Selor,"Satria, S.Pd","Satria, S.Pd",0,20,-,0,21,Pimpinan merangkap pembina pendamping
+MA-02,MTs Negeri Bulungan,MADYA,MTsN Bulungan,"Yasmin, S.Pd","Heni Sopiawati, S.Pd",1,25,5,5,32,
+MA-03,SMP Muhammadiyah Tanjung Selor,MADYA,SMP Muhammadiyah Tanjung Selor,Ari Nofal Al'atas,Ari Nofal Al'atas,0,17,,0,18,Pimpinan merangkap pembina pendamping; kolom peninjau kosong
+MA-04,SMP Negeri 1 Bunyu,MADYA,SMP Negeri 1 Bunyu,"Tri Yani, S.Pd","Vindi Mahardikasari, S.Pd",1,24,0,0,26,
+MA-05,SMP Negeri 1 Sekatak,MADYA,SMPN 1 SEKATAK,"Trasisius Ali Balik, S.Pd","Puji Astuti, S.Pd",1,25,5,5,32,
+MA-06,SMP Negeri 1 Tanjung Palas,MADYA,SMPN 1 Tanjung Palas,"Sri Handayani, S.Pd",Hida Amelia dan Fahrizul Yoga Pratama,2,25,-,0,28,
+MA-07,SMP Negeri 1 Tanjung Palas Utara,MADYA,SMP NEGERI 1 TANJUNG PALAS UTARA,"Indra Wahyuni, S.Pd","Ulam Ayunda, S.Pd dan Siprianus Labo, S.Pd",2,23,-,0,26,
+MA-08,SMP Negeri 1 Tanjung Selor,MADYA,SMPN 1 Tanjung Selor,"Kasih Wulandari, S.Pd","Dra. Neni Martini dan Sutra, SE",2,25,1,1,29,
+MA-09,SMP Negeri 2 Peso Hilir,MADYA,SMP Negeri 2 Peso Hilir,"Ritani, S.Pd","Zakaria, S.Pd (putra) dan Delni Gustitin, S.Kom (putri)",2,25,0,0,28,
+MA-10,SMP Negeri 2 Tanjung Palas,MADYA,SMP NEGERI 2 TANJUNG PALAS,"Nur Handriani, S.Psi","Nur Handriani, S.Psi",0,19,-,0,20,Pimpinan merangkap pembina pendamping
+MA-11,SMP Negeri 2 Tanjung Selor,MADYA,SMP NEGERI 2 TANJUNG SELOR,"Nurati, S.Sos","Depiananisa Berutu, SE",1,25,-,0,27,
+MA-12,SMP Negeri 3 Tanjung Palas,MADYA,SMP Negeri 3 Tanjung Palas,Aira Restianda,"Suharnik, S.Pd",1,15,,0,17,Kolom peninjau kosong di GForm
+MA-13,SMP Negeri 3 Tanjung Palas Timur,MADYA,SMP NEGERI 3 TG PALAS TIMUR,"Dinar Martanto, S.Pd","Aisyah T, S.Pd dan Noor Azizah, S.Pd",2,25,1,1,29,
+MA-14,SMP Negeri 3 Tanjung Selor,MADYA,SMP NEGERI 3 TANJUNG SELOR,"Salmah, S.Ag","Ratih Nuraini, S.Pd",1,25,5,5,32,
+MA-15,SMP Negeri 5 Tanjung Selor,MADYA,SMP NEGERI 5 TANJUNG SELOR,"Azmieni, S.Ag, M.Pd","Sadra, S.Pd",1,25,5,5,32,
+MA-16,SMP Negeri 7 Tanjung Palas Timur,MADYA,SMPN7 Tanjung Palas Timur,"Sartika, S.Pd","Suryadi, S.Pd dan Jhoni Biet, SE",2,15,-,0,18,
+MA-17,SMP Negeri 7 Tanjung Selor,MADYA,SMP Negeri 7 Tanjung Selor,"Karlina Pujiastuti, S.Pd","Karlina Pujiastuti, S.Pd",0,17,0,0,18,Pimpinan merangkap pembina pendamping
+WI-01,SMA Negeri 1 Bunyu,WIRA,SMA Negeri 1 Bunyu,"Endang Rubiati, S.Pd","Sri Supadmi, S.Pd",1,15,-,0,17,
+WI-02,SMA Negeri 1 Peso,WIRA,SMAN 1 PESO,Enos Renden,Linda Muanty,1,25,0,0,27,
+WI-03,SMA Negeri 1 Tanjung Palas,WIRA,SMA NEGERI 1 TANJUNG PALAS,"Henik Triawati, S.Pd","Henik Triawati, S.Pd",0,16,-,0,17,Pimpinan merangkap pembina pendamping
+WI-04,SMA Negeri 1 Tanjung Palas Tengah,WIRA,SMA Negeri 1 Tanjung Palas Tengah,"Ruslansyah, S.Pd",,0,18,0,0,19,Kolom pendamping kosong di GForm
+WI-05,SMA Negeri 1 Tanjung Selor,WIRA,SMA Negeri 1 Tanjung Selor,"Zubair, S.Pd.","Septya Dwi Wardhaniah, S.Pd.",1,25,26,26,53,
+WI-06,SMA Negeri 2 Tanjung Palas Timur,WIRA,SMAN2 TANJUNG PALAS TIMUR,Gregorius Leyong Nuban,Gregorius Leyong Nuban,0,25,-,0,26,Pimpinan merangkap pembina pendamping
+WI-07,SMK Negeri 1 Bunyu,WIRA,SMK Negeri 1 Bunyu,"Hotmauli Gultom, M.Pd.","Hotmauli Gultom, M.Pd.",0,6,0,0,7,Pimpinan merangkap pembina pendamping
+WI-08,SMK Negeri 1 Tanjung Selor,WIRA,SMKN 1 Tanjung Selor,"Lina Indriani Agustin, S.Pd","Hidayatul Sya'diah, S.Pd",1,25,8,8,35,
+WI-09,SMK Negeri 2 Tanjung Selor,WIRA,SMK Negeri 2 Tanjung Selor,"Agusrentiani Ennita, S.E","Abdul Qadir, S.Pd",1,25,2,2,29,

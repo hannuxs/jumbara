@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "anthropic.claude-code",
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "charliermarsh.ruff",
+    "batisteo.vscode-django",
+    "bradlc.vscode-tailwindcss",
+    "editorconfig.editorconfig",
+    "mechatroner.rainbow-csv"
+  ]
+}

@@ -1,0 +1,14 @@
+kode,nama,kelompok,dipisah_per_tingkat,kuota_default_per_kontingen,rincian_kuota,sistem_penilaian,catatan
+daftar-ulang,Daftar Ulang,Administrasi,tidak,,Seluruh anggota kontingen (kuota kontingen),absen saja,Satu titik absen untuk semua tingkat. Dipindai di sekretariat 12 Nov 08.00-12.00.
+traveling,Traveling Kepalangmerahan,Jumpa,ya,8,1 pembina/pendamping + 7 anggota PMR,aspek berbobot,"7 posko. Pengetahuan 25%, Sikap 25%, Keterampilan 50%."
+jurnalistik,Jurnalistik Remaja,Jumpa,ya,3,3 anggota PMR,aspek berbobot,"Pendalaman materi 12 Nov, penugasan 13-14 Nov. Pengetahuan 20%, Sikap 20%, Keterampilan 60%."
+ranking-1,Ranking 1,Jumpa,ya,1,1 anggota PMR,sistem gugur,Juri cukup mengisi peringkat akhir.
+sarasehan-medsos,Sarasehan Sehat Bermedia Sosial,Jumpa,ya,3,3 anggota PMR,poin tambahan,Peserta aktif menambah poin kontingen favorit.
+sarasehan-pergaulan,Sarasehan Menjaga Diri dari Pergaulan Bebas,Jumpa,ya,3,3 anggota PMR,poin tambahan,Peserta aktif menambah poin kontingen favorit.
+ngobrol-bareng,Ngobrol Bareng PMR,Jumpa,ya,3,3 perwakilan,aspek tanpa bobot,"Aspek: pemahaman program PMR, implementasi program di unit, nilai kepemimpinan."
+bakti-masyarakat,Bakti Masyarakat,Bakti,ya,2,2 perwakilan,aspek tanpa bobot,"Pembekalan 13 Nov 17.00, kunjungan panti 14 Nov 08.00-11.00."
+kewirausahaan,Kewirausahaan dan Pameran,Bakti,ya,3,3 anggota PMR,aspek berbobot,"Pendalaman materi 12 Nov, produksi dan pameran 13-14 Nov. Pengetahuan 30%, Sikap 30%, Keterampilan 40%."
+drama,Pentas Seni Drama Kepalangmerahan,Gembira,ya,,1 tim per kontingen (jumlah anggota tim diisi superadmin),aspek berbobot,"Malam 12, 13, 14 Nov 20.00-23.00. 4 kriteria masing-masing 25%."
+got-talent,Jumbara Got Talent,Gembira,tidak,,1 perwakilan individu/grup; hanya 8 finalis tampil,aspek berbobot,Satu juara umum tanpa pembagian tingkat. Satu titik absen gabungan per hari.
+anjangsana,Anjangsana,Gembira,tidak,,Seluruh kontingen,review publik,Tidak punya titik absen panitia bawaan. Kunjungan dicatat lewat link publik Anjangsana.
+wahana,Wahana Kepalangmerahan (Olahraga Persahabatan),Gembira,ya,5,"Bakiak 1, Voli Tutup Terpal 2, Gobak Sodor 2",sistem gugur per cabang,Absen per tingkat (satu titik untuk ketiga cabang). Juara per cabang dan per tingkat.

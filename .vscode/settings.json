@@ -1,0 +1,24 @@
+{
+  "files.eol": "\n",
+  "files.encoding": "utf8",
+  "editor.formatOnSave": false,
+  "python.defaultInterpreterPath": "${workspaceFolder}/web/.venv/Scripts/python.exe",
+  "python.testing.pytestEnabled": true,
+  "python.testing.cwd": "${workspaceFolder}/web",
+  "search.exclude": {
+    "**/.venv": true,
+    "**/__pycache__": true,
+    "web/staticfiles": true,
+    "web/static/vendor": true,
+    "docs/referensi/*.pdf": true
+  },
+  "files.associations": {
+    "**/templates/**/*.html": "django-html"
+  },
+  "emmet.includeLanguages": {
+    "django-html": "html"
+  },
+  "tailwindCSS.includeLanguages": {
+    "django-html": "html"
+  }
+}
