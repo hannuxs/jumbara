@@ -208,7 +208,7 @@
     <div class="isian mb-0" data-isian="foto">
       <label for="id_foto" class="label {% if foto_wajib %}wajib{% endif %}">Unggah foto</label>
       <p class="mb-3 text-sm text-abu">Foto wajah terbaru, tampak depan, latar polos jika ada. Format JPG atau PNG, maksimal 5 MB. Foto hanya disimpan sebagai arsip panitia dan <strong>tidak dicetak di kartu</strong>.</p>
-      <input type="file" name="foto" id="id_foto" accept="image/jpeg,image/png" class="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-oranye file:px-4 file:py-2.5 file:font-semibold file:text-white" :class="js && 'sr-only'" @change="fotoDipilih($event); namaFoto = $event.target.files[0] ? $event.target.files[0].name : ''" {% if foto_wajib %}required{% endif %}>
+      <input type="file" name="foto" id="id_foto" accept="image/jpeg,image/png" class="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-oranye file:px-4 file:py-2.5 file:font-semibold file:text-white" :class="js && 'hidden'" @change="fotoDipilih($event); namaFoto = $event.target.files[0] ? $event.target.files[0].name : ''" {% if foto_wajib %}required{% endif %}>
       <div x-show="js" x-cloak class="flex items-center gap-3">
         <label for="id_foto" class="btn-utama cursor-pointer" x-show="fotoStatus !== 'potong'">Pilih foto</label>
         <span class="min-w-0 truncate text-sm text-abu" x-text="namaFoto || 'Belum ada foto dipilih'" x-show="fotoStatus !== 'potong'"></span>
@@ -246,17 +246,19 @@
 
   {# ---------------- Ringkasan sebelum kirim ---------------- #}
   <div x-show="ringkasan.length" x-cloak class="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="judul-ringkasan">
-    <div class="max-h-[90vh] w-full max-w-lg overflow-auto rounded-t-2xl bg-white p-5 sm:rounded-2xl" @keydown.escape.window="ringkasan = []">
-      <h2 id="judul-ringkasan" class="mb-1 text-lg font-bold">Periksa sebelum kirim</h2>
-      <p class="mb-3 text-sm text-abu">Pastikan semua sudah benar.</p>
-      <template x-for="p in peringatanRingkasan"><div class="pesan-peringatan" x-text="p"></div></template>
-      <dl class="mb-4 divide-y divide-gray-100 text-sm">
-        <template x-for="b in ringkasan" :key="b.label">
-          <div class="grid grid-cols-[8.5rem_1fr] gap-2 py-2"><dt class="text-abu" x-text="b.label"></dt><dd class="font-semibold text-navy break-words" x-text="b.nilai"></dd></div>
-        </template>
-      </dl>
-      <img x-show="pratinjauFoto" :src="pratinjauFoto" alt="Foto yang akan dikirim" class="mx-auto mb-4 h-32 w-24 rounded-lg object-cover">
-      <div class="grid grid-cols-2 gap-2">
+    <div class="flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl bg-white sm:rounded-2xl" @keydown.escape.window="ringkasan = []">
+      <div class="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-5">
+        <h2 id="judul-ringkasan" class="mb-1 text-lg font-bold">Periksa sebelum kirim</h2>
+        <p class="mb-3 text-sm text-abu">Pastikan semua sudah benar.</p>
+        <template x-for="p in peringatanRingkasan"><div class="pesan-peringatan" x-text="p"></div></template>
+        <dl class="divide-y divide-gray-100 text-sm">
+          <template x-for="b in ringkasan" :key="b.label">
+            <div class="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-2 py-2"><dt class="text-abu" x-text="b.label"></dt><dd class="break-words font-semibold text-navy" x-text="b.nilai"></dd></div>
+          </template>
+        </dl>
+        <img x-show="pratinjauFoto" :src="pratinjauFoto" alt="Foto yang akan dikirim" class="mx-auto mt-3 h-32 w-24 rounded-lg object-cover">
+      </div>
+      <div class="grid shrink-0 grid-cols-2 gap-2 border-t border-gray-100 bg-white p-4">
         <button type="button" class="btn-abu" @click="ringkasan = []">Perbaiki</button>
         <button type="button" class="btn-utama" @click="kirim()">Ya, kirim</button>
       </div>
