@@ -70,4 +70,6 @@ class Command(BaseCommand):
                     keterangan=f"Sandi akun {a.username} disetel ulang dari server; {n} perangkat dikeluarkan",
                 )
             pendek = "  (PENDEK: segera ganti dengan sandi kuat)" if len(sandi) < 10 else ""
-            self.stdout.write(self.style.SUCCESS(f"Sandi {a.username} disetel ulang. Segera ganti dari Superadmin > Akun.{pendek}"))
+            self.stdout.write(
+                self.style.SUCCESS(f"Sandi {a.username} disetel ulang. Segera ganti dari Superadmin > Akun.{pendek}")
+            )
