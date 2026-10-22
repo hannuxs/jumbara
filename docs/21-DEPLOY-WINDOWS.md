@@ -219,7 +219,7 @@ Hasil uji 18 Okt 2026: cadangan dipulihkan ke database `sigap_uji_pulih`; jumlah
 | Gejala | Penyebab dan solusi |
 |---|---|
 | `django.db.utils.NotSupportedError: MariaDB 10.5 or later is required` | Masih terhubung ke MariaDB XAMPP 10.4. Periksa `DB_PORT` di `.env` |
-| `(2003) Can't connect to MySQL server` | Service MariaDB mati atau port salah. `Get-Service MariaDB1011` |
+| `(2003) Can't connect to MySQL server` atau `(2002) Can't connect to server on '127.0.0.1' (10061)` | MariaDB mati atau port salah. Server: `Start-Service MariaDB1011`. Laptop: `scripts\windows\mariadb-dev.ps1` (lihat bagian 13). Periksa `DB_PORT` |
 | `ImproperlyConfigured: Set the SIGAP_KUNCI_NIK environment variable` | `.env` belum lengkap |
 | Halaman 500 setelah `DEBUG=False`, log berisi `Missing staticfiles manifest entry` | Belum `collectstatic --noinput` setelah pembaruan |
 | Kirim form gagal "Muat ulang halaman" (403 CSRF) lewat domain | `CSRF_TRUSTED_ORIGINS` belum berisi `https://domain` |
@@ -230,12 +230,18 @@ Hasil uji 18 Okt 2026: cadangan dipulihkan ke database `sigap_uji_pulih`; jumlah
 
 ## 13. Catatan laptop pengembangan Farhan
 
-- MariaDB 10.11.19 untuk pengembangan dipasang **tanpa installer** (ZIP resmi, terverifikasi SHA256) di `C:\Users\USER\sigap-mariadb\`, port **3307**, data di `C:\Users\USER\sigap-mariadb\data\`. Ini **bukan service**: setelah laptop restart, nyalakan dengan
-  ```powershell
-  & "C:\Users\USER\sigap-mariadb\mariadb-10.11.19-winx64\bin\mariadbd.exe" --defaults-file="C:\Users\USER\sigap-mariadb\data\my.ini"
-  ```
-  (biarkan jendela terbuka), atau jadikan service sekali **(Admin)**:
-  `& "C:\Users\USER\sigap-mariadb\mariadb-10.11.19-winx64\bin\mariadbd.exe" --install MariaDB1011dev --defaults-file="C:\Users\USER\sigap-mariadb\data\my.ini"` lalu `Start-Service MariaDB1011dev`.
+- MariaDB 10.11.19 untuk pengembangan dipasang **tanpa installer** (ZIP resmi, terverifikasi SHA256) di `C:\Users\USER\sigap-mariadb\`, port **3307**, data di `C:\Users\USER\sigap-mariadb\data\`. Ini **belum menjadi service**, jadi **mati setiap laptop restart**. Gejalanya saat `runserver`: `OperationalError: (2002, "Can't connect to server on '127.0.0.1' (10061)")`.
+  - Menyalakan (setiap kali laptop baru hidup), dari folder `web`:
+    ```powershell
+    powershell -ExecutionPolicy Bypass -File scripts\windows\mariadb-dev.ps1
+    ```
+    Jendela MariaDB terbuka terpisah (terperkecil); jangan ditutup selama bekerja. Cek: `... mariadb-dev.ps1 -Status`.
+  - **Disarankan, sekali saja:** jadikan Windows Service agar menyala otomatis. Buka PowerShell **Run as Administrator**, tutup dulu jendela MariaDB yang sedang jalan, lalu:
+    ```powershell
+    cd D:\sigap-jumbara\web
+    powershell -ExecutionPolicy Bypass -File scripts\windows\mariadb-dev.ps1 -PasangService
+    ```
+    Service bernama `MariaDB1011dev`, start otomatis.
 - Sandi root MariaDB laptop dibuat acak; sandi user `sigap` ada di `web\.env` (`DB_PASSWORD`). Sandi root perlu diganti/ditanyakan bila butuh (lihat catatan sesi di `PROGRES.md`).
 - MariaDB XAMPP 10.4 di port 3306 tidak diubah.
 - Menjalankan server pengembangan: `.venv\Scripts\python manage.py runserver 0.0.0.0:8000`.

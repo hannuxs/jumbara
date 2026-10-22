@@ -96,3 +96,4 @@ Semua hal yang **tidak diminta secara eksplisit** oleh panitia/Farhan tetapi dit
 | 18 Okt 2026 | 1 | Tombol Perbesar/Perkecil di pemotong foto | Laptop tidak bisa mencubit layar (R5) | Hapus tombol di `form.html` |
 | 18 Okt 2026 | 1 | Pemuatan foto bertingkat (blob URL, FileReader, lalu kirim foto asli tanpa pratinjau) | Pengisi tidak pernah terhalang bila browser gagal menampilkan foto tertentu (R5) | - |
 | 18 Okt 2026 | 1 | Mesin WebKit dan Firefox untuk Playwright dipasang di laptop (`%LOCALAPPDATA%\ms-playwright`), hanya untuk uji | Menguji tampilan Safari/iPhone dan Firefox tanpa perangkat fisik (R5) | `python -m playwright uninstall` |
+| 22 Okt 2026 | 1 | Skrip `scripts/windows/mariadb-dev.ps1` (nyalakan MariaDB pengembangan, cek status, pasang sebagai service) dan petunjuk di `sigap_cek_lingkungan` saat database tidak bisa dihubungi | MariaDB laptop mati setelah restart sehingga `runserver` gagal | Hapus skrip |

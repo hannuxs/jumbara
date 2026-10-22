@@ -45,6 +45,10 @@ class Command(BaseCommand):
             self.cek("sigap_cache" in tabel, "Tabel cache ada (python manage.py createcachetable)")
         except Exception as e:  # noqa: BLE001
             self.cek(False, f"Tidak bisa terhubung ke database: {e}")
+            self.info(
+                "MariaDB mati? Laptop: powershell -ExecutionPolicy Bypass -File scripts\\windows\\mariadb-dev.ps1 ; "
+                "server: Start-Service MariaDB1011. Periksa juga DB_PORT di .env."
+            )
 
         self.judul("Kunci dan rahasia")
         self.cek(not settings.DEBUG, "DJANGO_DEBUG=False", wajib=False)

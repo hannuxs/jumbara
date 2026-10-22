@@ -56,6 +56,10 @@ Belum dimulai. Tabel `kegiatan`, `kuota_kegiatan`, `titik_absen` (60 baris teris
 
 ## Catatan sesi
 
+### 22 Oktober 2026 (Claude Code)
+
+`runserver` gagal `(2002, "Can't connect to server on '127.0.0.1' (10061)")`: MariaDB 10.11 pengembangan (port 3307) mati karena belum menjadi service dan ikut mati saat sesi/laptop berhenti. Dinyalakan ulang. Ditambah `web/scripts/windows/mariadb-dev.ps1` (nyalakan, `-Status`, `-PasangService` sebagai Admin) dan petunjuk di `sigap_cek_lingkungan`. **Farhan disarankan menjalankan `-PasangService` sekali** agar tidak terulang.
+
 ### 18 Oktober 2026 (Claude Code, sesi 1 lanjutan: revisi R1-R3)
 
 Perubahan manual Farhan (foto dicetak di kartu, teks SIAMO, teks nama kapital) di-commit terpisah. Dikerjakan R1 (tingkat dulu, sekolah disaring, server menolak tingkat beda), R2 (foto wajib mutlak, dokumen kartu berfoto), R3 (nama + nama orang tua kapital, migrasi data). 154 tes lulus, uji browser 360 px lulus. Catatan untuk Tahap 2: desain kartu B-2 sekarang memuat foto 3x4 (`13-KARTU-QR.md`).
