@@ -154,6 +154,24 @@
     setInterval(periksa, 20000);
   });
 
+  // Halaman rekap: muat ulang setiap N detik (data-segar) sambil menjaga posisi gulir.
+  document.addEventListener("DOMContentLoaded", function () {
+    var detik = body ? parseInt(body.getAttribute("data-segar") || "0", 10) : 0;
+    var kunci = "sigap:gulir:" + location.pathname + location.search;
+    try {
+      var y = sessionStorage.getItem(kunci);
+      if (y) { window.scrollTo(0, parseInt(y, 10)); sessionStorage.removeItem(kunci); }
+    } catch (e) { /* abaikan */ }
+    if (!detik) { return; }
+    setInterval(function () {
+      var aktif = document.activeElement;
+      var sedangMengetik = aktif && /INPUT|TEXTAREA|SELECT/.test(aktif.tagName);
+      if (document.visibilityState !== "visible" || sedangMengetik) { return; }
+      try { sessionStorage.setItem(kunci, String(window.scrollY)); } catch (e) { /* abaikan */ }
+      location.reload();
+    }, detik * 1000);
+  });
+
   // Saat keluar, simpan rute terakhir tetap ada (sengaja), tapi hapus cookie nama.
   document.addEventListener("submit", function (e) {
     if (e.target && e.target.hasAttribute && e.target.hasAttribute("data-form-keluar")) { hapusCookie("sigap_nama"); }

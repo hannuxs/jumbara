@@ -1,0 +1,21 @@
+{% extends "rekap/base.html" %}
+{% block judul %}Poin kehadiran{% endblock %}
+{% block judul_rekap %}Poin kehadiran per kegiatan{% endblock %}
+{% block segar %}{% endblock %}
+{% block info_segar %}{% endblock %}
+{% block aksi_rekap %}{% endblock %}
+{% block rekap %}
+<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+  {% for kg in kegiatan %}
+    <div class="kartu">
+      <div class="mb-1 font-semibold text-navy">{{ kg.nama }}</div>
+      <div class="mb-3 text-xs text-abu">Kuota bawaan: {{ kg.kuota_default|default_if_none:"belum diatur" }}{% if kg.rincian_kuota %} · {{ kg.rincian_kuota }}{% endif %}</div>
+      <div class="flex gap-1.5">
+        <a class="btn-abu btn-kecil" href="{% url 'rekap:kegiatan' kg.pk %}?tingkat=MULA">Mula</a>
+        <a class="btn-abu btn-kecil" href="{% url 'rekap:kegiatan' kg.pk %}?tingkat=MADYA">Madya</a>
+        <a class="btn-abu btn-kecil" href="{% url 'rekap:kegiatan' kg.pk %}?tingkat=WIRA">Wira</a>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

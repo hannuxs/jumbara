@@ -1,0 +1,13 @@
+{% extends "rekap/base.html" %}
+{% block judul %}Rekap per kontingen{% endblock %}
+{% block judul_rekap %}Rekap per kontingen{% endblock %}
+{% block segar %}{% endblock %}
+{% block info_segar %}{% endblock %}
+{% block aksi_rekap %}{% endblock %}
+{% block rekap %}
+<div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+  {% for k in kontingen %}
+    <a href="{% url 'rekap:kontingen' k.pk %}" class="flex items-center gap-2 rounded-xl bg-white p-3 shadow-kartu hover:bg-krem"><span class="badge-{{ k.tingkat }}">{{ k.kode }}</span><span class="font-semibold text-navy">{{ k.nama }}</span></a>
+  {% endfor %}
+</div>
+{% endblock %}

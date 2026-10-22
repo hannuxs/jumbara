@@ -1,0 +1,19 @@
+{% extends "superadmin/base.html" %}
+{% block judul %}Kuota {{ kg.nama }}{% endblock %}
+{% block judul_halaman %}Kuota per kontingen · {{ kg.nama }}{% endblock %}
+{% block konten %}
+<p class="mb-3 text-sm text-abu">Kuota bawaan: <strong>{{ kg.kuota_default|default_if_none:"belum diatur" }}</strong>. Isi hanya untuk kontingen yang kuotanya berbeda (misalnya kontingen kecil). Kosongkan untuk mengikuti kuota bawaan.</p>
+<form method="post" class="kartu overflow-x-auto p-0 sm:p-0">
+  {% csrf_token %}
+  <table class="tabel">
+    <thead><tr><th>Kontingen</th><th>Tingkat</th><th class="w-32">Kuota khusus</th></tr></thead>
+    <tbody>
+    {% for b in baris %}
+      <tr><td><span class="text-xs text-abu">{{ b.k.kode }}</span> {{ b.k.nama }}</td><td><span class="badge-{{ b.k.tingkat }}">{{ b.k.get_tingkat_display }}</span></td>
+        <td><input name="k_{{ b.k.pk }}" value="{{ b.nilai }}" inputmode="numeric" placeholder="{{ kg.kuota_default|default_if_none:'-' }}" class="input min-h-[36px] w-24 py-1 text-right" aria-label="Kuota {{ b.k.nama }}"></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <div class="flex gap-2 p-4"><button class="btn-utama" type="submit">Simpan</button><a href="{% url 'absensi_admin:kegiatan_daftar' %}" class="btn-abu">Kembali</a></div>
+</form>
+{% endblock %}

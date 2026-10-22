@@ -1,0 +1,27 @@
+{% extends "rekap/base.html" %}
+{% block judul %}Rekap per tingkat{% endblock %}
+{% block judul_rekap %}Rekap per tingkat{% endblock %}
+{% block rekap %}
+<div class="mb-3 flex gap-2">
+  {% for v, l in pilihan %}<a href="?tingkat={{ v }}" class="btn-kecil btn {% if tingkat == v %}bg-{{ v|lower }} {% if v == 'WIRA' %}text-navy{% else %}text-white{% endif %}{% else %}btn-abu{% endif %}">{{ l }}</a>{% endfor %}
+</div>
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <table class="tabel">
+    <thead><tr><th>Kode</th><th>Titik absen</th><th>Waktu</th><th class="text-right">Hadir</th><th class="text-right">Kontingen</th><th class="text-right">Kuota</th><th class="text-right">%</th></tr></thead>
+    <tbody>
+    {% for d in data %}
+      <tr>
+        <td class="font-mono text-xs">{{ d.titik.kode }}</td>
+        <td class="min-w-[14rem]"><a class="font-semibold hover:underline" href="{% url 'rekap:titik' d.titik.pk %}">{{ d.titik.nama_tampil }}</a>{% if d.titik.tingkat == "SEMUA" %} <span class="badge-SEMUA">semua tingkat</span>{% endif %}</td>
+        <td class="whitespace-nowrap text-xs">{{ d.titik.tanggal|date:"D d/m" }} {{ d.titik.mulai|time:"H.i" }}</td>
+        <td class="text-right font-bold">{{ d.hadir }}</td>
+        <td class="text-right">{{ d.kontingen_hadir }}/{{ d.kontingen_total }}</td>
+        <td class="text-right">{{ d.kuota|default_if_none:"-" }}</td>
+        <td class="text-right {% if d.persen is not None and d.persen < 100 %}text-amber-700{% endif %}">{% if d.persen is not None %}{{ d.persen }}%{% else %}-{% endif %}</td>
+      </tr>
+    {% empty %}<tr><td colspan="7" class="text-center text-abu">Belum ada titik absen untuk tingkat ini.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="mt-2 text-xs text-abu">Kuota total = jumlah kuota kegiatan semua kontingen tingkat ini (daftar ulang memakai kuota kontingen). "-" = kuota kegiatan belum diatur.</p>
+{% endblock %}

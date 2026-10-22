@@ -1,0 +1,37 @@
+{% extends "rekap/base.html" %}
+{% load sigap %}
+{% block judul %}Rekap {{ k.kode }}{% endblock %}
+{% block judul_rekap %}{{ k.kode }} · {{ k.nama }}{% endblock %}
+{% block segar %}{% endblock %}
+{% block info_segar %}{% endblock %}
+{% block aksi_rekap %}<button type="button" x-data @click="window.print()" class="btn-abu btn-kecil">Cetak</button> <a href="?unduh=xlsx" class="btn-garis btn-kecil">Unduh Excel</a>{% endblock %}
+{% block rekap %}
+<div class="mb-3 hidden print:block"><h1 class="text-lg font-bold">Rekap kehadiran {{ k.kode }} {{ k.nama }}</h1><p class="text-xs">Jumbara PMR Kab. Bulungan V 2026 · dicetak {% now "d/m/Y H.i" %} WITA</p></div>
+<div class="mb-4 grid gap-4 lg:grid-cols-3 print:grid-cols-3">
+  <div class="kartu text-center"><div class="text-xs text-abu">Biodata</div><div class="font-judul text-3xl font-bold">{{ data.daftar_ulang.total }}</div></div>
+  <div class="kartu text-center"><div class="text-xs text-abu">Sudah daftar ulang</div><div class="font-judul text-3xl font-bold text-hijau">{{ data.daftar_ulang.sudah|length }}</div></div>
+  <div class="kartu text-center"><div class="text-xs text-abu">Belum daftar ulang</div><div class="font-judul text-3xl font-bold {% if data.daftar_ulang.belum %}text-merah{% endif %}">{{ data.daftar_ulang.belum|length }}</div></div>
+</div>
+<div class="kartu mb-4 overflow-x-auto p-0 sm:p-0">
+  <table class="tabel">
+    <thead><tr><th>Kegiatan / sesi</th><th>Waktu</th><th class="text-right">Hadir</th><th class="text-right">Kuota</th><th class="text-right">Poin</th></tr></thead>
+    <tbody>
+    {% for b in data.baris %}
+      <tr>
+        <td><span class="text-xs text-abu">{{ b.titik.kode }}</span> {{ b.titik.nama_tampil }}</td>
+        <td class="whitespace-nowrap text-xs">{{ b.titik.tanggal|date:"D d/m" }} {{ b.titik.mulai|time:"H.i" }}</td>
+        <td class="text-right font-bold {% if b.p.kuota and b.p.hadir < b.p.kuota %}text-amber-700{% endif %}">{{ b.p.hadir }}</td>
+        <td class="text-right">{{ b.p.kuota|default_if_none:"-" }}</td>
+        <td class="text-right">{% if b.titik.hitung_poin %}{{ b.p.poin }}{% else %}-{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if data.daftar_ulang.belum %}
+<div class="kartu text-sm">
+  <h2 class="mb-2 text-base font-bold">Belum daftar ulang ({{ data.daftar_ulang.belum|length }})</h2>
+  <ol class="list-decimal space-y-0.5 pl-5">{% for p in data.daftar_ulang.belum %}<li>{{ p.nama_lengkap }} <span class="text-abu">({{ p.get_peran_display }})</span></li>{% endfor %}</ol>
+</div>
+{% endif %}
+{% endblock %}

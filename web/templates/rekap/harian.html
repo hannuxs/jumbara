@@ -1,0 +1,22 @@
+{% extends "rekap/base.html" %}
+{% load sigap %}
+{% block judul %}Rekap harian{% endblock %}
+{% block judul_rekap %}Rekap harian · {{ tanggal|tanggal }}{% endblock %}
+{% block rekap %}
+<div class="mb-3 flex flex-wrap gap-2">{% for d in daftar_tanggal %}<a href="?tanggal={{ d|date:'Y-m-d' }}" class="btn-kecil btn {% if d == tanggal %}btn-utama{% else %}btn-abu{% endif %}">{{ d|date:"D d/m" }}</a>{% endfor %}</div>
+<p class="mb-3 text-xs text-abu">Bahan evaluasi malam bersama pimpinan kontingen. Sel: hadir/kuota; merah = belum hadir, kuning = kurang dari kuota.</p>
+{% for blok in data %}
+<div class="kartu mb-4 overflow-x-auto p-0 sm:p-0">
+  <h2 class="p-4 text-base font-bold">Tingkat <span class="badge-{{ blok.tingkat }}">{{ blok.tingkat|title }}</span></h2>
+  <table class="tabel">
+    <thead><tr><th>Kontingen</th>{% for t in blok.titik %}<th class="text-center text-xs"><a href="{% url 'rekap:titik' t.pk %}" class="hover:underline">{{ t.mulai|time:"H.i" }}</a><div class="max-w-[7rem] truncate font-normal text-abu" title="{{ t.nama_tampil }}">{{ t.nama_tampil }}</div></th>{% endfor %}</tr></thead>
+    <tbody>
+    {% for b in blok.baris %}
+      <tr><td class="whitespace-nowrap"><a href="{% url 'rekap:kontingen' b.k.pk %}" class="hover:underline"><span class="text-xs text-abu">{{ b.k.kode }}</span> {{ b.k.nama|truncatechars:28 }}</a></td>
+        {% for p in b.sel %}<td class="text-center text-sm {% if p.hadir == 0 %}bg-red-50 text-merah{% elif p.kuota and p.hadir < p.kuota %}bg-amber-50 text-amber-800{% endif %}">{{ p.hadir }}/{{ p.kuota|default_if_none:"-" }}</td>{% endfor %}</tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% empty %}<div class="kartu text-center text-abu">Tidak ada titik absen pada tanggal ini.</div>{% endfor %}
+{% endblock %}

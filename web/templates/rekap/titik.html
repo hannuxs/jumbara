@@ -1,0 +1,32 @@
+{% extends "rekap/base.html" %}
+{% load sigap %}
+{% block judul %}Rekap {{ t.kode }}{% endblock %}
+{% block judul_rekap %}{{ t.kode }} · {{ t.nama_tampil }}{% endblock %}
+{% block rekap %}
+<p class="mb-3 text-sm">{{ t.tanggal|tanggal }} · {{ t.mulai|time:"H.i" }}-{% if t.selesai %}{{ t.selesai|time:"H.i" }}{% else %}selesai{% endif %} · <span class="badge-{{ t.tingkat }}">{{ t.get_tingkat_display }}</span> · <strong>{{ data.hadir|length }}</strong> orang hadir</p>
+<div class="grid gap-4 lg:grid-cols-2">
+  <div class="kartu overflow-x-auto p-0 sm:p-0">
+    <h2 class="p-4 text-base font-bold">Kontingen: hadir / kuota</h2>
+    <table class="tabel">
+      <thead><tr><th>Kontingen</th><th class="text-right">Hadir</th><th class="text-right">Kuota</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for b in data.kontingen %}
+        <tr><td><span class="text-xs text-abu">{{ b.k.kode }}</span> {{ b.k.nama }}</td><td class="text-right font-bold">{{ b.p.hadir }}</td><td class="text-right">{{ b.p.kuota|default_if_none:"-" }}</td>
+          <td>{% if b.status == "belum" %}<span class="badge bg-red-100 text-red-800">belum hadir</span>{% elif b.status == "kurang" %}<span class="badge bg-amber-100 text-amber-900">kurang</span>{% elif b.status == "lebih" %}<span class="badge bg-blue-100 text-blue-800">lebih dari kuota</span>{% else %}<span class="badge bg-green-100 text-green-800">cukup</span>{% endif %}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="kartu overflow-x-auto p-0 sm:p-0">
+    <h2 class="p-4 text-base font-bold">Daftar hadir</h2>
+    <table class="tabel">
+      <thead><tr><th>Jam</th><th>Nama</th><th>Kontingen</th><th>Peran</th><th>Pemindai</th></tr></thead>
+      <tbody>
+      {% for k in data.hadir %}
+        <tr><td class="whitespace-nowrap text-xs">{{ k.diterima_pada|date:"H.i" }}</td><td class="font-semibold">{{ k.peserta.nama_lengkap }}</td><td class="text-xs">{{ k.peserta.kontingen.kode }}</td><td class="text-xs">{{ k.peserta.get_peran_display }}</td><td class="text-xs">{{ k.nama_pemindai }}{% if k.metode == "MANUAL" %} (manual){% endif %}</td></tr>
+      {% empty %}<tr><td colspan="5" class="text-center text-abu">Belum ada yang hadir.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

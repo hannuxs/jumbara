@@ -28,6 +28,8 @@ MENU_SUPERADMIN = [
         ("pantauan", "Pantauan langsung", "/superadmin/absensi/pantauan/"),
         ("titik", "Titik absen", "/superadmin/absensi/titik/"),
         ("pindai", "Buka pemindai", "/panitia/"),
+        ("rekap", "Rekap dan poin", "/rekap/"),
+        ("kegiatan_kuota", "Kegiatan dan kuota", "/superadmin/absensi/kegiatan/"),
     ]),
     ("Pengaturan", [
         ("pengaturan", "Pengaturan form", "/superadmin/pengaturan/"),

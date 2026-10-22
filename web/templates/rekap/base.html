@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load sigap %}
+{% block kelas_main %}mx-auto w-full max-w-6xl px-3 py-4 sm:px-4{% endblock %}
+{% block atribut_body %}data-ingat-rute {% block segar %}data-segar="10"{% endblock %}{% endblock %}
+{% block isi %}
+<div class="mb-3 flex flex-wrap items-center gap-2 print:hidden">
+  <a href="{% if request.user.superadmin %}/superadmin/{% else %}/panitia/{% endif %}" class="btn-abu btn-kecil">← {% if request.user.superadmin %}Dasbor{% else %}Pemindai{% endif %}</a>
+  <h1 class="flex-1 text-lg font-bold sm:text-xl">{% block judul_rekap %}Rekap kehadiran{% endblock %}</h1>
+  {% block aksi_rekap %}<a href="?{{ request.GET.urlencode }}{% if request.GET %}&{% endif %}unduh=xlsx" class="btn-garis btn-kecil">Unduh Excel</a>{% endblock %}
+</div>
+<nav class="mb-4 flex gap-1 overflow-x-auto pb-1 text-sm print:hidden" aria-label="Jenis rekap">
+  {% url 'rekap:tingkat' as u1 %}{% url 'rekap:harian' as u2 %}{% url 'rekap:kegiatan_daftar' as u3 %}{% url 'rekap:kontingen_daftar' as u4 %}{% url 'rekap:daftar_ulang' as u5 %}{% url 'rekap:orang' as u6 %}
+  <a href="{{ u1 }}" class="whitespace-nowrap rounded-lg px-3 py-2 font-medium {% if tab == 'tingkat' %}bg-oranye text-white{% else %}bg-white text-navy shadow-kartu{% endif %}">Per tingkat</a>
+  <a href="{{ u2 }}" class="whitespace-nowrap rounded-lg px-3 py-2 font-medium {% if tab == 'harian' %}bg-oranye text-white{% else %}bg-white text-navy shadow-kartu{% endif %}">Harian</a>
+  <a href="{{ u3 }}" class="whitespace-nowrap rounded-lg px-3 py-2 font-medium {% if tab == 'kegiatan' %}bg-oranye text-white{% else %}bg-white text-navy shadow-kartu{% endif %}">Poin per kegiatan</a>
+  <a href="{{ u4 }}" class="whitespace-nowrap rounded-lg px-3 py-2 font-medium {% if tab == 'kontingen' %}bg-oranye text-white{% else %}bg-white text-navy shadow-kartu{% endif %}">Per kontingen</a>
+  <a href="{{ u5 }}" class="whitespace-nowrap rounded-lg px-3 py-2 font-medium {% if tab == 'daftar_ulang' %}bg-oranye text-white{% else %}bg-white text-navy shadow-kartu{% endif %}">Daftar ulang</a>
+  <a href="{{ u6 }}" class="whitespace-nowrap rounded-lg px-3 py-2 font-medium {% if tab == 'orang' %}bg-oranye text-white{% else %}bg-white text-navy shadow-kartu{% endif %}">Per orang</a>
+</nav>
+{% block info_segar %}<p class="mb-3 text-xs text-abu print:hidden">Diperbarui otomatis setiap 10 detik selama halaman terbuka.</p>{% endblock %}
+{% block rekap %}{% endblock %}
+{% endblock %}

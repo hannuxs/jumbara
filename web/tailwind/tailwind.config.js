@@ -35,6 +35,6 @@ module.exports = {
     },
   },
   // Kelas yang namanya dibentuk dinamis di template (badge-{{ tingkat }}).
-  safelist: ["badge-MULA", "badge-MADYA", "badge-WIRA", "badge-SEMUA"],
+  safelist: ["badge-MULA", "badge-MADYA", "badge-WIRA", "badge-SEMUA", "bg-mula", "bg-madya", "bg-wira"],
   plugins: [],
 };

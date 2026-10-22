@@ -34,6 +34,7 @@
   <section x-show="tahap === 'titik'" x-cloak>
     <div class="mb-3 flex items-center gap-2">
       <h1 class="flex-1 text-lg font-bold">Pilih titik absen</h1>
+      <a href="/rekap/" class="btn-abu btn-kecil">Rekap</a>
       <button type="button" class="btn-abu btn-kecil" @click="tahap = 'nama'; isianNama = namaPemindai">Pemindai: <span x-text="namaPemindai"></span></button>
     </div>
     <input type="search" class="input mb-3" placeholder="Cari kegiatan, tingkat, atau kode…" x-model="cariTitik" aria-label="Cari titik absen">

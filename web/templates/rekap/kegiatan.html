@@ -1,0 +1,27 @@
+{% extends "rekap/base.html" %}
+{% block judul %}Poin {{ kg.nama }}{% endblock %}
+{% block judul_rekap %}Poin kehadiran · {{ kg.nama }}{% endblock %}
+{% block rekap %}
+<div class="mb-3 flex flex-wrap gap-2">
+  {% for v, l in pilihan %}<a href="?tingkat={{ v }}" class="btn-kecil btn {% if tingkat == v %}bg-{{ v|lower }} {% if v == 'WIRA' %}text-navy{% else %}text-white{% endif %}{% else %}btn-abu{% endif %}">{{ l }}</a>{% endfor %}
+</div>
+<p class="mb-3 text-xs text-abu">Per sesi: setiap orang hadir +1, setiap kekurangan dari kuota -1{% if batasi %}; orang di atas kuota tidak menambah poin{% endif %}. Poin kegiatan = jumlah poin semua sesi. Sel: hadir/kuota, poin di bawahnya.</p>
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <table class="tabel">
+    <thead><tr><th>Kontingen</th>{% for t in titik %}<th class="text-center"><a class="hover:underline" href="{% url 'rekap:titik' t.pk %}">{{ t.kode }}</a><div class="text-[10px] font-normal text-abu">{{ t.tanggal|date:"D d/m" }} {{ t.mulai|time:"H.i" }}</div></th>{% endfor %}<th class="text-right">Hadir</th><th class="text-right">Poin</th></tr></thead>
+    <tbody>
+    {% for b in baris %}
+      <tr>
+        <td class="min-w-[12rem]"><span class="text-xs text-abu">{{ b.kontingen.kode }}</span> {{ b.kontingen.nama }}</td>
+        {% for t, p in b.sesi %}
+          <td class="text-center">{{ p.hadir }}/{{ p.kuota|default_if_none:"-" }}<div class="text-xs {% if p.poin < 0 %}text-merah{% else %}text-abu{% endif %}">{{ p.poin }}{% if p.lebih %} <span title="lebih dari kuota">▲</span>{% endif %}</div></td>
+        {% endfor %}
+        <td class="text-right">{{ b.total_hadir }}</td>
+        <td class="text-right font-bold {% if b.total < 0 %}text-merah{% endif %}">{{ b.total }}{% if b.ada_kuota_kosong %}<div class="text-[10px] font-normal text-amber-700">kuota belum diatur</div>{% endif %}</td>
+      </tr>
+    {% empty %}<tr><td colspan="9" class="text-center text-abu">Tidak ada kontingen tingkat ini.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if not titik %}<p class="mt-2 text-sm text-abu">Belum ada titik absen kegiatan ini untuk tingkat tersebut.</p>{% endif %}
+{% endblock %}

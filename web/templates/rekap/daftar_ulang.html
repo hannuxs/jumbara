@@ -1,0 +1,21 @@
+{% extends "rekap/base.html" %}
+{% block judul %}Rekap daftar ulang{% endblock %}
+{% block judul_rekap %}Daftar ulang{% endblock %}
+{% block rekap %}
+<div class="mb-4 grid grid-cols-3 gap-3">
+  <div class="kartu text-center"><div class="text-xs text-abu">Biodata</div><div class="font-judul text-3xl font-bold">{{ total.biodata }}</div></div>
+  <div class="kartu text-center"><div class="text-xs text-abu">Sudah</div><div class="font-judul text-3xl font-bold text-hijau">{{ total.sudah }}</div></div>
+  <div class="kartu text-center"><div class="text-xs text-abu">Belum</div><div class="font-judul text-3xl font-bold text-merah">{{ total.belum }}</div></div>
+</div>
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <table class="tabel">
+    <thead><tr><th>Kontingen</th><th class="text-right">Biodata</th><th class="text-right">Sudah</th><th class="text-right">Belum (kartu belum diambil)</th></tr></thead>
+    <tbody>
+    {% for d in data %}
+      <tr><td><a href="{% url 'rekap:kontingen' d.k.pk %}" class="hover:underline"><span class="badge-{{ d.k.tingkat }}">{{ d.k.kode }}</span> {{ d.k.nama }}</a></td>
+        <td class="text-right">{{ d.biodata }}</td><td class="text-right font-bold text-hijau">{{ d.sudah }}</td><td class="text-right {% if d.belum %}font-bold text-merah{% endif %}">{{ d.belum }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

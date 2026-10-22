@@ -12,6 +12,7 @@ urlpatterns = [
     path("", include("apps.biodata.urls")),
     path("", include("apps.akun.urls")),
     path("api/", include("apps.absensi.urls_api")),
+    path("rekap/", include("apps.absensi.urls_rekap")),
     path("superadmin/kartu/", include("apps.kartu.urls")),
     path("superadmin/absensi/", include("apps.absensi.urls_admin")),
     path("superadmin/", include("apps.biodata.urls_admin")),

@@ -1,0 +1,24 @@
+{% extends "rekap/base.html" %}
+{% block judul %}Rekap per orang{% endblock %}
+{% block judul_rekap %}Riwayat kehadiran per orang{% endblock %}
+{% block segar %}{% endblock %}
+{% block info_segar %}{% endblock %}
+{% block aksi_rekap %}{% endblock %}
+{% block rekap %}
+<form method="get" action="{% url 'rekap:orang' %}" class="mb-4 flex gap-2"><input name="q" value="{{ q }}" class="input" placeholder="Cari nama"><button class="btn-utama btn-kecil" type="submit">Cari</button></form>
+{% if hasil %}
+<div class="kartu mb-4 p-2">{% for o in hasil %}<a href="{% url 'rekap:orang_detail' o.pk %}" class="block rounded-lg px-2 py-2 hover:bg-krem"><strong>{{ o.nama_lengkap }}</strong> <span class="text-xs text-abu">{{ o.kontingen.kode }} · {{ o.get_peran_display }}</span></a>{% endfor %}</div>
+{% elif q %}<p class="mb-4 text-sm text-abu">Tidak ditemukan.</p>{% endif %}
+{% if p %}
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <h2 class="p-4 text-base font-bold">{{ p.nama_lengkap }} <span class="text-sm font-normal text-abu">{{ p.kontingen.kode }} {{ p.kontingen.nama }} · {{ p.get_peran_display }} · {{ p.get_tingkat_display }}</span></h2>
+  <table class="tabel">
+    <thead><tr><th>Titik absen</th><th>Tanggal</th><th>Jam tercatat</th><th>Pemindai</th></tr></thead>
+    <tbody>
+    {% for k in riwayat %}<tr><td><span class="text-xs text-abu">{{ k.titik_absen.kode }}</span> {{ k.titik_absen.nama_tampil }}</td><td class="text-xs">{{ k.titik_absen.tanggal|date:"D d/m" }}</td><td class="text-xs">{{ k.diterima_pada|date:"H.i" }}</td><td class="text-xs">{{ k.nama_pemindai }}</td></tr>
+    {% empty %}<tr><td colspan="4" class="text-center text-abu">Belum pernah tercatat hadir.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

@@ -323,3 +323,97 @@ def pantauan_json(request):
             "pindaian_5_menit": Kehadiran.objects.filter(diterima_pada__gte=lima_menit).count(),
         }
     )
+
+
+# --- Kegiatan dan kuota -----------------------------------------------------------------
+
+
+def _angka_kuota(teks: str) -> int | None | str:
+    """'' -> None (kosong), angka 0-500 -> int, selain itu 'salah'."""
+    teks = (teks or "").strip()
+    if teks == "":
+        return None
+    if not teks.isdigit() or int(teks) > 500:
+        return "salah"
+    return int(teks)
+
+
+@superadmin_wajib
+def kegiatan_daftar(request):
+    daftar = list(Kegiatan.objects.annotate(n_khusus=Count("kuota", filter=Q(kuota__kontingen__isnull=False))))
+    if request.method == "POST":
+        berubah = []
+        for kg in daftar:
+            nilai = _angka_kuota(request.POST.get(f"kuota_{kg.pk}", ""))
+            if nilai == "salah":
+                messages.error(request, f"Kuota {kg.nama} harus angka 0-500 atau kosong.")
+                return redirect("absensi_admin:kegiatan_daftar")
+            if nilai != kg.kuota_default:
+                berubah.append((kg, kg.kuota_default, nilai))
+        batasi = request.POST.get("batasi") == "1"
+        for kg, lama, baru in berubah:
+            kg.kuota_default = baru
+            kg.save(update_fields=["kuota_default", "diubah_pada"])
+            catat(
+                request,
+                "kegiatan.kuota_diubah",
+                kg,
+                keterangan=kg.nama,
+                lama={"kuota_default": lama},
+                baru={"kuota_default": baru},
+            )
+        if batasi != bool(pengaturan.ambil("poin.batasi_ke_kuota", True)):
+            pengaturan.simpan("poin.batasi_ke_kuota", batasi, request.nama_pelaku or request.user.username)
+            catat(
+                request, "pengaturan.diubah", keterangan="poin.batasi_ke_kuota", baru={"poin.batasi_ke_kuota": batasi}
+            )
+        messages.success(request, f"Kuota disimpan ({len(berubah)} kegiatan berubah).")
+        return redirect("absensi_admin:kegiatan_daftar")
+    return render(
+        request,
+        "superadmin/kegiatan_daftar.html",
+        {"menu_aktif": "kegiatan_kuota", "daftar": daftar, "batasi": pengaturan.ambil("poin.batasi_ke_kuota", True)},
+    )
+
+
+@superadmin_wajib
+def kegiatan_kuota(request, pk: int):
+    """Kuota khusus per kontingen untuk satu kegiatan (kosong = ikut kuota bawaan)."""
+    from apps.kontingen.models import URUTAN_TINGKAT, Kontingen
+
+    from .models import KuotaKegiatan
+
+    kg = get_object_or_404(Kegiatan, pk=pk)
+    kontingen = list(Kontingen.objects.order_by(URUTAN_TINGKAT, "kode"))
+    khusus = {k.kontingen_id: k for k in KuotaKegiatan.objects.filter(kegiatan=kg).exclude(kontingen=None)}
+    if request.method == "POST":
+        jumlah = 0
+        for k in kontingen:
+            nilai = _angka_kuota(request.POST.get(f"k_{k.pk}", ""))
+            if nilai == "salah":
+                messages.error(request, f"Kuota {k.nama} harus angka 0-500 atau kosong.")
+                return redirect("absensi_admin:kegiatan_kuota", pk=kg.pk)
+            ada = khusus.get(k.pk)
+            lama = ada.kuota if ada else None
+            if nilai == lama:
+                continue
+            if nilai is None:
+                ada.delete()
+            elif ada:
+                ada.kuota = nilai
+                ada.save(update_fields=["kuota", "diubah_pada"])
+            else:
+                KuotaKegiatan.objects.create(kegiatan=kg, kontingen=k, kuota=nilai)
+            catat(
+                request,
+                "kegiatan.kuota_kontingen",
+                kg,
+                keterangan=f"{kg.nama} {k.kode}",
+                lama={"kuota": lama},
+                baru={"kuota": nilai},
+            )
+            jumlah += 1
+        messages.success(request, f"Kuota khusus {kg.nama} disimpan ({jumlah} kontingen berubah).")
+        return redirect("absensi_admin:kegiatan_kuota", pk=kg.pk)
+    baris = [{"k": k, "nilai": khusus[k.pk].kuota if k.pk in khusus else ""} for k in kontingen]
+    return render(request, "superadmin/kegiatan_kuota.html", {"menu_aktif": "kegiatan_kuota", "kg": kg, "baris": baris})
