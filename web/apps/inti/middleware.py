@@ -80,7 +80,9 @@ class HeaderKeamananMiddleware:
         response = self.get_response(request)
         response.setdefault("Content-Security-Policy", CSP)
         response.setdefault("Permissions-Policy", "camera=(self), microphone=(), geolocation=()")
-        response.setdefault("Cross-Origin-Opener-Policy", "same-origin")
+        if request.is_secure():
+            # Browser mengabaikan (dan memberi peringatan) header ini di HTTP biasa, misalnya uji lewat IP laptop.
+            response.setdefault("Cross-Origin-Opener-Policy", "same-origin")
         user = getattr(request, "user", None)
         if user is not None and user.is_authenticated:
             # Halaman berisi data pribadi tidak boleh disimpan di cache browser/proxy.

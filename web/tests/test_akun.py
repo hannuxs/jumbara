@@ -174,3 +174,9 @@ def test_kebersihan_sesi(superadmin):
 
 def test_sandi_konstanta():
     assert len(SANDI) >= 10
+
+
+def test_coop_hanya_lewat_https(client):
+    assert "Cross-Origin-Opener-Policy" not in client.get("/")
+    r = client.get("/", HTTP_X_FORWARDED_PROTO="https")
+    assert r["Cross-Origin-Opener-Policy"] == "same-origin"
