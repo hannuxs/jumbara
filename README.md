@@ -25,6 +25,35 @@ Node.js tidak wajib. Tailwind CSS memakai program standalone yang akan diunduh C
 5. Claude Code akan memeriksa laptop Anda, menulis rencana, lalu mulai bekerja. Jawab jika ia bertanya. Pantau `docs/PROGRES.md` untuk melihat kemajuan.
 6. Setelah Tahap 1 selesai, pakai prompt berikutnya di `PROMPT_TAHAP_2-5.md` satu per satu.
 
+## Menjalankan di laptop (satu perintah)
+
+Dari folder proyek (`D:\sigap-jumbara`), klik dua kali **`jalankan.bat`** atau ketik di terminal:
+
+```
+jalankan.bat
+```
+
+Perintah ini memeriksa semuanya lalu menjalankan server:
+1. Python 3.12 dan virtualenv `web\.venv` (dibuat bila belum ada), paket `requirements` (dipasang ulang bila berubah).
+2. `web\.env` ada dan isian wajibnya terisi.
+3. **MariaDB menyala** (dinyalakan otomatis bila mati) dan bisa dimasuki, versi 10.5+.
+4. Migrasi database, tabel cache, data awal (`sigap_seed`, aman diulang).
+5. CSS Tailwind dibangun ulang; `collectstatic` bila `DJANGO_DEBUG=False`.
+6. `manage.py check` dan `sigap_cek_lingkungan` (laporan lengkap: kunci NIK, folder, akun, jadwal form).
+7. Port bebas, alamat untuk laptop dan HP (IP Wi-Fi harus ada di `DJANGO_ALLOWED_HOSTS`).
+
+Pilihan:
+
+| Perintah | Fungsi |
+|---|---|
+| `jalankan.bat` | Periksa semua lalu jalankan server pengembangan di port 8000 |
+| `jalankan.bat -CekSaja` | Hanya periksa, tidak menjalankan server |
+| `jalankan.bat -Port 8080` | Pakai port lain |
+| `jalankan.bat -Produksi` | Jalankan dengan Waitress (seperti di server) |
+| `jalankan.bat -Tes` | Jalankan juga `ruff` dan `pytest` sebelum server |
+
+Tanda `[OK]` = beres, `[!]` = peringatan (server tetap jalan), `[X]` = harus diperbaiki (ada baris "Solusi"). Hentikan server dengan **Ctrl+C**. Buka dari HP lewat **http://** (bukan https://) di Wi-Fi yang sama.
+
 ## Isi folder
 
 | Folder/File | Isi |

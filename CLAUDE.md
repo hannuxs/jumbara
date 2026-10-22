@@ -69,6 +69,8 @@ Web (bukan APK, bukan PWA yang dipasang) untuk:
 
 ## Perintah yang sering dipakai (Windows, dari folder `web`)
 
+Paling mudah dari folder proyek: `jalankan.bat` (periksa kesiapan + MariaDB + migrasi + CSS, lalu jalankan server; `-CekSaja`, `-Port`, `-Produksi`, `-Tes`).
+
 ```
 .venv\Scripts\activate
 python manage.py runserver 0.0.0.0:8000

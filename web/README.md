@@ -2,6 +2,10 @@
 
 Python 3.12 + Django 5.2 + MariaDB 10.5+. Pemasangan lengkap: `../docs/21-DEPLOY-WINDOWS.md`.
 
+## Cara tercepat
+
+Dari folder proyek: `jalankan.bat` (periksa semua lalu jalankan server). Lihat `../README.md`.
+
 ## Mulai cepat (laptop, PowerShell, dari folder ini)
 
 ```powershell

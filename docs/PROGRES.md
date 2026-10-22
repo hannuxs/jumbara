@@ -60,6 +60,8 @@ Belum dimulai. Tabel `kegiatan`, `kuota_kegiatan`, `titik_absen` (60 baris teris
 
 `runserver` gagal `(2002, "Can't connect to server on '127.0.0.1' (10061)")`: MariaDB 10.11 pengembangan (port 3307) mati karena belum menjadi service dan ikut mati saat sesi/laptop berhenti. Dinyalakan ulang. Ditambah `web/scripts/windows/mariadb-dev.ps1` (nyalakan, `-Status`, `-PasangService` sebagai Admin) dan petunjuk di `sigap_cek_lingkungan`. **Farhan disarankan menjalankan `-PasangService` sekali** agar tidak terulang.
 
+Lanjutan: browser membuka server pengembangan lewat `https://` (log "You're accessing the development server over HTTPS"): server pengembangan hanya `http://`, aplikasi tidak memaksa HTTPS. `.env` laptop memakai `DJANGO_DEBUG=False`, sehingga `staticfiles` lama (sebelum R1b-R5) dipakai; `collectstatic` dijalankan ulang. Dibuat **`jalankan.bat`** (satu perintah cek menyeluruh + jalankan server; diuji: semua langkah OK, MariaDB mati dinyalakan otomatis, server pengembangan dan mode `-Produksi` (Waitress) menjawab 200 lewat IP laptop, port bentrok terdeteksi). Peringatan `sigap_cek_lingkungan` diperjelas. Header COOP hanya lewat HTTPS. 157 tes lulus.
+
 ### 18 Oktober 2026 (Claude Code, sesi 1 lanjutan: revisi R1-R3)
 
 Perubahan manual Farhan (foto dicetak di kartu, teks SIAMO, teks nama kapital) di-commit terpisah. Dikerjakan R1 (tingkat dulu, sekolah disaring, server menolak tingkat beda), R2 (foto wajib mutlak, dokumen kartu berfoto), R3 (nama + nama orang tua kapital, migrasi data). 154 tes lulus, uji browser 360 px lulus. Catatan untuk Tahap 2: desain kartu B-2 sekarang memuat foto 3x4 (`13-KARTU-QR.md`).

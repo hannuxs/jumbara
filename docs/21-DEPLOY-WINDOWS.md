@@ -244,5 +244,6 @@ Hasil uji 18 Okt 2026: cadangan dipulihkan ke database `sigap_uji_pulih`; jumlah
     Service bernama `MariaDB1011dev`, start otomatis.
 - Sandi root MariaDB laptop dibuat acak; sandi user `sigap` ada di `web\.env` (`DB_PASSWORD`). Sandi root perlu diganti/ditanyakan bila butuh (lihat catatan sesi di `PROGRES.md`).
 - MariaDB XAMPP 10.4 di port 3306 tidak diubah.
-- Menjalankan server pengembangan: `.venv\Scripts\python manage.py runserver 0.0.0.0:8000`.
+- Menjalankan server pengembangan: **`jalankan.bat`** dari folder proyek (memeriksa semuanya, menyalakan MariaDB bila mati, lalu `runserver 0.0.0.0:8000`). Cara manual: `.venv\Scripts\python manage.py runserver 0.0.0.0:8000`.
+- `jalankan.bat -CekSaja -Produksi` juga berguna di server produksi untuk memeriksa kesiapan (tanpa menyalakan server, karena di server dipakai service `SIGAPJumbara`).
 - Tes: `.venv\Scripts\pytest` (database `sigap_jumbara_test` dibuat otomatis).

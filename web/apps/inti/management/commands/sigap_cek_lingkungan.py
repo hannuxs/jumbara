@@ -51,7 +51,12 @@ class Command(BaseCommand):
             )
 
         self.judul("Kunci dan rahasia")
-        self.cek(not settings.DEBUG, "DJANGO_DEBUG=False", wajib=False)
+        self.cek(
+            not settings.DEBUG,
+            "DJANGO_DEBUG=False",
+            wajib=False,
+            jika_gagal="DJANGO_DEBUG=True (wajib False di server produksi; boleh True di laptop)",
+        )
         self.cek(
             len(settings.SECRET_KEY) >= 50 and "ganti" not in settings.SECRET_KEY, "DJANGO_SECRET_KEY panjang dan acak"
         )
@@ -65,8 +70,18 @@ class Command(BaseCommand):
         self.cek(bool(settings.ALLOWED_HOSTS), f"DJANGO_ALLOWED_HOSTS: {', '.join(settings.ALLOWED_HOSTS)}")
         self.info(f"SIGAP_URL: {settings.SIGAP_URL}")
         if not settings.DEBUG:
-            self.cek(settings.SIGAP_URL.startswith("https://"), "SIGAP_URL memakai https://", wajib=False)
-            self.cek(bool(settings.CSRF_TRUSTED_ORIGINS), "CSRF_TRUSTED_ORIGINS terisi", wajib=False)
+            self.cek(
+                settings.SIGAP_URL.startswith("https://"),
+                "SIGAP_URL memakai https://",
+                wajib=False,
+                jika_gagal="SIGAP_URL belum https:// (wajib di server produksi; abaikan di laptop)",
+            )
+            self.cek(
+                bool(settings.CSRF_TRUSTED_ORIGINS),
+                "CSRF_TRUSTED_ORIGINS terisi",
+                wajib=False,
+                jika_gagal="CSRF_TRUSTED_ORIGINS kosong (isi https://domain di server produksi)",
+            )
 
         self.judul("Folder")
         privat = Path(settings.SIGAP_FOLDER_PRIVAT).resolve()
@@ -97,7 +112,12 @@ class Command(BaseCommand):
             akun = list(Pengguna.objects.values_list("username", "peran", "wajib_ganti_sandi"))
             self.cek(len(akun) == 3, f"Tiga akun ada ({len(akun)})")
             for username, peran, wajib in akun:
-                self.cek(not wajib, f"Sandi akun {username} ({peran}) sudah diganti dari bawaan", wajib=False)
+                self.cek(
+                    not wajib,
+                    f"Sandi akun {username} ({peran}) sudah diganti dari bawaan",
+                    wajib=False,
+                    jika_gagal=f"Sandi akun {username} ({peran}) MASIH BAWAAN, ganti di menu Superadmin > Akun",
+                )
             self.cek(Kontingen.objects.count() >= 29, f"Kontingen: {Kontingen.objects.count()}")
             nilai = pengaturan.semua()
             self.info(
@@ -107,8 +127,14 @@ class Command(BaseCommand):
                 nilai["biodata.paksa_status"] == "OTOMATIS",
                 "Status form OTOMATIS (bukan paksa buka/tutup)",
                 wajib=False,
+                jika_gagal=f"Status form {nilai['biodata.paksa_status']} (paksa). Kembalikan ke OTOMATIS sebelum 26 Okt",
             )
-            self.cek(bool(nilai.get("kontak.superadmin_wa")), "Nomor WhatsApp superadmin sudah diisi", wajib=False)
+            self.cek(
+                bool(nilai.get("kontak.superadmin_wa")),
+                "Nomor WhatsApp superadmin sudah diisi",
+                wajib=False,
+                jika_gagal="Nomor WhatsApp superadmin BELUM diisi (Pengaturan form)",
+            )
         except Exception as e:  # noqa: BLE001
             self.cek(False, f"Tidak bisa membaca akun/pengaturan: {e}")
 
@@ -124,7 +150,10 @@ class Command(BaseCommand):
     def info(self, teks: str) -> None:
         self.stdout.write(f"  i {teks}")
 
-    def cek(self, ok: bool, teks: str, wajib: bool = True) -> None:
+    def cek(self, ok: bool, teks: str, wajib: bool = True, jika_gagal: str = "") -> None:
+        """Tampilkan OK/X/!. `jika_gagal` = kalimat masalah yang ditampilkan bila tidak OK."""
+        if not ok and jika_gagal:
+            teks = jika_gagal
         if ok:
             self.stdout.write(self.style.SUCCESS(f"  OK {teks}"))
         elif wajib:
