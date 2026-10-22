@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import date, datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Any
 
@@ -23,7 +23,7 @@ def _bersihkan(nilai: Any) -> Any:
         return {k: ("***" if k in KOLOM_RAHASIA else _bersihkan(v)) for k, v in nilai.items()}
     if isinstance(nilai, list | tuple):
         return [_bersihkan(v) for v in nilai]
-    if isinstance(nilai, datetime | date):
+    if isinstance(nilai, datetime | date | time):
         return nilai.isoformat()
     if isinstance(nilai, Decimal):
         return str(nilai)

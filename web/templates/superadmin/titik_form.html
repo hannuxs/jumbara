@@ -1,0 +1,25 @@
+{% extends "superadmin/base.html" %}
+{% block judul %}{% if t %}Ubah {{ t.kode }}{% else %}Tambah titik absen{% endif %}{% endblock %}
+{% block judul_halaman %}{% if t %}Ubah titik absen · {{ t.kode }}{% else %}Tambah titik absen{% endif %}{% endblock %}
+{% block konten %}
+<form method="post" novalidate class="kartu max-w-2xl">
+  {% csrf_token %}
+  {% if form.errors %}<div class="pesan-galat">Ada isian yang perlu diperbaiki.</div>{% endif %}
+  <div class="grid gap-x-4 sm:grid-cols-2">
+    {% include "komponen/isian.html" with f=form.kode %}
+    {% include "komponen/isian.html" with f=form.tingkat %}
+  </div>
+  {% include "komponen/isian.html" with f=form.nama_tampil %}
+  {% include "komponen/isian.html" with f=form.kegiatan %}
+  <div class="grid gap-x-4 sm:grid-cols-3">
+    {% include "komponen/isian.html" with f=form.tanggal %}
+    {% include "komponen/isian.html" with f=form.mulai %}
+    {% include "komponen/isian.html" with f=form.selesai %}
+  </div>
+  {% include "komponen/isian.html" with f=form.lokasi %}
+  {% include "komponen/isian.html" with f=form.status %}
+  {% include "komponen/isian.html" with f=form.hitung_poin %}
+  {% include "komponen/isian.html" with f=form.catatan %}
+  <div class="flex gap-2"><button class="btn-utama" type="submit">Simpan</button><a href="{% if t %}{% url 'absensi_admin:titik_detail' t.pk %}{% else %}{% url 'absensi_admin:titik_daftar' %}{% endif %}" class="btn-abu">Batal</a></div>
+</form>
+{% endblock %}

@@ -24,6 +24,11 @@ MENU_SUPERADMIN = [
     ("Kartu", [
         ("kartu", "Kartu dan QR kontingen", "/superadmin/kartu/"),
     ]),
+    ("Absensi", [
+        ("pantauan", "Pantauan langsung", "/superadmin/absensi/pantauan/"),
+        ("titik", "Titik absen", "/superadmin/absensi/titik/"),
+        ("pindai", "Buka pemindai", "/panitia/"),
+    ]),
     ("Pengaturan", [
         ("pengaturan", "Pengaturan form", "/superadmin/pengaturan/"),
         ("akun", "Akun dan kata sandi", "/superadmin/akun/"),

@@ -1,0 +1,46 @@
+{% extends "superadmin/base.html" %}
+{% load static sigap %}
+{% block judul %}Pantauan langsung{% endblock %}
+{% block skrip_tambahan %}<script src="{% aset 'js/pantauan.js' %}" defer></script>{% endblock %}
+{% block judul_halaman %}Pantauan langsung{% endblock %}
+{% block konten %}
+<div x-data="pantauan('{% url 'absensi_admin:pantauan_json' %}')" x-init="mulai()">
+  <div class="mb-4 grid grid-cols-3 gap-3">
+    <div class="kartu text-center"><div class="text-xs text-abu">Titik terbuka</div><div class="font-judul text-3xl font-bold text-navy" x-text="data.titik.length"></div></div>
+    <div class="kartu text-center"><div class="text-xs text-abu">HP aktif (5 menit)</div><div class="font-judul text-3xl font-bold text-navy" x-text="data.hp_aktif"></div></div>
+    <div class="kartu text-center"><div class="text-xs text-abu">Pindaian (5 menit)</div><div class="font-judul text-3xl font-bold text-navy" x-text="data.pindaian_5_menit"></div></div>
+  </div>
+  <p class="mb-2 text-xs text-abu">Diperbarui otomatis setiap 10 detik. Terakhir: <span x-text="data.jam || '-'"></span> <span x-show="galat" class="text-merah">(gagal memuat, mencoba lagi)</span></p>
+  <div class="kartu mb-4 overflow-x-auto p-0 sm:p-0">
+    <table class="tabel">
+      <thead><tr><th>Kode</th><th>Titik absen</th><th>Jam</th><th class="text-right">Hadir</th><th class="text-right">Kontingen</th><th class="text-right">HP aktif</th><th>Pindaian terakhir</th></tr></thead>
+      <tbody>
+        <template x-for="t in data.titik" :key="t.id">
+          <tr>
+            <td class="font-mono text-xs" x-text="t.kode"></td>
+            <td><a class="font-semibold hover:underline" :href="'/superadmin/absensi/titik/' + t.id + '/'" x-text="t.nama"></a> <span :class="'badge-' + t.tingkat" x-text="t.tingkat"></span></td>
+            <td class="text-xs" x-text="t.jam"></td>
+            <td class="text-right font-bold" x-text="t.hadir"></td>
+            <td class="text-right" x-text="t.kontingen"></td>
+            <td class="text-right" x-text="t.hp_aktif"></td>
+            <td class="text-xs" x-text="t.terakhir"></td>
+          </tr>
+        </template>
+        <tr x-show="data.titik.length === 0"><td colspan="7" class="text-center text-abu">Tidak ada titik absen yang terbuka saat ini.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="kartu overflow-x-auto p-0 sm:p-0">
+    <h2 class="p-4 text-base font-bold sm:px-6">Pindaian merah terbaru</h2>
+    <table class="tabel">
+      <thead><tr><th>Jam</th><th>Titik</th><th>Alasan</th><th>Nama</th><th>Pemindai</th></tr></thead>
+      <tbody>
+        <template x-for="(m, i) in data.merah" :key="i">
+          <tr><td class="text-xs" x-text="m.jam"></td><td class="font-mono text-xs" x-text="m.titik"></td><td class="font-mono text-xs text-merah" x-text="m.kode"></td><td class="text-xs" x-text="m.nama || '-'"></td><td class="text-xs" x-text="m.oleh"></td></tr>
+        </template>
+        <tr x-show="data.merah.length === 0"><td colspan="5" class="text-center text-abu">Belum ada.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -13,6 +13,7 @@ urlpatterns = [
     path("", include("apps.akun.urls")),
     path("api/", include("apps.absensi.urls_api")),
     path("superadmin/kartu/", include("apps.kartu.urls")),
+    path("superadmin/absensi/", include("apps.absensi.urls_admin")),
     path("superadmin/", include("apps.biodata.urls_admin")),
     path("superadmin/kontingen/", include("apps.kontingen.urls")),
     path("superadmin/akun/", include("apps.akun.urls_admin")),
