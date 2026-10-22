@@ -1,0 +1,6 @@
+<div class="mb-3 flex flex-wrap gap-1.5 text-sm print:hidden">
+  <a href="{% url 'anjangsana_kelola:peringkat' %}" class="btn-kecil {% if sub == 'peringkat' %}btn-utama{% else %}btn-abu{% endif %}">Peringkat</a>
+  <a href="{% url 'anjangsana_kelola:kunjungan' %}" class="btn-kecil {% if sub == 'kunjungan' %}btn-utama{% else %}btn-abu{% endif %}">Kunjungan</a>
+  <a href="{% url 'anjangsana_kelola:review' %}" class="btn-kecil {% if sub == 'review' %}btn-utama{% else %}btn-abu{% endif %}">Review dan komentar</a>
+  {% if request.user.superadmin %}<a href="{% url 'anjangsana_admin:kelola' %}" class="btn-kecil btn-garis">Sesi, status, poster</a>{% endif %}
+</div>

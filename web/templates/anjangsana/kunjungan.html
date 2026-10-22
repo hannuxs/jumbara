@@ -1,0 +1,25 @@
+{% extends "rekap/base.html" %}
+{% block judul %}Kunjungan Anjangsana{% endblock %}
+{% block judul_rekap %}Anjangsana{% endblock %}
+{% block rekap %}
+{% include "anjangsana/_sub.html" %}
+{% include "anjangsana/_saring.html" %}
+<p class="mb-2 text-sm"><strong>{{ total }}</strong> kunjungan tercatat.</p>
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <table class="tabel">
+    <thead><tr><th>Waktu</th><th>Pengunjung</th><th>Tamu → tuan rumah</th></tr></thead>
+    <tbody>
+    {% for x in halaman %}
+      <tr>
+        <td class="whitespace-nowrap text-xs">{{ x.dipindai_pada|date:"D d/m H.i" }}</td>
+        <td class="font-semibold">{{ x.pengunjung.nama_lengkap }}</td>
+        <td class="text-sm">{{ x.kontingen_tamu.nama }} <span class="text-abu">→</span> <strong>{{ x.kontingen_tuan_rumah.nama }}</strong></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="3" class="text-abu">Belum ada kunjungan.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "komponen/paginasi.html" %}
+{% endblock %}

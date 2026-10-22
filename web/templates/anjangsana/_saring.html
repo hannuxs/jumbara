@@ -1,0 +1,7 @@
+<form method="get" class="kartu mb-3 flex flex-wrap items-end gap-2 print:hidden">
+  <div class="min-w-[12rem] flex-1"><label class="label text-sm" for="f-k">Kontingen</label>
+    <select id="f-k" name="k" class="input"><option value="">Semua kontingen</option>{% for x in kontingen %}<option value="{{ x.pk }}" {% if k == x.pk|stringformat:'s' %}selected{% endif %}>{{ x.kode }} · {{ x.nama }}</option>{% endfor %}</select></div>
+  <div><label class="label text-sm" for="f-arah">Sebagai</label>
+    <select id="f-arah" name="arah" class="input"><option value="">Tamu atau tuan rumah</option><option value="tamu" {% if arah == 'tamu' %}selected{% endif %}>Tamu</option><option value="tuan" {% if arah == 'tuan' %}selected{% endif %}>Tuan rumah</option></select></div>
+  <button class="btn-utama btn-kecil" type="submit">Terapkan</button>
+</form>

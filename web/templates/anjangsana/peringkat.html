@@ -1,0 +1,30 @@
+{% extends "rekap/base.html" %}
+{% block judul %}Peringkat Anjangsana{% endblock %}
+{% block judul_rekap %}Anjangsana{% endblock %}
+{% block rekap %}
+{% include "anjangsana/_sub.html" %}
+<p class="mb-3 text-sm">Status sekarang: {% if st.terbuka %}<span class="badge bg-green-100 text-green-800">berlangsung</span>{% else %}<span class="badge-abu">tidak berlangsung</span>{% endif %}{% if st.paksa != "OTOMATIS" %} <span class="text-xs text-abu">(dipaksa superadmin)</span>{% endif %}</p>
+<div class="mb-3 flex flex-wrap gap-1.5 text-sm">
+  {% for v, l in pilihan %}<a href="?tingkat={{ v }}" class="btn-kecil {% if tingkat == v %}btn-utama{% else %}btn-abu{% endif %}">{{ l }}</a>{% endfor %}
+</div>
+<p class="mb-3 text-xs text-abu">Rata-rata nilai = rata-rata (Pengetahuan + Keterampilan + Sikap) / 3 dari semua review yang berlaku (satu per kontingen tamu). Jika sama: jumlah kontingen tamu berbeda yang berkunjung, lalu jumlah kunjungan.</p>
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <table class="tabel">
+    <thead><tr><th class="w-12">#</th><th>Kontingen ({{ label }})</th><th class="text-right">Rata-rata</th><th class="text-right">Review</th><th class="text-right">Tamu berbeda</th><th class="text-right">Kunjungan</th></tr></thead>
+    <tbody>
+    {% for h in hasil %}
+      <tr>
+        <td class="font-judul font-bold">{{ h.peringkat }}</td>
+        <td><a href="{% url 'anjangsana_kelola:review' %}?k={{ h.k.pk }}&arah=tuan" class="font-semibold hover:underline">{{ h.k.nama }}</a> <span class="badge-{{ h.k.tingkat }}">{{ h.k.get_tingkat_display }}</span></td>
+        <td class="text-right font-semibold">{{ h.rata_rata|floatformat:2 }}</td>
+        <td class="text-right">{{ h.jumlah_review }}</td>
+        <td class="text-right">{{ h.tamu_berbeda }}</td>
+        <td class="text-right">{{ h.jumlah_kunjungan }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6" class="text-abu">Belum ada kontingen.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

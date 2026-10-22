@@ -1,0 +1,62 @@
+{% extends "superadmin/base.html" %}
+{% block judul %}Anjangsana{% endblock %}
+{% block judul_halaman %}Anjangsana: sesi, status, poster{% endblock %}
+{% block aksi_judul %}<a href="{% url 'anjangsana_kelola:peringkat' %}" class="btn-garis btn-kecil">Peringkat dan review</a>{% endblock %}
+{% block konten %}
+<div class="grid gap-4 lg:grid-cols-2">
+  <section class="kartu">
+    <h2 class="mb-2 font-semibold">Status link publik</h2>
+    <p class="mb-3 text-sm">Sekarang: {% if st.terbuka %}<span class="badge bg-green-100 text-green-800" data-status-anjangsana>berlangsung</span>{% else %}<span class="badge bg-red-100 text-red-800" data-status-anjangsana>tidak berlangsung</span>{% endif %}
+      {% if st.sesi %}<span class="text-xs text-abu">· sesi {{ st.sesi.mulai|time:"H.i" }}-{{ st.sesi.selesai|time:"H.i" }}</span>{% endif %}</p>
+    <form method="post" class="flex flex-wrap gap-2">
+      {% csrf_token %}<input type="hidden" name="aksi" value="status">
+      {% for v, l in pilihan_paksa %}
+        <button name="paksa" value="{{ v }}" type="submit" class="btn-kecil {% if st.paksa == v %}btn-utama{% else %}btn-abu{% endif %}">{{ l }}</button>
+      {% endfor %}
+    </form>
+    <p class="mt-2 text-xs text-abu">Otomatis = link hanya aktif selama sesi di bawah. Paksa buka berguna untuk uji coba; kembalikan ke Otomatis setelahnya.</p>
+    <div class="mt-4 border-t border-gray-100 pt-3 text-sm">
+      <div>Link publik: <a href="/anjangsana/" class="tautan break-all" target="_blank" rel="noopener">{{ url_publik }}</a></div>
+      <div class="mt-1 text-abu">{{ jumlah_kunjungan }} kunjungan · {{ jumlah_review }} review berlaku</div>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <a href="{% url 'anjangsana_admin:poster' %}" class="btn-utama btn-kecil" target="_blank" rel="noopener">Poster QR link (PDF F4)</a>
+        <a href="{% url 'kartu_admin:beranda' %}" class="btn-abu btn-kecil">QR kontingen untuk tenda</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="kartu">
+    <h2 class="mb-2 font-semibold">Tambah sesi</h2>
+    <form method="post" class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+      {% csrf_token %}<input type="hidden" name="aksi" value="tambah">
+      <div class="col-span-2 sm:col-span-1"><label class="label text-sm" for="{{ form.tanggal.id_for_label }}">Tanggal</label>{{ form.tanggal }}</div>
+      <div><label class="label text-sm" for="{{ form.mulai.id_for_label }}">Mulai</label>{{ form.mulai }}</div>
+      <div><label class="label text-sm" for="{{ form.selesai.id_for_label }}">Selesai</label>{{ form.selesai }}</div>
+      {% if form.errors %}<div class="pesan-galat col-span-2 sm:col-span-3">{% for f in form %}{% for e in f.errors %}{{ e }} {% endfor %}{% endfor %}{% for e in form.non_field_errors %}{{ e }} {% endfor %}</div>{% endif %}
+      <div class="col-span-2 sm:col-span-3"><button class="btn-utama btn-kecil" type="submit">Tambah sesi</button></div>
+    </form>
+  </section>
+</div>
+
+<h2 class="mb-2 mt-5 font-semibold">Sesi Anjangsana (WITA)</h2>
+<div class="space-y-2">
+  {% for s in sesi %}
+    <div class="kartu flex flex-wrap items-center gap-2 {% if st.sesi and st.sesi.pk == s.pk %}ring-2 ring-hijau{% endif %}">
+      <form method="post" class="flex flex-1 flex-wrap items-center gap-2">
+        {% csrf_token %}<input type="hidden" name="aksi" value="ubah"><input type="hidden" name="pk" value="{{ s.pk }}">
+        <input type="date" name="tanggal" value="{{ s.tanggal|date:'Y-m-d' }}" class="input min-h-[36px] w-40 py-1" aria-label="Tanggal">
+        <input type="time" name="mulai" value="{{ s.mulai|time:'H:i' }}" class="input min-h-[36px] w-28 py-1" aria-label="Mulai">
+        <input type="time" name="selesai" value="{{ s.selesai|time:'H:i' }}" class="input min-h-[36px] w-28 py-1" aria-label="Selesai">
+        <button class="btn-abu btn-kecil" type="submit">Simpan</button>
+        <span class="text-xs text-abu">{{ s.tanggal|date:"l" }}</span>
+      </form>
+      <form method="post" data-konfirmasi="Hapus sesi {{ s.tanggal|date:'d/m' }} {{ s.mulai|time:'H.i' }}-{{ s.selesai|time:'H.i' }}? Kunjungan yang sudah tercatat tetap ada.">
+        {% csrf_token %}<input type="hidden" name="aksi" value="hapus"><input type="hidden" name="pk" value="{{ s.pk }}">
+        <button class="btn-abu btn-kecil text-merah" type="submit">Hapus</button>
+      </form>
+    </div>
+  {% empty %}
+    <p class="kartu text-abu">Belum ada sesi. Tambahkan di atas atau jalankan sigap_seed.</p>
+  {% endfor %}
+</div>
+{% endblock %}

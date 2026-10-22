@@ -1,0 +1,37 @@
+{% extends "rekap/base.html" %}
+{% load sigap %}
+{% block judul %}Review Anjangsana{% endblock %}
+{% block judul_rekap %}Anjangsana{% endblock %}
+{% block skrip %}{% if request.user.superadmin %}<script src="{% aset 'js/admin.js' %}" defer></script>{% endif %}{% endblock %}
+{% block segar %}{% endblock %}
+{% block info_segar %}{% endblock %}
+{% block rekap %}
+{% include "anjangsana/_sub.html" %}
+{% include "anjangsana/_saring.html" %}
+<p class="mb-2 text-sm"><strong>{{ total }}</strong> review berlaku (satu per kontingen tamu untuk setiap tuan rumah).{% if request.user.superadmin %} Review yang jelas iseng bisa dihapus (masuk tempat sampah dan log).{% endif %}</p>
+<div class="space-y-2">
+  {% for r in halaman %}
+    <div class="kartu">
+      <div class="flex flex-wrap items-start gap-2">
+        <div class="min-w-0 flex-1">
+          <div class="text-sm">{{ r.kontingen_tamu.nama }} <span class="text-abu">→</span> <strong>{{ r.kontingen_tuan_rumah.nama }}</strong></div>
+          <div class="text-xs text-abu">{{ r.dikirim_pada|date:"D d/m H.i" }} · oleh {{ r.pengunjung.nama_lengkap|default:"-" }}{% if r.riwayat %} · sudah diganti {{ r.riwayat|length }} kali{% endif %}</div>
+        </div>
+        <div class="flex gap-1 text-xs">
+          <span class="badge-abu">P {{ r.nilai_pengetahuan }}</span><span class="badge-abu">K {{ r.nilai_keterampilan }}</span><span class="badge-abu">S {{ r.nilai_sikap }}</span>
+        </div>
+      </div>
+      {% if r.komentar %}<p class="mt-2 rounded-lg bg-krem px-3 py-2 text-sm">{{ r.komentar }}</p>{% endif %}
+      {% if request.user.superadmin %}
+      <form method="post" action="{% url 'anjangsana_kelola:review_hapus' r.pk %}" class="mt-2 text-right" data-konfirmasi="Hapus review {{ r.kontingen_tamu.nama }} untuk {{ r.kontingen_tuan_rumah.nama }}? Review masuk tempat sampah dan tidak dihitung di peringkat.">
+        {% csrf_token %}<input type="hidden" name="kembali" value="{{ request.get_full_path }}">
+        <button class="btn-abu btn-kecil text-merah" type="submit">Hapus (iseng)</button>
+      </form>
+      {% endif %}
+    </div>
+  {% empty %}
+    <p class="kartu text-abu">Belum ada review.</p>
+  {% endfor %}
+</div>
+{% include "komponen/paginasi.html" %}
+{% endblock %}

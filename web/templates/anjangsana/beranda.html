@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% load sigap %}
+{% block judul %}Anjangsana{% endblock %}
+{% block kelas_main %}mx-auto w-full max-w-lg px-3 py-4{% endblock %}
+{% block skrip %}
+<script src="{% aset 'vendor/qr-scanner/qr-scanner.umd.min.js' %}" defer></script>
+<script src="{% aset 'js/anjangsana.js' %}" defer></script>
+{% endblock %}
+{% block isi %}
+{% with b=st.berikutnya %}
+<div x-data="anjangsana()" x-init="mulai()" data-tutup="{% if not st.terbuka %}1{% endif %}" class="pb-10">
+
+  <div class="mb-4 text-center">
+    <h1 class="font-judul text-2xl font-bold text-oranye-tua">Anjangsana</h1>
+    <p class="text-sm text-abu">Buku tamu dan review antarkontingen</p>
+  </div>
+
+  {# Di luar sesi #}
+  <section x-show="tutup" {% if st.terbuka %}x-cloak{% endif %} class="kartu text-center" data-anjangsana-tutup>
+    <p class="mb-2 text-lg font-semibold text-navy">Anjangsana sedang tidak berlangsung.</p>
+    {% if b %}<p>Sesi berikutnya: <strong>{{ b.tanggal|tanggal|cut:"," }} pukul {{ b.mulai|time:"H.i" }}</strong> WITA.</p>
+    {% else %}<p class="text-abu">Tidak ada sesi lagi. Terima kasih atas kunjungannya.</p>{% endif %}
+  </section>
+
+  <div x-show="!tutup" {% if not st.terbuka %}x-cloak{% endif %}>
+    <div x-show="galat" x-cloak class="pesan-galat mb-3" role="alert" data-galat><span x-text="galat"></span></div>
+
+    {# 1. Awal #}
+    <section x-show="tahap === 'awal'" class="kartu text-center">
+      {% if st.sesi %}<p class="mb-4 text-sm text-abu">Sesi berlangsung: <strong class="text-navy">{{ st.sesi.tanggal|tanggal }}, {{ st.sesi.mulai|time:"H.i" }}-{{ st.sesi.selesai|time:"H.i" }} WITA</strong></p>{% endif %}
+      <template x-if="identitas">
+        <div class="mb-4 rounded-xl bg-krem p-3 text-left text-sm">
+          <div>Masih tercatat di HP ini sebagai <strong x-text="identitas.nama"></strong> (Kontingen <span x-text="identitas.kontingen"></span>), <span x-text="menitTersisa()"></span> menit lagi.</div>
+          <div class="mt-2 flex gap-2">
+            <button type="button" class="btn-utama btn-kecil flex-1" @click="lanjutIdentitas()">Lanjut kunjungi kontingen</button>
+            <button type="button" class="btn-abu btn-kecil" @click="lupakan()">Bukan saya</button>
+          </div>
+        </div>
+      </template>
+      <button type="button" class="btn-utama btn-besar w-full" @click="pindaiKartu()">Pindai kartu saya</button>
+      <ol class="mt-5 list-decimal space-y-1 pl-5 text-left text-sm text-abu">
+        <li>Pindai QR di kartu peserta Anda sendiri.</li>
+        <li>Di tenda tuan rumah, pindai QR kontingen yang ditempel di sana.</li>
+        <li>Beri nilai Pengetahuan, Keterampilan, dan Sikap.</li>
+      </ol>
+    </section>
+
+    {# Kamera dipakai bersama tahap "kartu" dan "tuan" #}
+    <section x-show="tahap === 'kartu' || tahap === 'tuan'" x-cloak>
+      <h2 class="mb-1 text-lg font-bold" x-text="tahap === 'kartu' ? 'Pindai kartu peserta Anda' : 'Pindai QR kontingen tuan rumah'"></h2>
+      <p class="mb-2 text-sm text-abu" x-show="tahap === 'kartu'">Arahkan kamera ke QR di kartu Anda sendiri.</p>
+      <p class="mb-2 text-sm text-abu" x-show="tahap === 'tuan'">Pengunjung: <strong class="text-navy" x-text="identitas && identitas.nama"></strong> · Kontingen <span x-text="identitas && identitas.kontingen"></span>. Pindai QR yang ditempel di tenda kontingen yang Anda kunjungi.</p>
+      <div class="relative overflow-hidden rounded-2xl bg-black" style="aspect-ratio: 1 / 1; max-height: 60vh; width: 100%">
+        <video x-ref="video" class="h-full w-full object-cover" playsinline muted></video>
+        <div x-show="!kameraAktif" class="absolute inset-0 flex flex-col items-center justify-center gap-3 p-4 text-center text-white">
+          <p class="text-sm" x-text="pesanKamera || 'Menyalakan kamera…'"></p>
+          <button type="button" class="btn-utama btn-kecil" x-show="pesanKamera" @click="nyalakanKamera()">Coba lagi</button>
+        </div>
+        <div x-show="sibuk" x-cloak class="absolute inset-0 flex items-center justify-center bg-black/50 text-white">Memeriksa…</div>
+      </div>
+      <form x-show="tahap === 'kartu'" @submit.prevent="kirimKodeManual()" class="mt-3 kartu">
+        <label for="kode-manual" class="mb-1 block text-sm font-semibold">QR kartu rusak? Ketik kode di bawah QR</label>
+        <div class="flex gap-2">
+          <input id="kode-manual" class="input flex-1 uppercase" x-model="kodeManual" maxlength="9" placeholder="Contoh: K7Q2-M4XA" autocomplete="off" autocapitalize="characters" spellcheck="false">
+          <button class="btn-utama" type="submit" :disabled="sibuk">Kirim</button>
+        </div>
+      </form>
+      <button type="button" class="btn-abu mt-3 w-full" @click="ke('awal')">Kembali</button>
+    </section>
+
+    {# 3. Konfirmasi pertama #}
+    <section x-show="tahap === 'konfirmasi1'" x-cloak class="kartu" data-konfirmasi="1">
+      <p class="mb-1 text-sm text-abu">Kartu atas nama</p>
+      <p class="mb-4 font-judul text-2xl font-bold text-navy" x-text="identitas && identitas.nama"></p>
+      <p class="mb-5 text-lg">Apakah benar Anda berasal dari Kontingen <strong x-text="identitas && identitas.kontingen"></strong> dan akan mengisi review ke kontingen yang Anda kunjungi?</p>
+      <div class="flex flex-col gap-2">
+        <button type="button" class="btn-utama btn-besar" @click="setujuIdentitas()">Ya, benar</button>
+        <button type="button" class="btn-abu" @click="identitas = null; pindaiKartu()">Bukan, ulangi</button>
+      </div>
+    </section>
+
+    {# 5. Konfirmasi kedua #}
+    <section x-show="tahap === 'konfirmasi2'" x-cloak class="kartu" data-konfirmasi="2">
+      <div x-show="tuan && tuan.peringatan" class="pesan-peringatan mb-4" data-peringatan-ganti><span x-text="tuan && tuan.peringatan"></span></div>
+      <p class="mb-5 text-lg">Apakah benar Anda berasal dari Kontingen <strong x-text="identitas && identitas.kontingen"></strong> dan akan mengisi review ke Kontingen <strong x-text="tuan && tuan.tuan_rumah"></strong>?</p>
+      <div class="flex flex-col gap-2">
+        <button type="button" class="btn-utama btn-besar" @click="setujuTuan()" :disabled="sibuk">Ya, benar</button>
+        <button type="button" class="btn-abu" @click="ke('tuan')">Bukan, ulangi</button>
+      </div>
+    </section>
+
+    {# 7. Review #}
+    <section x-show="tahap === 'review'" x-cloak>
+      <div class="kartu mb-3">
+        <p class="text-sm text-abu">Review untuk</p>
+        <p class="font-judul text-xl font-bold text-navy">Kontingen <span x-text="kunjungan && kunjungan.tuan_rumah"></span></p>
+        <p class="mt-1 text-xs text-hijau">Kunjungan Anda sudah tercatat.</p>
+      </div>
+      <div x-show="tuan && tuan.peringatan" class="pesan-peringatan mb-3"><span x-text="tuan && tuan.peringatan"></span></div>
+      <form @submit.prevent="kirimReview()" class="space-y-3">
+        {% for kunci, penjelasan in aspek.items %}
+        <fieldset class="kartu">
+          <legend class="sr-only">{{ kunci|capfirst }}</legend>
+          <div class="font-semibold text-navy">{{ kunci|capfirst }}</div>
+          <p class="mb-3 text-xs text-abu">{{ penjelasan }}</p>
+          <div class="grid grid-cols-5 gap-2" role="radiogroup" aria-label="Nilai {{ kunci }}">
+            <template x-for="n in [1, 2, 3, 4, 5]" :key="n">
+              <button type="button" role="radio" :aria-checked="nilai.{{ kunci }} === n" @click="nilai.{{ kunci }} = n"
+                      class="h-14 rounded-xl border-2 font-judul text-2xl font-bold"
+                      :class="nilai.{{ kunci }} >= n ? 'border-oranye bg-oranye text-white' : 'border-garis bg-white text-navy'"
+                      x-text="n" :data-nilai="'{{ kunci }}-' + n"></button>
+            </template>
+          </div>
+          <div class="mt-1 flex justify-between text-[11px] text-abu"><span>kurang</span><span>sangat baik</span></div>
+        </fieldset>
+        {% endfor %}
+        <div class="kartu">
+          <label for="komentar" class="mb-1 block font-semibold text-navy">Komentar <span class="font-normal text-abu">(boleh dikosongkan)</span></label>
+          <textarea id="komentar" class="input min-h-[96px]" maxlength="500" x-model="komentar" placeholder="Kesan Anda tentang kontingen ini"></textarea>
+          <div class="mt-1 text-right text-xs text-abu"><span x-text="komentar.length"></span>/500</div>
+        </div>
+        <button class="btn-utama btn-besar w-full" type="submit" :disabled="sibuk || !lengkap()" x-text="ganti ? 'Kirim dan ganti review lama' : 'Kirim review'"></button>
+      </form>
+    </section>
+
+    {# 8. Selesai #}
+    <section x-show="tahap === 'selesai'" x-cloak class="kartu text-center" data-selesai>
+      <div class="mb-2 text-5xl text-hijau">✓</div>
+      <p class="mb-1 text-xl font-bold text-navy">Terima kasih!</p>
+      <p class="mb-5 text-sm">Review untuk Kontingen <strong x-text="kunjungan && kunjungan.tuan_rumah"></strong> sudah terkirim.</p>
+      <div class="flex flex-col gap-2">
+        <button type="button" class="btn-utama btn-besar" @click="lanjutIdentitas()">Kunjungi kontingen lain</button>
+        <button type="button" class="btn-abu" @click="lupakan()">Selesai, hapus identitas dari HP ini</button>
+      </div>
+      <p class="mt-3 text-xs text-abu">Identitas Anda tersimpan di HP ini <span x-text="menitTersisa()"></span> menit lagi, jadi tidak perlu memindai kartu lagi.</p>
+    </section>
+  </div>
+</div>
+{% endwith %}
+{% endblock %}
