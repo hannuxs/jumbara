@@ -6,6 +6,7 @@
 #   jalankan.bat -Port 8080         pakai port lain
 #   jalankan.bat -Produksi          jalankan dengan Waitress (seperti server produksi), bukan runserver
 #   jalankan.bat -Tes               jalankan juga tes otomatis (pytest) dan ruff sebelum server
+#   jalankan.bat -Https             server uji dengan HTTPS sementara (port 8443) agar kamera HP bisa diuji
 #
 # Yang diperiksa dan diperbaiki otomatis bila aman:
 #   Python 3.12, virtualenv web\.venv, paket requirements, file web\.env, kunci rahasia,
@@ -16,11 +17,13 @@ param(
     [int]$Port = 8000,
     [switch]$CekSaja,
     [switch]$Produksi,
-    [switch]$Tes
+    [switch]$Tes,
+    [switch]$Https
 )
 # "Continue": peringatan di stderr dari program luar (pip, tailwind) tidak boleh menghentikan skrip.
 # Keberhasilan setiap langkah dinilai dari $LASTEXITCODE.
 $ErrorActionPreference = "Continue"
+if ($Https -and -not $PSBoundParameters.ContainsKey("Port")) { $Port = 8443 }
 $env:BROWSERSLIST_IGNORE_OLD_DATA = "1"
 $env:PYTHONUTF8 = "1"
 $web = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
@@ -209,13 +212,18 @@ $hosts = ($envv["DJANGO_ALLOWED_HOSTS"] -split ",") | ForEach-Object { $_.Trim()
 $ipLan = @(Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
     Where-Object { $_.IPAddress -notlike "127.*" -and $_.IPAddress -notlike "169.254.*" -and $_.PrefixOrigin -ne "WellKnown" } |
     Select-Object -ExpandProperty IPAddress)
-Info "Laptop ini : http://localhost:$Port/"
+$skema = if ($Https) { "https" } else { "http" }
+Info "Laptop ini : $skema`://localhost:$Port/"
 foreach ($ip in $ipLan) {
-    if ($hosts -contains $ip) { Info "HP (Wi-Fi sama): http://$ip`:$Port/   (ketik http://, bukan https://)" }
+    if ($hosts -contains $ip) { Info "HP (Wi-Fi sama): $skema`://$ip`:$Port/   (ketik $skema`://)" }
     else { Peringatan "IP $ip belum ada di DJANGO_ALLOWED_HOSTS. Tambahkan ,$ip di web\.env bila ingin membuka dari HP." }
 }
-Info "Superadmin : http://localhost:$Port/masuk/"
-Info "Kamera HP (Tahap 3) butuh HTTPS: cloudflared tunnel --url http://localhost:$Port"
+Info "Superadmin : $skema`://localhost:$Port/masuk/"
+if ($Https) {
+    Info "HTTPS sementara: di HP akan muncul peringatan sertifikat. Chrome: Lanjutan > Lanjutkan. Safari: Tampilkan Detail > kunjungi."
+} else {
+    Info "Kamera HP butuh HTTPS. Untuk uji coba: jalankan.bat -Https  (lalu buka https://IP-laptop:8443 di HP)"
+}
 
 Write-Host ""
 if ($global:jumlahPeringatan) { Write-Host "Siap, dengan $global:jumlahPeringatan peringatan (tanda [!])." -ForegroundColor Yellow }
@@ -224,7 +232,10 @@ else { Write-Host "Semua siap." -ForegroundColor Green }
 if ($CekSaja) { exit 0 }
 
 Write-Host ""
-if ($Produksi) {
+if ($Https) {
+    Write-Host "Menjalankan server uji HTTPS sementara di port $Port. Hentikan dengan Ctrl+C." -ForegroundColor Cyan
+    & $py manage.py sigap_https_dev "0.0.0.0:$Port"
+} elseif ($Produksi) {
     $threads = if ($envv["WAITRESS_THREADS"]) { $envv["WAITRESS_THREADS"] } else { "48" }
     Write-Host "Menjalankan Waitress (mode produksi) di port $Port. Hentikan dengan Ctrl+C." -ForegroundColor Cyan
     & (Join-Path $web ".venv\Scripts\waitress-serve.exe") "--listen=0.0.0.0:$Port" "--threads=$threads" "--channel-timeout=120" sigap.wsgi:application
