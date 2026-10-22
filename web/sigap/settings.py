@@ -205,6 +205,8 @@ SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "same-origin"
 X_FRAME_OPTIONS = "DENY"
+# COOP dikirim HeaderKeamananMiddleware hanya lewat HTTPS (di HTTP biasa browser memberi peringatan).
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 SILENCED_SYSTEM_CHECKS = env.list("SILENCED_SYSTEM_CHECKS", default=[])
 
 # --- Log berkas ------------------------------------------------------------------
