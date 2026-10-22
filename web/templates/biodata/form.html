@@ -138,7 +138,7 @@
       <label for="id_nomor_induk_anggota" class="label">Nomor Induk Anggota PMR (jika ada)</label>
       <input type="text" name="nomor_induk_anggota" id="id_nomor_induk_anggota" class="input" maxlength="50" value="{{ form.nomor_induk_anggota.value|default_if_none:'' }}">
       <p class="galat" data-galat="nomor_induk_anggota">{{ form.nomor_induk_anggota.errors.0 }}</p>
-      <p class="bantuan">Terdapat pada aplikasi SIAMO. Kosongkan jika belum punya.</p>
+      <p class="bantuan">Terdapat pada aplikasi SIAMO.</p>
     </div>
 
     <fieldset class="isian" data-isian="jenis_kelamin">

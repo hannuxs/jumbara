@@ -37,7 +37,7 @@ Catatan: urutan dan penyaringan ini mengikuti REVISI R1 (18 Okt 2026), mengganti
 |---|---|---|
 | **Nama lengkap** | Teks | Wajib. 3-100 karakter. Rapikan spasi ganda dan spasi di awal/akhir. **Disimpan HURUF KAPITAL termasuk gelar** (REVISI R3); isian ditampilkan kapital saat diketik. Tolak angka dan simbol aneh, tapi izinkan titik, koma, apostrof, tanda hubung (contoh: "M. Fuad" -> "M. FUAD", "As'ad" -> "AS'AD", "Sri Handayani, S.Pd" -> "SRI HANDAYANI, S.PD") |
 | **NIK** | Teks angka (`inputmode="numeric"`) | Wajib. Tepat 16 angka. Tidak boleh semua angka sama. **UNIK**: jika sudah terdaftar, tolak dengan pesan "NIK ini sudah terdaftar. Jika Anda merasa belum pernah mengisi atau ingin memperbaiki data, hubungi superadmin" + tombol WhatsApp. Teks bantuan: "NIK ada di Kartu Keluarga (KK)". Lihat cek NIK di bawah |
-| **Nomor induk anggota** | Teks | Tidak wajib. Label: "Nomor Induk Anggota PMR (jika ada)". Teks bantuan: "Terdapat pada aplikasi SIAMO. Kosongkan jika belum punya." Format bebas (tidak divalidasi khusus) |
+| **Nomor induk anggota** | Teks | Tidak wajib. Label: "Nomor Induk Anggota PMR (jika ada)". Teks bantuan: "Terdapat pada aplikasi SIAMO." Format bebas (tidak divalidasi khusus) |
 | **Jenis kelamin** | Pilihan Laki-laki / Perempuan | Wajib |
 | **Tempat lahir** | Teks | Wajib. 2-60 karakter |
 | **Tanggal lahir** | Tanggal (tampilkan 3 dropdown hari-bulan-tahun atau date picker yang ramah HP; jangan memaksa format ketik) | Wajib. Tidak boleh di masa depan. Lihat cek usia di bawah |

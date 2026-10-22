@@ -124,7 +124,7 @@ class BiodataForm(forms.Form):
         label="Nomor Induk Anggota PMR (jika ada)",
         max_length=50,
         required=False,
-        help_text="Terdapat pada aplikasi SIAMO. Kosongkan jika belum punya.",
+        help_text="Terdapat pada aplikasi SIAMO.",
     )
     jenis_kelamin = forms.ChoiceField(
         choices=JenisKelamin.choices,
