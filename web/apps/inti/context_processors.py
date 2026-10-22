@@ -21,6 +21,9 @@ MENU_SUPERADMIN = [
         ("kontingen", "Kontingen dan kuota", "/superadmin/kontingen/"),
         ("sampah", "Tempat sampah", "/superadmin/sampah/"),
     ]),
+    ("Kartu", [
+        ("kartu", "Kartu dan QR kontingen", "/superadmin/kartu/"),
+    ]),
     ("Pengaturan", [
         ("pengaturan", "Pengaturan form", "/superadmin/pengaturan/"),
         ("akun", "Akun dan kata sandi", "/superadmin/akun/"),

@@ -41,6 +41,9 @@ BAWAAN: dict[str, Any] = {
     # Selama hari acara, cadangan dibuat setiap 3 jam.
     "jadwal.acara_mulai": "2026-11-12",
     "jadwal.acara_selesai": "2026-11-15",
+    # Ukuran kartu peserta (B-2), bisa disesuaikan bila panitia memakai ukuran sedikit berbeda.
+    "kartu.lebar_mm": 88,
+    "kartu.tinggi_mm": 125,
 }
 
 

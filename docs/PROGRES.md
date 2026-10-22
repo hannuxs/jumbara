@@ -4,7 +4,7 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 
 ## Status singkat
 
-- Tahap aktif: **Tahap 1 (Biodata dan superadmin)**. Kode selesai dan teruji di laptop; **tinggal pemasangan di server produksi + HTTPS + uji 3 HP** (dikerjakan Farhan, lihat "Yang harus dikerjakan Farhan").
+- Tahap aktif: **Tahap 2 selesai (22 Okt), berikutnya Tahap 3**. Tahap 1 selesai di laptop; pemasangan di server produksi + HTTPS + uji 3 HP dikerjakan paling akhir bersama Farhan (keputusan Farhan 22 Okt; lihat "Yang harus dikerjakan Farhan").
 - Revisi R1-R5 dari Farhan (tingkat dulu + cari sekolah, foto wajib dan dicetak di kartu, nama kapital, tanpa pencocokan NIK, pemotong foto responsif) **selesai** 18 Okt; lihat `docs/REVISI.md`.
 - Terakhir diperbarui: 18 Oktober 2026
 - Tenggat terdekat: **25 Oktober 2026** (form biodata siap), dibuka 26 Oktober 00.00 WITA
@@ -32,7 +32,13 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 - [ ] Terpasang di server Windows produksi dengan HTTPS, diuji dari minimal 3 HP (Farhan)
 
 ## Tahap 2: Kartu dan QR kontingen (3 Nov)
-Belum dimulai. Kolom `qr_token`, `kode_kartu`, `versi_kartu`, `kartu_aktif`, `perlu_cetak_ulang` dan tabel `kartu_riwayat` sudah ada.
+- [x] Token QR acak (SJP:, sekitar 128,8 bit) dan kode kartu 8 karakter; dibuat saat biodata masuk, diisi massal lewat migrasi `kartu.0002_isi_token`
+- [x] PDF kartu B-2 dengan **foto + QR** (R2/R6), 4 per F4, garis potong, sampul daftar nama; per kontingen, satu orang, hanya cetak ulang, ZIP semua
+- [x] Nonaktifkan dan terbitkan kartu baru (riwayat, versi naik, kartu lama dipindai -> nonaktif); nonaktif tanpa pengganti
+- [x] PDF QR kontingen F4 (SJK:) per kontingen dan semua; ganti QR tenda
+- [x] Kunci data biodata: form publik tertutup, perubahan isian tercetak ditandai perlu cetak ulang; tombol "Sudah dicetak"
+- [x] Tes: 30 tes kartu (QR di PDF dirender dan dipindai), total 187 tes lulus
+- [ ] Uji pindai kartu cetak dengan HP Android dan iPhone dari jarak 20-50 cm (saat uji coba)
 
 ## Tahap 3: Absensi, rekap, poin, Anjangsana (7 Nov)
 Belum dimulai. Tabel `kegiatan`, `kuota_kegiatan`, `titik_absen` (60 baris terisi), `kehadiran` (UNIQUE aktif + `client_uuid`), `pindaian_ditolak`, sesi/kunjungan/review Anjangsana sudah ada. Halaman `/panitia/` dan `/juri/` masih "segera hadir".
@@ -55,6 +61,14 @@ Belum dimulai. Tabel `kegiatan`, `kuota_kegiatan`, `titik_absen` (60 baris teris
 10. Konfirmasi panitia: kuota SD Negeri 006 Tanjung Palas Utara (25 peserta inti, batas Mula 20).
 
 ## Catatan sesi
+
+### 22 Oktober 2026 (Claude Code): Tahap 2
+
+Keputusan Farhan: Cloudflare Tunnel tidak dipakai; pemasangan di server dikerjakan paling akhir; kerjakan tahap berikutnya dulu karena panitia ingin uji coba menyeluruh secepatnya. Revisi R6: kartu menampilkan QR + foto (sudah sesuai rancangan).
+
+Dikerjakan Tahap 2 lengkap (lihat centang). Diuji: QR di PDF dirender lalu dipindai (OpenCV) dan cocok dengan token di database, termasuk nama terpanjang; halaman kartu di HP 360 px dan laptop; unduhan PDF/ZIP lewat browser. Ditemukan dan diperbaiki: nama kontingen menimpa pita tingkat di lembar QR tenda; nama panjang terpotong di sampul; tombol "Cetak ringkasan" diblokir CSP.
+
+**Langkah berikutnya:** Tahap 3 (pemindai absensi dengan antrean offline dan pemindaian bersamaan, titik absen, rekap dan poin, Anjangsana). Catatan: kamera HP butuh HTTPS; untuk uji di HP sebelum pemasangan perlu cara HTTPS sementara (Cloudflare Tunnel tidak dipakai).
 
 ### 22 Oktober 2026 (Claude Code)
 

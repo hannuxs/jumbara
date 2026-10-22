@@ -12,7 +12,12 @@
 <div class="mb-4 flex flex-wrap gap-2 print:hidden">
   <a href="{% url 'biodata_admin:unduh_umum' %}?kontingen={{ k.pk }}" class="btn-garis btn-kecil">Unduh Excel kontingen ini</a>
   <a href="{% url 'biodata_admin:unduh_foto' %}?kontingen={{ k.pk }}" class="btn-abu btn-kecil">Unduh foto (ZIP)</a>
-  <button type="button" onclick="window.print()" class="btn-abu btn-kecil">Cetak ringkasan</button>
+  <button type="button" x-data @click="window.print()" class="btn-abu btn-kecil">Cetak ringkasan</button>
+  <a href="{% url 'kartu_admin:unduh_kontingen' k.pk %}" class="btn-utama btn-kecil">Kartu peserta (PDF)</a>
+  <a href="{% url 'kartu_admin:unduh_qr' k.pk %}" class="btn-garis btn-kecil">QR tenda (PDF)</a>
+  <form method="post" action="{% url 'kartu_admin:ganti_qr' k.pk %}" data-konfirmasi="Ganti QR tenda {{ k.kode }}? QR lama yang sudah ditempel tidak berlaku lagi dan harus dicetak ulang.">
+    {% csrf_token %}<button class="btn-abu btn-kecil" type="submit">Ganti QR tenda</button>
+  </form>
 </div>
 {% if k.catatan_data or k.catatan %}
 <div class="kartu mb-4 text-sm">

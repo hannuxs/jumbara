@@ -17,6 +17,8 @@ from django.views.decorators.http import require_POST
 from apps.akun.decorators import superadmin_wajib
 from apps.inti.log import catat
 from apps.inti.models import LogAktivitas, Tingkat
+from apps.kartu.models import AlasanKartu, KartuRiwayat
+from apps.kartu.services import data_terkunci
 from apps.kontingen.models import URUTAN_TINGKAT, Kontingen
 
 from . import ekspor, kueri, services
@@ -107,6 +109,9 @@ def detail(request, pk: int):
             "umur": services.usia_pada(p.tanggal_lahir, acuan),
             "tanda": p.penanda.all().order_by("diabaikan_pada", "jenis"),
             "riwayat": riwayat,
+            "riwayat_kartu": KartuRiwayat.objects.filter(peserta=p).order_by("-dibuat_pada"),
+            "pilihan_alasan": AlasanKartu.choices,
+            "terkunci": data_terkunci(),
         },
     )
 

@@ -13,6 +13,7 @@ Catatan revisi dari Farhan setelah Tahap 1 selesai di laptop. Setiap revisi puny
 | R1c | 18 Okt 2026 | Laporan Farhan: setelah R1b halaman rusak (ikon kaca pembesar raksasa menutupi form, tidak bisa cari/pilih sekolah, banyak galat) | **Selesai** 18 Okt |
 | R4 | 18 Okt 2026 | Tidak boleh ada pencocokan NIK dengan tanggal lahir/jenis kelamin | **Selesai** 18 Okt |
 | R5 | 18 Okt 2026 | Bagian menyesuaikan (memotong) foto terlalu kecil; harus responsif di HP, laptop, dan perangkat lain | **Selesai** 18 Okt |
+| R6 | 22 Okt 2026 | Kartu peserta yang dibuat sistem menampilkan QR + foto peserta | **Selesai** 22 Okt (bersama Tahap 2) |
 
 ---
 
@@ -217,3 +218,11 @@ Pengujian: 154 tes otomatis lulus (tes baru: tingkat beda ditolak, urutan isian,
 - Syarat lulus: kontainer pemotong sama dengan wadah, foto memakai >= 90% wadah, kotak potong cukup besar, tidak ada geser horizontal halaman, wadah tidak lebih tinggi dari layar, tanpa galat. Hasil: **63/63 lulus** (sebelum perbaikan 4 gagal di Chromium).
 - Tombol Perbesar/Perkecil/Putar berfungsi; HP diputar mendatar lalu tegak, pemotong tetap memenuhi wadah; kirim lewat mode tanpa pratinjau berhasil (foto tersimpan 600x800).
 - Catatan uji: WebKit versi Windows dari Playwright kadang gagal membaca berkas yang dipilih dari drive D: (`NotFoundError`), sedangkan berkas yang sama dari drive C: 10/10 berhasil. Ini kendala alat uji, bukan aplikasi; aplikasi tetap menanganinya dengan mode tanpa pratinjau. **Uji di iPhone dan Android sungguhan tetap wajib** sebelum 25 Oktober.
+
+---
+
+## R6. Kartu peserta menampilkan QR dan foto peserta (22 Okt 2026)
+
+**Permintaan Farhan:** kartu peserta yang dibuat sistem menampilkan QR dan foto peserta.
+
+**Hasil:** sudah sesuai rancangan sejak R2 dan diterapkan di Tahap 2. Setiap kartu B-2 memuat foto 3x4 (24 x 32 mm, bingkai tipis) di samping nama, dan QR besar (kotak 52 mm, simbol sekitar 46 mm) di bawahnya beserta kode kartu. Biodata tanpa foto (seharusnya tidak ada karena foto wajib mutlak) tetap dicetak dengan kotak "FOTO 3x4" kosong agar bisa ditempel manual. Dicatat juga di `00-KEPUTUSAN.md` bagian Kartu dan QR.

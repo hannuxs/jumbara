@@ -16,26 +16,26 @@ Kerjakan tahap secara berurutan. **Jangan mulai tahap berikutnya sebelum kriteri
 ## Tahap 1: Biodata dan superadmin (wajib selesai 25 Oktober)
 
 Kriteria selesai:
-- [ ] Halaman publik form biodata sesuai `11-FORM-BIODATA.md`, nyaman di HP layar 360 px, berjalan di Chrome Android dan Safari iPhone.
-- [ ] Form otomatis tertutup di luar jadwal (sebelum buka: hitung mundur; setelah tutup: pesan dan kontak superadmin). Superadmin bisa membuka/menutup manual dan mengubah jadwal.
-- [ ] Validasi lengkap di server (bukan hanya di browser). NIK 16 angka unik.
-- [ ] Foto dipotong 3:4, dikecilkan, disimpan di folder privat, tidak bisa diakses publik.
-- [ ] Halaman bukti pendaftaran dengan kode pendaftaran.
-- [ ] Login tiga akun, sesi mutlak 2 jam, ingat menu terakhir per perangkat, ganti kata sandi mengeluarkan semua perangkat.
-- [ ] Superadmin: dasbor progres per kontingen dan kuota, daftar biodata (cari, saring, urut), detail, ubah, hapus ke tempat sampah, pulihkan, unduh Excel (versi disamarkan dan versi lengkap), kelola kontingen dan kuota, pengaturan form, kelola kata sandi akun.
-- [ ] Tanda (flag) otomatis: kuota penuh/terlampaui, tingkat beda dengan kontingen (hanya dari superadmin, REVISI R1), usia tidak wajar untuk tingkat, foto duplikat, nama mirip. (Pencocokan NIK dengan tanggal lahir/jenis kelamin dihapus, REVISI R4.)
-- [ ] Log aktivitas untuk setiap perubahan oleh superadmin.
-- [ ] Cadangan database harian berjalan lewat Task Scheduler.
-- [ ] Tes otomatis untuk validasi form, NIK unik, jadwal buka/tutup, hak akses.
+- [x] Halaman publik form biodata sesuai `11-FORM-BIODATA.md`, nyaman di HP layar 360 px, berjalan di Chrome Android dan Safari iPhone. (Diuji otomatis Chromium/WebKit/Firefox; uji HP sungguhan saat pemasangan.)
+- [x] Form otomatis tertutup di luar jadwal (sebelum buka: hitung mundur; setelah tutup: pesan dan kontak superadmin). Superadmin bisa membuka/menutup manual dan mengubah jadwal.
+- [x] Validasi lengkap di server (bukan hanya di browser). NIK 16 angka unik.
+- [x] Foto dipotong 3:4, dikecilkan, disimpan di folder privat, tidak bisa diakses publik.
+- [x] Halaman bukti pendaftaran dengan kode pendaftaran.
+- [x] Login tiga akun, sesi mutlak 2 jam, ingat menu terakhir per perangkat, ganti kata sandi mengeluarkan semua perangkat.
+- [x] Superadmin: dasbor progres per kontingen dan kuota, daftar biodata (cari, saring, urut), detail, ubah, hapus ke tempat sampah, pulihkan, unduh Excel (versi disamarkan dan versi lengkap), kelola kontingen dan kuota, pengaturan form, kelola kata sandi akun.
+- [x] Tanda (flag) otomatis: kuota penuh/terlampaui, tingkat beda dengan kontingen (hanya dari superadmin, REVISI R1), usia tidak wajar untuk tingkat, foto duplikat, nama mirip. (Pencocokan NIK dengan tanggal lahir/jenis kelamin dihapus, REVISI R4.)
+- [x] Log aktivitas untuk setiap perubahan oleh superadmin.
+- [x] Cadangan database harian berjalan lewat Task Scheduler. (Perintah dan skrip siap dan diuji; pendaftaran di server saat pemasangan.)
+- [x] Tes otomatis untuk validasi form, NIK unik, jadwal buka/tutup, hak akses.
 - [ ] Terpasang di server Windows produksi dengan HTTPS. Diuji mengisi dari minimal 3 HP berbeda.
 
 ## Tahap 2: Kartu dan QR kontingen (3 November)
 
-- [ ] Setiap biodata punya token QR acak dan kode pendek.
-- [ ] PDF kartu B-2 per kontingen, 4 per F4, garis potong, sesuai `13-KARTU-QR.md`. Juga PDF satu orang (cetak ulang).
-- [ ] Nonaktifkan kartu dan terbitkan token baru.
-- [ ] PDF QR kontingen ukuran F4 per kontingen dan sekaligus semua.
-- [ ] Kunci data biodata (superadmin) sebelum cetak; perubahan setelah dikunci dicatat dan ditandai "perlu cetak ulang".
+- [x] Setiap biodata punya token QR acak dan kode pendek.
+- [x] PDF kartu B-2 per kontingen, 4 per F4, garis potong, sesuai `13-KARTU-QR.md`, dengan **foto dan QR** (REVISI R2/R6). Juga PDF satu orang (cetak ulang). (Uji pindai cetakan dengan HP sungguhan saat uji coba.)
+- [x] Nonaktifkan kartu dan terbitkan token baru.
+- [x] PDF QR kontingen ukuran F4 per kontingen dan sekaligus semua.
+- [x] Kunci data biodata (superadmin) sebelum cetak; perubahan setelah dikunci dicatat dan ditandai "perlu cetak ulang".
 
 ## Tahap 3: Absensi, rekap, poin, Anjangsana (7 November)
 

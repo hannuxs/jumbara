@@ -15,6 +15,7 @@ from apps.inti import pengaturan
 from apps.inti.log import catat, selisih
 from apps.inti.pengaturan import StatusPaksa
 from apps.inti.utils import ip_klien, kode_acak, user_agent
+from apps.kartu import services as kartu_svc
 from apps.kontingen.models import Kontingen
 
 from . import foto as foto_mod
@@ -276,6 +277,10 @@ def buat_peserta(request, data: dict, hasil_foto: foto_mod.HasilFoto | None, sum
     peserta = Peserta(sumber=sumber)
     _isi_dari_data(peserta, data)
     peserta.kode_pendaftaran = _kode_pendaftaran_baru()
+    # Token QR kartu dibuat saat biodata masuk (Tahap 2). Bila data sudah dikunci untuk cetak,
+    # biodata baru (tambahan superadmin) langsung ditandai perlu dicetak.
+    kartu_svc.pasang_token(peserta)
+    peserta.perlu_cetak_ulang = kartu_svc.data_terkunci()
     peserta.persetujuan_data_pada = timezone.now() if data.get("persetujuan") else None
     peserta.ip_pengirim = ip_klien(request)
     peserta.user_agent_pengirim = user_agent(request)
@@ -305,6 +310,7 @@ def buat_peserta(request, data: dict, hasil_foto: foto_mod.HasilFoto | None, sum
 def ubah_peserta(request, peserta: Peserta, data: dict, hasil_foto: foto_mod.HasilFoto | None) -> Peserta:
     """Superadmin memperbaiki biodata. Riwayat perubahan dicatat di log."""
     lama = ringkasan_log(peserta)
+    tercetak_lama = kartu_svc.potret_isian_tercetak(peserta)
     nik_lama = nik_mod.dekripsi(peserta.nik_terenkripsi)
     _isi_dari_data(peserta, data)
     foto_lama = ""
@@ -314,6 +320,10 @@ def ubah_peserta(request, peserta: Peserta, data: dict, hasil_foto: foto_mod.Has
         nama = f"{peserta.kode_pendaftaran}-{kode_acak(4)}"
         peserta.foto_path = foto_mod.simpan(nama, hasil_foto.isi_jpeg, timezone.localdate().year)
         peserta.foto_asli_hash = hasil_foto.hash_asli
+    # Setelah data dikunci, perubahan isian yang tercetak di kartu menandai kartu perlu dicetak ulang.
+    cetak_ulang = kartu_svc.perlu_cetak_ulang_karena_ubah(tercetak_lama, peserta)
+    if cetak_ulang:
+        peserta.perlu_cetak_ulang = True
     try:
         with transaction.atomic():
             peserta.save()
@@ -321,6 +331,8 @@ def ubah_peserta(request, peserta: Peserta, data: dict, hasil_foto: foto_mod.Has
             terapkan_tanda(peserta, tanda)
             _tandai_pasangan(peserta, tanda)
             baru = ringkasan_log(peserta)
+            if cetak_ulang:
+                baru["kartu"] = "perlu dicetak ulang (data sudah dikunci)"
             if nik_lama != data["nik"]:
                 baru["nik"] = f"{peserta.nik_samar} (NIK diganti)"
             if hasil_foto:

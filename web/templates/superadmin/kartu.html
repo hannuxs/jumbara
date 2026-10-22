@@ -1,0 +1,71 @@
+{% extends "superadmin/base.html" %}
+{% load sigap %}
+{% block judul %}Kartu dan QR kontingen{% endblock %}
+{% block judul_halaman %}Kartu dan QR kontingen{% endblock %}
+{% block konten %}
+<div class="mb-4 grid gap-4 lg:grid-cols-3">
+  <div class="kartu lg:col-span-2">
+    <h2 class="mb-2 text-base font-bold">Kunci data biodata</h2>
+    {% if terkunci %}
+      <p class="mb-3 text-sm"><span class="badge bg-red-100 text-red-800">TERKUNCI</span> Form publik tertutup. Setiap perubahan nama, peran, kontingen, tingkat, atau foto menandai kartu <strong>perlu dicetak ulang</strong>.</p>
+      <form method="post" action="{% url 'kartu_admin:kunci' %}" data-konfirmasi="Buka kunci data? Form publik kembali mengikuti jadwal di Pengaturan form.">
+        {% csrf_token %}<input type="hidden" name="kunci" value="0"><button class="btn-abu btn-kecil" type="submit">Buka kunci</button>
+      </form>
+    {% else %}
+      <p class="mb-3 text-sm"><span class="badge bg-green-100 text-green-800">TERBUKA</span> Sebelum mencetak kartu massal, kunci data agar kartu sama dengan biodata. Saat dikunci, form publik ikut tertutup.</p>
+      <form method="post" action="{% url 'kartu_admin:kunci' %}" data-konfirmasi="Kunci data biodata sekarang? Form publik akan tertutup sampai kunci dibuka.">
+        {% csrf_token %}<input type="hidden" name="kunci" value="1"><button class="btn-utama btn-kecil" type="submit">Kunci data biodata</button>
+      </form>
+    {% endif %}
+  </div>
+  <div class="kartu text-sm">
+    <h2 class="mb-2 text-base font-bold">Ringkasan</h2>
+    <ul class="space-y-1.5">
+      <li class="flex justify-between"><span>Biodata (kartu)</span><strong>{{ total|angka }}</strong></li>
+      <li class="flex justify-between"><span>Perlu cetak ulang</span><strong class="{% if total_ulang %}text-merah{% endif %}">{{ total_ulang|angka }}</strong></li>
+      <li class="flex justify-between"><span>Tanpa foto</span><strong class="{% if tanpa_foto %}text-merah{% endif %}">{{ tanpa_foto|angka }}</strong></li>
+      {% if tanpa_token %}<li class="flex justify-between text-merah"><span>Belum punya kode QR</span><strong>{{ tanpa_token }}</strong></li>{% endif %}
+    </ul>
+  </div>
+</div>
+
+<div class="kartu mb-4">
+  <h2 class="mb-2 text-base font-bold">Unduh sekaligus</h2>
+  <div class="flex flex-wrap gap-2">
+    <a href="{% url 'kartu_admin:unduh_semua' %}" class="btn-utama btn-kecil">Kartu semua kontingen (ZIP)</a>
+    <a href="{% url 'kartu_admin:unduh_qr_semua' %}" class="btn-garis btn-kecil">QR semua kontingen (PDF)</a>
+    {% if total_ulang %}<a href="{% url 'kartu_admin:unduh_semua' %}?ulang=1" class="btn-abu btn-kecil">Hanya yang perlu cetak ulang (ZIP)</a>{% endif %}
+  </div>
+  <p class="mt-2 text-xs text-abu">Kartu B-2, 4 per lembar F4 dengan garis potong; halaman pertama tiap PDF berisi daftar nama untuk pembagian saat daftar ulang. Cetak dengan skala 100% (Actual size) di kertas F4. Membuat ZIP semua kontingen bisa butuh beberapa puluh detik.</p>
+</div>
+
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <table class="tabel">
+    <thead><tr><th>Kode</th><th>Kontingen</th><th class="text-right">Kartu</th><th class="text-right">Cetak ulang</th><th class="text-right">Nonaktif</th><th>Unduh</th></tr></thead>
+    <tbody>
+    {% for k in baris %}
+      <tr>
+        <td class="whitespace-nowrap"><span class="badge-{{ k.tingkat }}">{{ k.kode }}</span></td>
+        <td class="min-w-[12rem]"><a href="{% url 'kontingen_admin:detail' k.pk %}" class="font-semibold hover:underline">{{ k.nama }}</a></td>
+        <td class="text-right">{{ k.jumlah }}</td>
+        <td class="text-right {% if k.ulang %}font-bold text-merah{% endif %}">{{ k.ulang }}</td>
+        <td class="text-right">{{ k.nonaktif }}</td>
+        <td class="min-w-[18rem]">
+          <div class="flex flex-wrap gap-1.5">
+            {% if k.jumlah %}<a href="{% url 'kartu_admin:unduh_kontingen' k.pk %}" class="btn-utama btn-kecil">Kartu</a>{% endif %}
+            <a href="{% url 'kartu_admin:unduh_qr' k.pk %}" class="btn-garis btn-kecil">QR tenda</a>
+            {% if k.ulang %}
+              <a href="{% url 'kartu_admin:unduh_kontingen' k.pk %}?ulang=1" class="btn-abu btn-kecil">Cetak ulang ({{ k.ulang }})</a>
+              <form method="post" action="{% url 'kartu_admin:tercetak' %}" data-konfirmasi="Tandai {{ k.ulang }} kartu {{ k.kode }} sudah dicetak ulang?">
+                {% csrf_token %}<input type="hidden" name="kontingen" value="{{ k.pk }}"><input type="hidden" name="kembali" value="{{ request.path }}">
+                <button class="btn-abu btn-kecil" type="submit">Sudah dicetak</button>
+              </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

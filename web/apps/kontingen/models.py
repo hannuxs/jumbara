@@ -37,6 +37,23 @@ class Kontingen(ModelHapusLunak):
     def __str__(self) -> str:
         return self.nama
 
+    def save(self, *args, **kwargs):
+        # Setiap kontingen punya token QR tenda (SJK:) sejak dibuat (Tahap 2).
+        if not self.qr_token:
+            from django.utils import timezone
+
+            from apps.kartu.token import token_acak
+
+            for _ in range(50):
+                t = token_acak()
+                if not Kontingen.semua.filter(qr_token=t).exists():
+                    self.qr_token = t
+                    self.qr_token_dibuat_pada = timezone.now()
+                    break
+            if kwargs.get("update_fields") is not None:
+                kwargs["update_fields"] = {*kwargs["update_fields"], "qr_token", "qr_token_dibuat_pada"}
+        super().save(*args, **kwargs)
+
 
 URUTAN_TINGKAT = models.Case(
     models.When(tingkat=Tingkat.MULA, then=0),
