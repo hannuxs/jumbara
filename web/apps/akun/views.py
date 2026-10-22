@@ -106,7 +106,8 @@ def lanjut(request):
 
 @peran_wajib("PANITIA", "SUPERADMIN")
 def panitia_awal(request):
-    return render(request, "akun/segera.html", {"judul": "Pemindai kehadiran", "tahap": "Tahap 3 (7 November 2026)"})
+    """Halaman pemindai kehadiran (docs/14-ABSENSI.md)."""
+    return render(request, "panitia/pindai.html")
 
 
 @peran_wajib("JURI", "SUPERADMIN")

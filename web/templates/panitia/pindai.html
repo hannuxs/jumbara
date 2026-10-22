@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% load static sigap %}
+{% block judul %}Pemindai kehadiran{% endblock %}
+{% block atribut_body %}data-ingat-rute{% endblock %}
+{% block kelas_main %}mx-auto w-full max-w-xl px-3 py-3{% endblock %}
+{% block skrip %}
+<script src="{% aset 'vendor/idb-keyval-6.2.1.umd.js' %}" defer></script>
+<script src="{% aset 'vendor/qr-scanner/qr-scanner.umd.min.js' %}" defer></script>
+<script src="{% aset 'js/pemindai.js' %}" defer></script>
+{% endblock %}
+{% block isi %}
+<div x-data="pemindai()" x-init="mulai()" data-superadmin="{% if request.user.superadmin %}1{% endif %}" class="pb-24">
+
+  {# Status antrean selalu terlihat #}
+  <div x-show="menunggu > 0" x-cloak class="pesan-peringatan sticky top-0 z-30 mb-3">
+    <span><strong x-text="menunggu"></strong> pindaian tersimpan di HP, menunggu terkirim. <span x-show="!daring">Tidak ada sinyal.</span></span>
+    <button type="button" class="ml-auto shrink-0 font-semibold underline" @click="kirimAntrean(true)">Kirim sekarang</button>
+  </div>
+  <div x-show="sesiHabis" x-cloak class="pesan-galat">
+    <span>Sesi sudah habis. Pindaian tetap tersimpan di HP. <a href="/masuk/?next=/panitia/" class="tautan">Masuk lagi</a>, lalu antrean terkirim otomatis.</span>
+  </div>
+
+  {# 1. Nama pemindai #}
+  <section x-show="tahap === 'nama'" x-cloak class="kartu">
+    <h1 class="mb-1 text-lg font-bold">Nama Anda (pemindai)</h1>
+    <p class="mb-4 text-sm text-abu">Nama ini tercatat di setiap pindaian dari HP ini. Cukup sekali.</p>
+    <form @submit.prevent="simpanNama()" class="flex flex-col gap-3">
+      <input class="input" x-model="isianNama" maxlength="60" placeholder="Contoh: Rina" autocomplete="name" required x-ref="isianNama">
+      <button class="btn-utama btn-besar" type="submit">Lanjut</button>
+    </form>
+  </section>
+
+  {# 2. Pilih titik absen #}
+  <section x-show="tahap === 'titik'" x-cloak>
+    <div class="mb-3 flex items-center gap-2">
+      <h1 class="flex-1 text-lg font-bold">Pilih titik absen</h1>
+      <button type="button" class="btn-abu btn-kecil" @click="tahap = 'nama'; isianNama = namaPemindai">Pemindai: <span x-text="namaPemindai"></span></button>
+    </div>
+    <input type="search" class="input mb-3" placeholder="Cari kegiatan, tingkat, atau kode…" x-model="cariTitik" aria-label="Cari titik absen">
+    <p x-show="memuatTitik" class="text-sm text-abu">Memuat titik absen…</p>
+    <p x-show="galatTitik" x-cloak class="pesan-galat" x-text="galatTitik"></p>
+    <template x-for="grup in grupTitik()" :key="grup.kode">
+      <div class="mb-4">
+        <h2 class="mb-2 text-sm font-semibold uppercase tracking-wide text-abu" x-text="grup.label"></h2>
+        <div class="space-y-2">
+          <template x-for="t in grup.titik" :key="t.id">
+            <button type="button" @click="pilihTitik(t)" class="flex w-full items-center gap-3 rounded-2xl border bg-white p-3 text-left shadow-kartu"
+                    :class="grup.kode === 'BERLANGSUNG' ? 'border-oranye' : 'border-garis/60'">
+              <span class="h-12 w-2 shrink-0 rounded-full" :class="warnaTingkat(t.tingkat)"></span>
+              <span class="min-w-0 flex-1">
+                <span class="block font-semibold text-navy" x-text="t.nama"></span>
+                <span class="block text-xs text-abu" x-text="labelTanggal(t) + ' · ' + t.mulai + '-' + t.selesai + (t.lokasi ? ' · ' + t.lokasi : '')"></span>
+              </span>
+              <span class="shrink-0 text-right">
+                <span class="block font-judul text-lg font-bold text-navy" x-text="t.hadir"></span>
+                <span class="block text-[10px] text-abu">hadir</span>
+              </span>
+            </button>
+          </template>
+        </div>
+      </div>
+    </template>
+  </section>
+
+  {# 3. Layar pindai #}
+  <section x-show="tahap === 'pindai'" x-cloak>
+    <div class="mb-2 flex items-start gap-2">
+      <div class="min-w-0 flex-1">
+        <div class="truncate font-judul font-bold text-navy" x-text="titik && titik.nama"></div>
+        <div class="text-xs text-abu">Pemindai: <strong x-text="namaPemindai"></strong> · <span x-text="titik && (titik.mulai + '-' + titik.selesai)"></span></div>
+      </div>
+      <button type="button" class="btn-abu btn-kecil shrink-0" @click="selesai()">Ganti titik</button>
+    </div>
+
+    <div x-show="titikTutup" x-cloak class="pesan-peringatan">Titik absen ini sedang tertutup. Pindaian akan ditolak{% if request.user.superadmin %} (kecuali akun superadmin){% endif %}.</div>
+
+    <div class="relative overflow-hidden rounded-2xl bg-black" style="aspect-ratio: 1 / 1; max-height: 60vh; width: 100%">
+      <video x-ref="video" class="h-full w-full object-cover" playsinline muted></video>
+      <div x-show="!kameraAktif" class="absolute inset-0 flex flex-col items-center justify-center gap-3 p-4 text-center text-white">
+        <p class="text-sm" x-text="pesanKamera || 'Menyalakan kamera…'"></p>
+        <button type="button" class="btn-utama btn-kecil" x-show="pesanKamera" @click="nyalakanKamera()">Coba lagi</button>
+      </div>
+    </div>
+
+    <div class="mt-2 grid grid-cols-3 gap-2 text-center">
+      <div class="rounded-xl bg-white p-2 shadow-kartu"><div class="font-judul text-xl font-bold text-navy" x-text="ringkas.hadir"></div><div class="text-[11px] text-abu">orang hadir</div></div>
+      <div class="rounded-xl bg-white p-2 shadow-kartu"><div class="font-judul text-xl font-bold text-navy"><span x-text="ringkas.kontingen_hadir"></span>/<span x-text="ringkas.kontingen_total"></span></div><div class="text-[11px] text-abu">kontingen</div></div>
+      <div class="rounded-xl bg-white p-2 shadow-kartu"><div class="font-judul text-xl font-bold" :class="menunggu ? 'text-kuning' : 'text-navy'" x-text="menunggu"></div><div class="text-[11px] text-abu">menunggu</div></div>
+    </div>
+
+    <div class="mt-2 grid grid-cols-4 gap-2">
+      <button type="button" class="btn-utama btn-kecil col-span-2" @click="bukaCari()">Cari nama</button>
+      <button type="button" class="btn-abu btn-kecil" @click="gantiKamera()" :disabled="kamera.length < 2">Kamera</button>
+      <button type="button" class="btn-abu btn-kecil" @click="senter()" :disabled="!adaSenter" x-text="senterNyala ? 'Senter: on' : 'Senter'"></button>
+      <button type="button" class="btn-abu btn-kecil col-span-2" @click="suara = !suara; simpanPilihan()" x-text="suara ? 'Suara: nyala' : 'Suara: mati'"></button>
+      <button type="button" class="btn-abu btn-kecil col-span-2" @click="selesai()">Selesai</button>
+    </div>
+
+    <h2 class="mb-1 mt-4 text-sm font-semibold text-navy">Pindaian terakhir di HP ini</h2>
+    <ul class="divide-y divide-gray-100 rounded-2xl bg-white text-sm shadow-kartu">
+      <template x-for="r in riwayat" :key="r.client_uuid">
+        <li class="flex items-center gap-2 px-3 py-2">
+          <span class="h-3 w-3 shrink-0 rounded-full" :class="{'bg-hijau': r.status === 'HIJAU', 'bg-kuning': r.status === 'KUNING', 'bg-merah': r.status === 'MERAH' || r.status === 'GALAT', 'bg-gray-400': r.status === 'MENUNGGU'}"></span>
+          <span class="min-w-0 flex-1"><span class="block truncate font-semibold text-navy" x-text="r.nama || '(kartu tidak dikenal)'"></span><span class="block truncate text-xs text-abu" x-text="r.keterangan"></span></span>
+          <span class="shrink-0 text-xs text-abu" x-text="r.jam"></span>
+        </li>
+      </template>
+      <li x-show="riwayat.length === 0" class="px-3 py-3 text-abu">Belum ada pindaian.</li>
+    </ul>
+    <p class="mt-2 text-xs text-abu">Juga di titik ini (semua HP): <span x-text="ringkas.terakhir.map(t => t.nama.split(' ')[0] + ' ' + t.jam).join(', ') || '-'"></span></p>
+  </section>
+
+  {# Layar status penuh: hijau / kuning / merah / abu #}
+  <div x-show="hasil" x-cloak data-layar-status @click="tutupHasil()" class="fixed inset-0 z-50 flex flex-col items-center justify-center p-6 text-center"
+       :class="{'bg-hijau text-white': hasil && hasil.status === 'HIJAU', 'bg-kuning text-navy': hasil && hasil.status === 'KUNING', 'bg-merah text-white': hasil && (hasil.status === 'MERAH' || hasil.status === 'GALAT'), 'bg-gray-500 text-white': hasil && hasil.status === 'MENUNGGU'}"
+       role="alert" aria-live="assertive">
+    <div class="mb-3 text-6xl font-bold" x-text="{HIJAU: '✓', KUNING: '!', MERAH: '✕', GALAT: '✕', MENUNGGU: '…'}[hasil && hasil.status]"></div>
+    <div class="mb-2 text-xl font-semibold" x-text="hasil && hasil.judul"></div>
+    <div class="mb-2 font-judul text-3xl font-bold leading-tight" x-text="hasil && hasil.nama"></div>
+    <div class="text-lg" x-text="hasil && hasil.detail"></div>
+    <div class="mt-3 text-base" x-text="hasil && hasil.pesan"></div>
+    <div x-show="hasil && hasil.bentrok" class="mt-3 rounded-xl bg-white/25 px-3 py-2 text-sm" x-text="hasil && hasil.bentrok"></div>
+    <div class="mt-6 text-xs opacity-80">Ketuk layar untuk lanjut</div>
+  </div>
+
+  {# Cari manual #}
+  <div x-show="cari.buka" x-cloak class="fixed inset-0 z-40 flex items-end justify-center bg-black/50 sm:items-center" role="dialog" aria-modal="true">
+    <div class="flex max-h-[90vh] w-full max-w-lg flex-col rounded-t-2xl bg-white p-4 sm:rounded-2xl" @keydown.escape.window="cari.buka = false">
+      <div class="mb-2 flex items-center gap-2"><h2 class="flex-1 text-lg font-bold">Cari nama atau kode kartu</h2><button type="button" class="btn-abu btn-kecil" @click="cari.buka = false">Tutup</button></div>
+      <input type="search" class="input mb-2" x-ref="isianCari" x-model="cari.q" @input.debounce.300ms="jalankanCari()" placeholder="Ketik minimal 2 huruf atau kode kartu" autocomplete="off">
+      <p class="mb-2 text-xs text-abu">Hanya orang tingkat yang sesuai titik ini. Pakai jika kartu rusak atau tertinggal.</p>
+      <div class="min-h-0 flex-1 overflow-y-auto">
+        <template x-for="o in cari.hasil" :key="o.id">
+          <button type="button" class="flex w-full items-center gap-2 border-b border-gray-100 px-1 py-3 text-left" @click="pilihManual(o)">
+            <span class="min-w-0 flex-1"><span class="block font-semibold text-navy" x-text="o.nama"></span><span class="block text-xs text-abu" x-text="(o.kontingen || '') + ' · ' + (o.peran || '')"></span></span>
+            <span x-show="o.sudah_hadir" class="badge bg-amber-100 text-amber-900">sudah hadir</span>
+          </button>
+        </template>
+        <p x-show="cari.q.length >= 2 && !cari.memuat && cari.hasil.length === 0" class="py-3 text-sm text-abu">Tidak ditemukan.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

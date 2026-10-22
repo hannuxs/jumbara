@@ -354,3 +354,12 @@ def test_api_daftar_ringkas_cari_ringan(client, panitia, ani, kontingen_wira):
     assert cari[0]["sudah_hadir"] is True
     assert _api(client, f"/api/cari-peserta/?q={ani.kode_kartu}&titik={t.pk}").json()["hasil"][0]["id"] == ani.pk
     assert _api(client, f"/api/cari-peserta/?q=orang wira&titik={t.pk}").json()["hasil"] == []
+
+
+def test_halaman_pemindai(client, panitia, juri):
+    masuk(client, "panitia")
+    isi = client.get("/panitia/").content.decode()
+    assert "data-layar-status" in isi and "qr-scanner.umd.min.js" in isi and "pemindai.js" in isi
+    c = Client()
+    masuk(c, "juri")
+    assert c.get("/panitia/").status_code == 403

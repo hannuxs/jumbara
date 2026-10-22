@@ -132,6 +132,7 @@ def peserta_ringan(request, pk: int):
         qs = qs.filter(tingkat=t.tingkat)
     data = [
         {
+            "id": p.pk,
             "h": hash_token(p.qr_token),
             "k": p.kode_kartu,
             "nama": p.nama_lengkap,
