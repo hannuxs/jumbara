@@ -3,7 +3,7 @@
 Sistem Informasi, Absensi, dan Penilaian untuk **Jumbara PMR Tingkat Kabupaten Bulungan V 2026**.
 Dikembangkan oleh **Ahmad Farhan, HANS PROJECT**.
 
-Folder ini adalah wadah proyek yang siap dibuka di VS Code dan dikerjakan oleh Claude Code. Kode aplikasinya belum ada; Claude Code yang akan membangunnya di folder `web/` dengan **Python (Django)** mengikuti spesifikasi di `docs/`.
+Folder ini berisi dokumen proyek dan aplikasinya. Aplikasi **Python (Django)** ada di folder `web/`, dibangun oleh Claude Code mengikuti spesifikasi di `docs/`. Posisi pekerjaan terakhir: `docs/PROGRES.md`.
 
 ## Yang perlu dipasang dulu di laptop Windows
 
@@ -51,8 +51,98 @@ Pilihan:
 | `jalankan.bat -Port 8080` | Pakai port lain |
 | `jalankan.bat -Produksi` | Jalankan dengan Waitress (seperti di server) |
 | `jalankan.bat -Tes` | Jalankan juga `ruff` dan `pytest` sebelum server |
+| `jalankan.bat -Https` | Server uji dengan HTTPS sementara di port 8443, agar **kamera HP** bisa diuji |
 
-Tanda `[OK]` = beres, `[!]` = peringatan (server tetap jalan), `[X]` = harus diperbaiki (ada baris "Solusi"). Hentikan server dengan **Ctrl+C**. Buka dari HP lewat **http://** (bukan https://) di Wi-Fi yang sama.
+Tanda `[OK]` = beres, `[!]` = peringatan (server tetap jalan), `[X]` = harus diperbaiki (ada baris "Solusi"). Hentikan server dengan **Ctrl+C**. Dari HP (Wi-Fi yang sama) buka **http://IP-laptop:8000**; untuk kamera (pemindai, Anjangsana) pakai `jalankan.bat -Https` lalu buka **https://IP-laptop:8443** dan terima peringatan sertifikat (Chrome: Lanjutan > Lanjutkan; Safari: Tampilkan Detail > kunjungi situs web ini).
+
+## Daftar semua perintah
+
+Kecuali `jalankan.bat`, semua perintah dijalankan dari folder **`web`** di terminal (PowerShell atau Git Bash). Aktifkan virtualenv dulu:
+
+```
+cd D:\sigap-jumbara\web
+.venv\Scripts\activate
+```
+
+Perintah yang ditandai **(Admin)** harus dijalankan di PowerShell "Run as Administrator".
+
+### Menjalankan server
+
+| Perintah | Fungsi |
+|---|---|
+| `jalankan.bat` (dari folder proyek) | Cek menyeluruh lalu jalankan server (lihat pilihan di atas) |
+| `python manage.py runserver 0.0.0.0:8000` | Server pengembangan saja, tanpa pemeriksaan |
+| `python manage.py sigap_https_dev` | Server uji HTTPS di port 8443 (sertifikat buatan sendiri, dibuat otomatis). Bisa diberi alamat lain: `sigap_https_dev 0.0.0.0:9443`. **Hanya untuk uji**, bukan produksi |
+| `.venv\Scripts\waitress-serve.exe --listen=0.0.0.0:8000 --threads=48 sigap.wsgi:application` | Waitress seperti di server produksi |
+
+### Database dan data awal
+
+| Perintah | Fungsi |
+|---|---|
+| `powershell -ExecutionPolicy Bypass -File scripts\windows\mariadb-dev.ps1` | Nyalakan MariaDB pengembangan laptop (port 3307) |
+| `... mariadb-dev.ps1 -Status` | Cek MariaDB laptop menyala atau tidak |
+| `... mariadb-dev.ps1 -PasangService` **(Admin)** | Jadikan MariaDB laptop Windows Service (menyala otomatis setelah restart). Cukup sekali |
+| `python manage.py migrate` | Terapkan perubahan struktur database |
+| `python manage.py makemigrations` | Buat file migrasi setelah model diubah (pengembang) |
+| `python manage.py createcachetable` | Buat tabel cache (pembatas percobaan login) |
+| `python manage.py sigap_seed` | Isi data awal dari folder `data/`: 3 akun, 29 kontingen, kegiatan, 60 titik absen, sesi Anjangsana, pengaturan. **Aman diulang**, tidak menimpa data yang sudah ada. Pilihan: `--folder-data <folder>` |
+
+### Akun dan kata sandi
+
+| Perintah | Fungsi |
+|---|---|
+| `python manage.py sigap_atur_sandi superadmin` | Setel ulang sandi satu akun (`superadmin`, `panitia`, atau `juri`). Sandi diketik dua kali dan tidak tampil di layar |
+| `python manage.py sigap_atur_sandi --semua --dari-env` | Setel sandi ketiga akun sesuai `SIGAP_SANDI_AWAL_*` di `web\.env` |
+
+Penting: sandi di `web\.env` **hanya dipakai saat akun pertama kali dibuat** oleh `sigap_seed`. Mengubah `.env` sesudahnya tidak mengubah sandi; pakai `sigap_atur_sandi`. Setelah disetel ulang, akun wajib mengganti sandi saat masuk, dan semua perangkat yang memakai akun itu dikeluarkan. Sandi juga bisa diganti dari menu **Superadmin > Akun dan kata sandi**.
+
+### Pemeriksaan, jadwal, dan cadangan
+
+| Perintah | Fungsi |
+|---|---|
+| `python manage.py sigap_cek_lingkungan` | Laporan kesiapan: database, kunci NIK, folder privat/cadangan, akun dan sandi bawaan, jadwal form, WhatsApp superadmin |
+| `python manage.py check --deploy` | Pemeriksaan keamanan Django untuk produksi |
+| `python manage.py sigap_jadwal` | Tugas berkala: cadangan harian 02.00 WITA, cadangan tiap 3 jam saat acara, bersih-bersih sesi (dijalankan Task Scheduler tiap menit) |
+| `python manage.py sigap_jadwal --paksa-cadangan` | Buat cadangan database sekarang juga |
+| `powershell -ExecutionPolicy Bypass -File scripts\windows\daftar-task-scheduler.ps1` **(Admin)** | Daftarkan tugas "SIGAP jadwal" di Task Scheduler. Copot dengan `-Hapus` |
+
+Memulihkan cadangan: ikuti `docs/21-DEPLOY-WINDOWS.md` bagian 10.
+
+### Uji
+
+| Perintah | Fungsi |
+|---|---|
+| `pytest` | Semua tes otomatis (memakai database terpisah `sigap_jumbara_test`) |
+| `pytest tests/test_absensi.py -q` | Tes satu file saja |
+| `ruff check .` | Periksa kerapian dan kesalahan kode |
+| `ruff format .` | Rapikan format kode |
+| `python manage.py sigap_uji_beban --url http://127.0.0.1:8000 --ya` | Uji beban absensi: 30 HP x 15 titik memindai bersamaan ke server yang sedang berjalan, lalu periksa tidak ada data dobel. Data uji dihapus otomatis. **Jangan dijalankan saat acara berlangsung** |
+
+Pilihan `sigap_uji_beban`: `--perangkat 30`, `--titik 15`, `--pindaian 40`, `--jeda 0.5` (detik), `--dobel 0.10`, `--ulang 0.05`, `--simpan-data` (data uji tidak dihapus), `--ya` (wajib bila `DJANGO_DEBUG=False`). Hasil yang benar: "Uji beban LULUS" dengan 0 pasangan ganda.
+
+### Tampilan (CSS) dan file statis
+
+| Perintah | Fungsi |
+|---|---|
+| `tools\tailwindcss.exe -c tailwind\tailwind.config.js -i tailwind\input.css -o static\css\app.css --minify` | Bangun CSS sekali (versi produksi, commit hasilnya) |
+| `tools\tailwindcss.exe -c tailwind\tailwind.config.js -i tailwind\input.css -o static\css\app.css --watch` | Bangun CSS otomatis setiap template diubah (pengembangan) |
+| `powershell -ExecutionPolicy Bypass -File scripts\windows\bangun-css.ps1` | Sama dengan `--minify` di atas. Tambah `-Pantau` untuk mode otomatis |
+| `python manage.py collectstatic --noinput` | Kumpulkan file statis ke `staticfiles` (wajib bila `DJANGO_DEBUG=False`) |
+| `powershell -ExecutionPolicy Bypass -File scripts\windows\unduh-alat.ps1` | Unduh Tailwind CLI dan WinSW ke `web\tools` (tidak ikut di-commit) |
+
+### Server produksi (Windows + XAMPP)
+
+Urutan lengkap ada di `docs/21-DEPLOY-WINDOWS.md`.
+
+| Perintah | Fungsi |
+|---|---|
+| `powershell -ExecutionPolicy Bypass -File scripts\windows\pasang-service.ps1` **(Admin)** | Pasang Waitress sebagai Windows Service (WinSW). Pilihan: `-Threads 48`, `-Port 8000`, `-Hapus` (copot service) |
+| `powershell -ExecutionPolicy Bypass -File scripts\windows\perbarui.ps1` **(Admin)** | Perbarui aplikasi setelah ada perubahan kode (paket, migrasi, tabel cache, file statis, lalu restart service). Hindari jam sibuk |
+| `scripts\windows\apache-sigap.conf` | Contoh konfigurasi Apache XAMPP sebagai reverse proxy (bukan perintah, disalin ke konfigurasi Apache) |
+
+### Sengaja tidak dijalankan Claude Code
+
+`git push`, `python manage.py flush`, dan `sigap_anonimkan` diblokir untuk Claude Code; Farhan yang menjalankannya sendiri. **Jangan pernah** menjalankan `flush` pada database yang berisi biodata asli.
 
 ## Isi folder
 
@@ -68,7 +158,8 @@ Tanda `[OK]` = beres, `[!]` = peringatan (server tetap jalan), `[X]` = harus dip
 | `docs/referensi/` | Pedoman Jumbara V dan Jadwal Kegiatan (PDF asli) |
 | `data/` | Data awal: 29 kontingen dari Google Form, kegiatan, 60 titik absen, sesi Anjangsana, contoh form penilaian |
 | `assets/brand/` | Logo PMI (wajib tampil), logo Jumbara V, logo HANS PROJECT, dan aturan pakainya |
-| `web/` | Kosong. Aplikasi Python/Django akan dibuat di sini |
+| `web/` | Aplikasi Python/Django (kode, template, tes, `scripts\windows\` untuk perintah Windows) |
+| `jalankan.bat` | Satu perintah untuk cek kesiapan dan menjalankan server |
 
 ## Tenggat penting
 
