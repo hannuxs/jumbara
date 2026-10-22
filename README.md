@@ -94,7 +94,7 @@ Perintah yang ditandai **(Admin)** harus dijalankan di PowerShell "Run as Admini
 | `python manage.py sigap_atur_sandi superadmin` | Setel ulang sandi satu akun (`superadmin`, `panitia`, atau `juri`). Sandi diketik dua kali dan tidak tampil di layar |
 | `python manage.py sigap_atur_sandi --semua --dari-env` | Setel sandi ketiga akun sesuai `SIGAP_SANDI_AWAL_*` di `web\.env` |
 
-Penting: sandi di `web\.env` **hanya dipakai saat akun pertama kali dibuat** oleh `sigap_seed`. Mengubah `.env` sesudahnya tidak mengubah sandi; pakai `sigap_atur_sandi`. Setelah disetel ulang, akun wajib mengganti sandi saat masuk, dan semua perangkat yang memakai akun itu dikeluarkan. Sandi juga bisa diganti dari menu **Superadmin > Akun dan kata sandi**.
+Penting: sandi di `web\.env` **hanya dipakai saat akun pertama kali dibuat** oleh `sigap_seed`. Mengubah `.env` sesudahnya tidak mengubah sandi; pakai `sigap_atur_sandi`. Setelah disetel ulang, semua perangkat yang memakai akun itu dikeluarkan dan `sigap_cek_lingkungan` mengingatkan bahwa sandi masih perlu diganti (aplikasi belum memaksa ganti sandi saat masuk). Sandi juga bisa diganti dari menu **Superadmin > Akun dan kata sandi**.
 
 ### Pemeriksaan, jadwal, dan cadangan
 

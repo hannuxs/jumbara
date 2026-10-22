@@ -6,7 +6,7 @@ Mengubah .env sesudahnya TIDAK mengubah sandi di database; pakai perintah ini.
     python manage.py sigap_atur_sandi superadmin            (ketik sandi baru, tidak tampil di layar)
     python manage.py sigap_atur_sandi --semua --dari-env    (ketiga akun memakai SIGAP_SANDI_AWAL_* di .env)
 
-Akun wajib mengganti sandi saat masuk berikutnya, semua perangkat yang memakainya dikeluarkan,
+Akun ditandai perlu ganti sandi (diingatkan sigap_cek_lingkungan), semua perangkat yang memakainya dikeluarkan,
 dan tindakan dicatat di log aktivitas.
 """
 
@@ -69,5 +69,5 @@ class Command(BaseCommand):
                     a,
                     keterangan=f"Sandi akun {a.username} disetel ulang dari server; {n} perangkat dikeluarkan",
                 )
-            pendek = "  (PENDEK: ganti dengan sandi kuat saat masuk)" if len(sandi) < 10 else ""
-            self.stdout.write(self.style.SUCCESS(f"Sandi {a.username} disetel ulang. Wajib ganti saat masuk.{pendek}"))
+            pendek = "  (PENDEK: segera ganti dengan sandi kuat)" if len(sandi) < 10 else ""
+            self.stdout.write(self.style.SUCCESS(f"Sandi {a.username} disetel ulang. Segera ganti dari Superadmin > Akun.{pendek}"))

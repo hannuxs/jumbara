@@ -11,6 +11,7 @@ document.addEventListener("alpine:init", function () {
   var TAMPIL_HIJAU_MS = 1500;
   var TAMPIL_LAIN_MS = 3000;
   var BATAS_BATCH = 50;
+  var BATAS_SEDANG_KIRIM_MS = 10000; // lebih lama dari batas waktu kirim (8 detik)
   var LABEL_TINGKAT = { MULA: "Mula", MADYA: "Madya", WIRA: "Wira", SEMUA: "Semua tingkat" };
   var NAMA_HARI = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
@@ -96,7 +97,7 @@ document.addEventListener("alpine:init", function () {
         });
         this.hitungAntrean();
         this.kirimAntrean(false);
-        this._timerKirim = setInterval(function () { self.kirimAntrean(false); }, 10000);
+        this._timerKirim = setInterval(function () { self.kirimAntrean(false); self.hitungAntrean(); }, 10000);
         window.addEventListener("online", function () { self.daring = true; self.kirimAntrean(true); });
         window.addEventListener("offline", function () { self.daring = false; });
         document.addEventListener("visibilitychange", function () {
@@ -331,6 +332,19 @@ document.addEventListener("alpine:init", function () {
         this.proses({ qr: data, metode: "SCAN" });
       },
       proses: async function (isian) {
+        // Kartu yang sama di titik yang sama masih tertahan di HP: jangan tambah antrean ganda.
+        var tertahan = await this.cariDiAntrean(isian, this.titik.id);
+        if (tertahan) {
+          this.tampilkan({
+            status: "MENUNGGU",
+            judul: "Sudah tersimpan di HP",
+            nama: tertahan.nama_cache || "",
+            detail: "",
+            pesan: "Pindaian kartu ini masih menunggu terkirim. Tidak perlu dipindai lagi.",
+            bentrok: ""
+          });
+          return;
+        }
         var item = {
           client_uuid: window.SIGAP.uuid(),
           titik_absen_id: this.titik.id,
@@ -423,10 +437,24 @@ document.addEventListener("alpine:init", function () {
         var self = this;
         return idb.del(cu, tokoAntrean).then(function () { return self.hitungAntrean(); }).catch(function () {});
       },
+      cariDiAntrean: function (isian, titikId) {
+        if (!tokoAntrean) { return Promise.resolve(null); }
+        return idb.values(tokoAntrean).then(function (v) {
+          return v.find(function (x) {
+            if (!x.offline || x.titik_absen_id !== titikId) { return false; }
+            return isian.peserta_id ? x.peserta_id === isian.peserta_id : (isian.qr && x.qr === isian.qr);
+          }) || null;
+        }).catch(function () { return null; });
+      },
       hitungAntrean: function () {
         var self = this;
         if (!tokoAntrean) { return Promise.resolve(); }
-        return idb.keys(tokoAntrean).then(function (k) { self.menunggu = k.length; }).catch(function () {});
+        // Yang sedang dikirim (baru dibuat, belum gagal) tidak dihitung "menunggu": spanduk kuning
+        // hanya muncul untuk pindaian yang benar-benar tertahan di HP.
+        var batas = Date.now() - BATAS_SEDANG_KIRIM_MS;
+        return idb.values(tokoAntrean).then(function (v) {
+          self.menunggu = v.filter(function (x) { return x.offline || (x.dibuat_ms || 0) < batas; }).length;
+        }).catch(function () {});
       },
       kirimAntrean: async function (paksa) {
         if (this._mengirim || !tokoAntrean) { return; }
