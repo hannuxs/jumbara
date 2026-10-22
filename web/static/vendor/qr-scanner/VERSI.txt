@@ -1,0 +1,2 @@
+qr-scanner 1.4.2 (nimiq, MIT) dari npm. Nama file dibiarkan asli karena qr-scanner.umd.min.js
+memuat worker lewat import("./qr-scanner-worker.min.js") di folder yang sama.

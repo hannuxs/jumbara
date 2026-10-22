@@ -11,6 +11,7 @@ admin.site.index_title = "Admin darurat. Gunakan menu superadmin untuk pekerjaan
 urlpatterns = [
     path("", include("apps.biodata.urls")),
     path("", include("apps.akun.urls")),
+    path("api/", include("apps.absensi.urls_api")),
     path("superadmin/kartu/", include("apps.kartu.urls")),
     path("superadmin/", include("apps.biodata.urls_admin")),
     path("superadmin/kontingen/", include("apps.kontingen.urls")),

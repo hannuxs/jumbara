@@ -44,6 +44,11 @@ BAWAAN: dict[str, Any] = {
     # Ukuran kartu peserta (B-2), bisa disesuaikan bila panitia memakai ukuran sedikit berbeda.
     "kartu.lebar_mm": 88,
     "kartu.tinggi_mm": 125,
+    # Titik absen status OTOMATIS terbuka sejak X menit sebelum mulai sampai Y menit setelah selesai.
+    "absensi.menit_sebelum": 60,
+    "absensi.menit_sesudah": 60,
+    # Poin kehadiran: orang di atas kuota tidak menambah poin (docs/15-REKAP-POIN.md).
+    "poin.batasi_ke_kuota": True,
 }
 
 
