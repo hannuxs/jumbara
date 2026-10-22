@@ -137,7 +137,11 @@ Perintah sehari-hari: `Restart-Service SIGAPJumbara`, `Get-Service SIGAPJumbara`
 
 Apache hanya menyajikan `web\staticfiles\`. Folder `web\privat\` (foto, cadangan) dan `web\.env` tidak berada di bawah Alias mana pun. Selain itu, aplikasi juga memakai WhiteNoise sehingga `/static/` tetap tersaji jika diakses langsung lewat Waitress.
 
-## 6. HTTPS dengan Cloudflare Tunnel (disarankan)
+## 6. HTTPS
+
+**Keputusan Farhan (22 Okt 2026): Cloudflare Tunnel tidak dipakai.** HTTPS tetap wajib untuk kamera HP (pemindai Tahap 3, Anjangsana). Cara HTTPS ditentukan saat pemasangan; pilihan yang tersedia adalah opsi B (win-acme + Apache) di bawah. Uraian Cloudflare Tunnel dibiarkan sebagai referensi saja.
+
+### (Referensi, tidak dipakai) Cloudflare Tunnel
 
 Kamera HP hanya bisa dipakai lewat HTTPS. Syarat: domain `sigapjumbara.<tld>` memakai nameserver Cloudflare (akun Cloudflare gratis).
 
@@ -203,7 +207,7 @@ Hasil uji 18 Okt 2026: cadangan dipulihkan ke database `sigap_uji_pulih`; jumlah
 
 - [ ] MariaDB 10.11 berjalan sebagai service `MariaDB1011` dan hidup otomatis setelah restart PC.
 - [ ] Service `SIGAPJumbara` hidup otomatis setelah restart PC.
-- [ ] HTTPS aktif dengan domain final (Cloudflare Tunnel service).
+- [ ] HTTPS aktif dengan domain final (cara ditentukan saat pemasangan; Cloudflare Tunnel tidak dipakai).
 - [ ] `python manage.py check --deploy` hanya menyisakan W004/W008; `DJANGO_DEBUG=False`.
 - [ ] `python manage.py sigap_cek_lingkungan` tanpa tanda X.
 - [ ] Form biodata diuji dari Android murah, Android baru, iPhone (Safari) lewat HTTPS.

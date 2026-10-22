@@ -76,7 +76,7 @@ Uji coba bersama panitia 7 sampai 8 November. Pelatihan panitia dan juri 10 Nove
 ## Kartu dan QR
 
 - Kartu ukuran **B-2** (sekitar 8,8 x 12,5 cm, potret), **4 kartu per lembar F4** (215 x 330 mm) dengan garis potong.
-- Isi kartu: **foto 3x4**, nama, kontingen, tingkat, peran, QR (REVISI R2, 18 Okt 2026).
+- Isi kartu: **foto 3x4**, nama, kontingen, tingkat, peran, QR (REVISI R2, 18 Okt 2026). Kartu yang dibuat sistem **wajib menampilkan QR dan foto peserta** (ditegaskan Farhan, REVISI R6, 22 Okt 2026).
 - QR berisi **kode acak**, bukan NIK atau nama. Kartu hilang bisa dinonaktifkan dan dicetak ulang dengan kode baru.
 - Kartu dicetak per kontingen dalam satu PDF.
 - Setiap kontingen mendapat **satu lembar QR kontingen ukuran F4** untuk ditempel di tenda (dipakai Anjangsana).
@@ -125,6 +125,11 @@ Gembira: Pentas Seni Drama Kepalangmerahan, Jumbara Got Talent, Anjangsana, Waha
 - Semua orang mendapat piagam PDF (peserta, pimpinan kontingen, pembina pendamping, peninjau).
 - Piagam juara dari form mode 2: juara setiap kegiatan per tingkat, juara per cabang Wahana, juara Got Talent, juara umum per tingkat.
 - Template dari panitia. Nama, kontingen, kegiatan, peringkat diisi otomatis. Unduh per orang atau per kontingen.
+
+## Urutan kerja dan pemasangan (keputusan Farhan, 22 Okt 2026)
+
+- Panitia ingin uji coba keseluruhan secepatnya, jadi tahap berikutnya (Tahap 2 dan seterusnya) dikerjakan lebih dulu; **pendampingan pemasangan di server produksi dikerjakan paling akhir**.
+- **Cloudflare Tunnel tidak dipakai.** HTTPS tetap wajib agar kamera HP bisa dipakai pemindai (Tahap 3) dan Anjangsana; caranya ditentukan saat pemasangan (misalnya win-acme + Apache, `21-DEPLOY-WINDOWS.md` opsi B).
 
 ## Keamanan dan data pribadi
 
