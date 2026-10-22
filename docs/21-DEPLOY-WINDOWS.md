@@ -155,7 +155,11 @@ Kamera HP hanya bisa dipakai lewat HTTPS. Syarat: domain `sigapjumbara.<tld>` me
 
 Opsi B (win-acme + Apache :443) hanya jika server punya IP publik tetap dan port 80/443 diteruskan router; tidak disarankan untuk tenggat ini.
 
-**Uji kamera di HP saat pengembangan:** `cloudflared tunnel --url http://localhost:8000` lalu buka alamat `https://....trycloudflare.com` yang muncul (`.env` laptop sudah mengizinkan `*.trycloudflare.com`).
+**Uji kamera di HP saat pengembangan (tanpa Cloudflare):** jalankan `jalankan.bat -Https` (atau `python manage.py sigap_https_dev`). Server uji mendengar `https://IP-laptop:8443` dengan sertifikat buatan sendiri untuk localhost dan IP laptop. Di HP (Wi-Fi sama) buka alamat itu dan terima peringatan sertifikat: Chrome Android > Lanjutan > Lanjutkan; Safari iPhone > Tampilkan Detail > kunjungi situs web ini. IP laptop harus ada di `DJANGO_ALLOWED_HOSTS`; izinkan port 8443 di Windows Firewall bila diminta. Hanya untuk uji, bukan produksi.
+
+**Uji beban di server (sebelum acara, `22-PENGUJIAN.md`):** dengan service berjalan, dari folder `web`:
+`python manage.py sigap_uji_beban --url http://127.0.0.1:8000 --perangkat 30 --titik 15 --pindaian 40 --ya`
+Hasil harus "Uji beban LULUS" dengan 0 pasangan ganda dan p95 di bawah 1 detik. Data uji (kontingen tersembunyi UJI-BEBAN, titik UB-...) dihapus otomatis. Jangan dijalankan setelah acara dimulai.
 
 ## 7. Task Scheduler (Admin) (belum diuji, jalankan sendiri)
 

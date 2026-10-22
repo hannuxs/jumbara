@@ -39,12 +39,12 @@ Kriteria selesai:
 
 ## Tahap 3: Absensi, rekap, poin, Anjangsana (7 November)
 
-- [ ] Halaman pemindai untuk akun panitia sesuai `14-ABSENSI.md`, termasuk antrean offline dan pemindaian bersamaan.
-- [ ] Kelola titik absen (superadmin): buat, ubah, aktif/nonaktif, jadwal.
-- [ ] Rekap per tingkat, kegiatan, sesi, kontingen, orang + unduh Excel (`15-REKAP-POIN.md`).
-- [ ] Kuota per kegiatan per kontingen dan poin kehadiran otomatis.
-- [ ] Anjangsana publik lengkap (`17-ANJANGSANA.md`).
-- [ ] Uji beban lulus.
+- [x] Halaman pemindai untuk akun panitia sesuai `14-ABSENSI.md`, termasuk antrean offline dan pemindaian bersamaan.
+- [x] Kelola titik absen (superadmin): buat, ubah, aktif/nonaktif, jadwal.
+- [x] Rekap per tingkat, kegiatan, sesi, kontingen, orang + unduh Excel (`15-REKAP-POIN.md`).
+- [x] Kuota per kegiatan per kontingen dan poin kehadiran otomatis.
+- [x] Anjangsana publik lengkap (`17-ANJANGSANA.md`).
+- [x] Uji beban lulus.
 
 ## Tahap 4: Form builder dan juri (7 November)
 

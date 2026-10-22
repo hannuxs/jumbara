@@ -4,9 +4,9 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 
 ## Status singkat
 
-- Tahap aktif: **Tahap 2 selesai (22 Okt), berikutnya Tahap 3**. Tahap 1 selesai di laptop; pemasangan di server produksi + HTTPS + uji 3 HP dikerjakan paling akhir bersama Farhan (keputusan Farhan 22 Okt; lihat "Yang harus dikerjakan Farhan").
+- Tahap aktif: **Tahap 3 selesai di laptop (22 Okt), berikutnya Tahap 4** (form builder dan juri). Tahap 2 selesai 22 Okt. Tahap 1 selesai di laptop; pemasangan di server produksi + HTTPS + uji 3 HP dikerjakan paling akhir bersama Farhan (keputusan Farhan 22 Okt; lihat "Yang harus dikerjakan Farhan").
 - Revisi R1-R5 dari Farhan (tingkat dulu + cari sekolah, foto wajib dan dicetak di kartu, nama kapital, tanpa pencocokan NIK, pemotong foto responsif) **selesai** 18 Okt; lihat `docs/REVISI.md`.
-- Terakhir diperbarui: 18 Oktober 2026
+- Terakhir diperbarui: 22 Oktober 2026
 - Tenggat terdekat: **25 Oktober 2026** (form biodata siap), dibuka 26 Oktober 00.00 WITA
 
 ## Tahap 0: Fondasi
@@ -41,7 +41,16 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 - [ ] Uji pindai kartu cetak dengan HP Android dan iPhone dari jarak 20-50 cm (saat uji coba)
 
 ## Tahap 3: Absensi, rekap, poin, Anjangsana (7 Nov)
-Belum dimulai. Tabel `kegiatan`, `kuota_kegiatan`, `titik_absen` (60 baris terisi), `kehadiran` (UNIQUE aktif + `client_uuid`), `pindaian_ditolak`, sesi/kunjungan/review Anjangsana sudah ada. Halaman `/panitia/` dan `/juri/` masih "segera hadir".
+- [x] API absensi: `POST /api/pindai` dan `/api/pindai/batch` (maks 50), idempoten menurut `client_uuid`, kunci UNIQUE (titik, peserta) pada data aktif, transaksi pendek, hasil HIJAU/KUNING/MERAH, pindaian ditolak dicatat untuk audit; daftar titik, ringkasan, daftar peserta ringan (hash token) untuk cache HP, cari nama
+- [x] Halaman pemindai `/panitia/`: nama pemindai, pilih titik (berlangsung/akan datang/selesai), kamera qr-scanner, layar penuh hijau/kuning/merah + bunyi/getar, kunci QR 3 detik, **antrean offline IndexedDB** dikirim otomatis, cari nama/kode manual, ganti kamera, senter, layar tidak mati
+- [x] Superadmin: kelola titik absen (tambah/ubah/salin/hapus, buka/tutup/otomatis), detail titik (batalkan/tambah kehadiran manual dengan alasan), **pantauan langsung** semua titik
+- [x] Kegiatan dan kuota (bawaan + khusus per kontingen), poin kehadiran otomatis (hadir +1, kurang dari kuota -1, opsi batasi ke kuota), `rekap.poin_kehadiran()` siap dipakai Tahap 4
+- [x] Rekap `/rekap/` (superadmin + panitia, tanpa data pribadi): per tingkat, harian, poin per kegiatan, per kontingen (bisa dicetak), daftar ulang, per orang, Anjangsana; semua bisa diunduh Excel; segar otomatis 10 detik
+- [x] Anjangsana `/anjangsana/` tanpa login: pindai kartu (atau ketik kode), konfirmasi 1, pindai QR tenda, konfirmasi 2 (teks persis spesifikasi), kunjungan tercatat, review 1-5 + komentar, peringatan + riwayat bila review diganti, "Kunjungi kontingen lain" 30 menit; hanya aktif selama sesi, buka/tutup paksa, kelola sesi; peringkat gabungan dan per tingkat + Excel; daftar kunjungan dan review; hapus review iseng; poster QR link PDF F4
+- [x] Uji beban `sigap_uji_beban` lulus di laptop (Waitress 48 thread): 30 HP x 15 titik, 1.200 pindaian, p95 44 ms, 0 galat, 0 baris ganda; ledakan tanpa jeda 155 pindaian/detik, p95 225 ms, 0 ganda
+- [x] HTTPS sementara untuk uji kamera di HP: `jalankan.bat -Https` (`sigap_https_dev`, sertifikat self-signed, tanpa Cloudflare)
+- [x] Tes: 245 tes lulus, `ruff` bersih; uji browser Chrome 360 px dengan kamera palsu (pemindai: hijau, kuning, offline lalu terkirim; Anjangsana: alur lengkap, penolakan kartu di langkah tenda, peringatan ganti review)
+- [ ] Uji beban di PC server Windows sungguhan (`22-PENGUJIAN.md`) dan uji kamera dari HP Android + iPhone sungguhan (Farhan, saat pemasangan/uji coba)
 
 ## Tahap 4: Form builder dan juri (7 Nov)
 
@@ -59,8 +68,24 @@ Belum dimulai. Tabel `kegiatan`, `kuota_kegiatan`, `titik_absen` (60 baris teris
 8. **Uji pemulihan cadangan sekali di server** (bagian 10).
 9. Laptop: MariaDB 10.11 pengembangan belum menjadi service (lihat bagian 13 dokumen deploy) dan perlu dinyalakan ulang setelah laptop restart. Sandi root-nya ada sebagai komentar di `web\.env` laptop.
 10. Konfirmasi panitia: kuota SD Negeri 006 Tanjung Palas Utara (25 peserta inti, batas Mula 20).
+11. **Akun `panitia` di laptop dibuat ulang (22 Okt)** dengan sandi `SIGAP_SANDI_AWAL_PANITIA` dari `web\.env` laptop dan wajib ganti sandi saat masuk (lihat catatan sesi 22 Okt, Tahap 3). Server produksi tidak terdampak.
+12. **Uji kamera dari HP sebelum pemasangan:** jalankan `jalankan.bat -Https`, buka `https://IP-laptop:8443` di HP (Wi-Fi sama), terima peringatan sertifikat. Bila HP tidak bisa membuka, izinkan port 8443 di Windows Firewall (jendela izin muncul saat pertama kali dijalankan).
+13. **Panitia kirim kuota final per kegiatan** paling lambat 31 Okt, lalu isi di Superadmin > Kegiatan dan kuota.
+14. Di laptop, status form biodata masih **Paksa buka** (untuk uji). Kembalikan ke **Otomatis** sebelum 26 Okt (`sigap_cek_lingkungan` mengingatkan).
 
 ## Catatan sesi
+
+### 22 Oktober 2026 (Claude Code): Tahap 3
+
+Dikerjakan Tahap 3 dalam 7 langkah (commit `e1b28cb` sampai `4fa15d9`): inti absensi + API, halaman pemindai, kelola titik + pantauan, kuota + poin + rekap, Anjangsana, uji beban, HTTPS sementara. Semua aturan kebersamaan pemindai dari `14-ABSENSI.md` dibuktikan dengan tes thread nyata di MariaDB (20 HP memindai kartu sama -> 1 baris, 1 hijau 19 kuning) dan uji beban lewat HTTP.
+
+**Insiden (laptop, sudah dipulihkan):** saat uji coba pertama perintah `sigap_uji_beban`, kode pembersihnya masih berisi penghapusan "akun sementara", padahal perintah sudah diubah memakai akun `panitia` yang ada (akun per peran bersifat tunggal). Akibatnya **akun `panitia` di database laptop terhapus**. Dipulihkan dengan `sigap_seed` (akun dibuat ulang dengan sandi awal dari `.env`, wajib ganti sandi). Log aktivitas lama tetap ada. Kode diperbaiki (tidak ada lagi penghapusan akun) dan ditambah tes `test_uji_beban.py` yang memastikan akun panitia dan sandinya tidak tersentuh. Tidak ada biodata yang terdampak.
+
+**Penyimpangan dari `22-PENGUJIAN.md`:** uji beban tidak memakai database terpisah `sigap_jumbara_uji`, tetapi membuat data uji tersembunyi di database server yang diuji lalu menghapusnya lagi berdasarkan ID (alasan di `IMPROVISASI.md`).
+
+**Data uji di laptop dibersihkan:** titik `TA-UJI` (2 kehadiran) dan kunjungan/review uji Anjangsana dihapus; status Anjangsana dikembalikan ke Otomatis.
+
+**Langkah berikutnya:** Tahap 4 (form builder mode 1 dan 2, mesin rumus aman tanpa `eval`, tarik data antarform, poin kehadiran dari `rekap.poin_kehadiran()`, Anjangsana sebagai sumber data, akun juri), lalu Tahap 5 (piagam), terakhir pemasangan di server produksi bersama Farhan.
 
 ### 22 Oktober 2026 (Claude Code): Tahap 2
 
