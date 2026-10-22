@@ -224,6 +224,8 @@ Hasil uji 18 Okt 2026: cadangan dipulihkan ke database `sigap_uji_pulih`; jumlah
 
 ## 12. Galat umum
 
+**Tidak bisa masuk setelah mengubah `SIGAP_SANDI_AWAL_*` di `.env`:** sandi di `.env` hanya dipakai saat akun pertama kali dibuat. Untuk menyetel ulang: `python manage.py sigap_atur_sandi superadmin` (ketik sandi baru) atau `python manage.py sigap_atur_sandi --semua --dari-env`.
+
 | Gejala | Penyebab dan solusi |
 |---|---|
 | `django.db.utils.NotSupportedError: MariaDB 10.5 or later is required` | Masih terhubung ke MariaDB XAMPP 10.4. Periksa `DB_PORT` di `.env` |

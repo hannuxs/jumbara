@@ -180,3 +180,20 @@ def test_coop_hanya_lewat_https(client):
     assert "Cross-Origin-Opener-Policy" not in client.get("/")
     r = client.get("/", HTTP_X_FORWARDED_PROTO="https")
     assert r["Cross-Origin-Opener-Policy"] == "same-origin"
+
+
+def test_sigap_atur_sandi_dari_env(superadmin, panitia, monkeypatch):
+    from django.core.management import call_command
+
+    from apps.inti.models import LogAktivitas
+
+    monkeypatch.setenv("SIGAP_SANDI_AWAL_SUPERADMIN", "SandiBaru-Super1")
+    monkeypatch.setattr("environ.Env.read_env", lambda *a, **k: None)
+    call_command("sigap_atur_sandi", "superadmin", dari_env=True)
+    superadmin.refresh_from_db()
+    panitia.refresh_from_db()
+    assert superadmin.check_password("SandiBaru-Super1") and superadmin.wajib_ganti_sandi
+    assert not panitia.check_password("SandiBaru-Super1")  # akun lain tidak tersentuh
+    assert LogAktivitas.objects.filter(aksi="sandi.direset").count() == 1
+    c = Client()
+    assert c.post("/masuk/", {"username": "superadmin", "password": "SandiBaru-Super1"}).status_code == 302
