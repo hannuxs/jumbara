@@ -226,3 +226,40 @@ Pengujian: 154 tes otomatis lulus (tes baru: tingkat beda ditolak, urutan isian,
 **Permintaan Farhan:** kartu peserta yang dibuat sistem menampilkan QR dan foto peserta.
 
 **Hasil:** sudah sesuai rancangan sejak R2 dan diterapkan di Tahap 2. Setiap kartu B-2 memuat foto 3x4 (24 x 32 mm, bingkai tipis) di samping nama, dan QR besar (kotak 52 mm, simbol sekitar 46 mm) di bawahnya beserta kode kartu. Biodata tanpa foto (seharusnya tidak ada karena foto wajib mutlak) tetap dicetak dengan kotak "FOTO 3x4" kosong agar bisa ditempel manual. Dicatat juga di `00-KEPUTUSAN.md` bagian Kartu dan QR.
+
+---
+
+## R7. Desain kartu peserta lebih modern + Nomor Induk Anggota (permintaan panitia lewat Farhan, 23 Okt 2026)
+
+**Permintaan:** desain ID card lebih modern (gradasi, dan lainnya diimprovisasi); setiap tingkat dibedakan warna dominan memakai warna yang sudah ada di sistem: **Mula hijau, Madya biru, Wira kuning**; QR tetap hitam putih agar mudah dipindai. Tambahan: **Nomor Induk Anggota tampil di bawah nama**.
+
+**Desain baru (88 x 125 mm, `apps/kartu/pdf.py` `gambar_kartu`):**
+1. Kepala bergradasi diagonal warna tingkat (Mula #14532D -> #16A34A -> #4ADE80, Madya #1E3A8A -> #2563EB -> #60A5FA, Wira #B45309 -> #EAB308 -> #FDE68A) dengan tepi bawah melengkung dan lingkaran transparan sebagai hiasan. Teks di atas Wira berwarna gelap agar terbaca.
+2. Logo PMI dan Jumbara V di kapsul putih (logo PMI tetap di latar terang, tidak diubah).
+3. Foto 3x4 (20 x 26,7 mm) berbingkai putih, sudut membulat, bayangan halus, menimpa batas kepala.
+4. Di samping foto: "TINGKAT" + nama tingkat besar, lencana peran, nama kontingen.
+5. Nama besar di bawah foto (ukuran huruf otomatis, maksimal 2 baris), lalu **No. Induk Anggota** (tidak dicetak bila kosong).
+6. QR hitam putih **45 x 45 mm** (sesuai minimal spesifikasi 13) di pelat putih berbingkai warna tingkat, kode kartu di bawahnya.
+7. Pita kaki bergradasi: "KARTU WAJIB DIPAKAI SELAMA KEGIATAN", kode kontingen, versi kartu.
+- Tetap bisa dibedakan bila dicetak hitam putih: tulisan "TINGKAT ..." dan peran tetap ada.
+- Nomor Induk Anggota masuk daftar isian tercetak: mengubahnya setelah data dikunci menandai kartu **perlu cetak ulang**.
+
+**Pengujian:** PDF 4 kartu (3 tingkat, nama terpanjang 2 baris + nomor induk) dirender dan dipindai OpenCV: 4/4 QR terbaca dan cocok. Tes kartu (31) lulus, termasuk tes baru penanda cetak ulang untuk Nomor Induk Anggota.
+
+---
+
+## R8. Nama Juri diingat seperti nama pemindai (laporan Farhan, 23 Okt 2026)
+
+**Laporan:** setelah keluar atau sesi habis lalu masuk lagi, juri diminta menulis ulang Nama Juri; seharusnya tidak perlu (seperti nama panitia pemindai).
+
+**Penyebab:** nama pemindai disimpan di perangkat (localStorage per akun) dan dibaca langsung oleh halaman pemindai. Halaman juri tidak pernah menyimpan Nama Juri ke perangkat dan hanya membaca nama dari cookie, padahal cookie itu dihapus saat keluar dan baru dipasang lagi setelah halaman pertama terbuka.
+
+**Perbaikan:** Nama Juri yang dipakai (tombol "Pakai" atau saat mengirim nilai) disimpan di perangkat untuk akun juri. Setelah masuk lagi, halaman form juri langsung memakai nama itu (status sudah/belum dinilai ikut tampil) dan isian Nama Juri di form nilai terisi otomatis. Superadmin tidak terpengaruh (nama pelakunya untuk log tidak diganti).
+
+**Pengujian (Chrome 360 px):** isi nama -> keluar (cookie dihapus, sesi baru) -> buka halaman form juri sebagai halaman pertama: nama langsung terisi, header menampilkan nama, form nilai terisi.
+
+---
+
+## R9. Tempat sampah untuk data lain (temuan Claude, 23 Okt 2026)
+
+Halaman **Superadmin > Tempat sampah** sekarang juga memuat form, kiriman form, kehadiran yang dibatalkan, dan review Anjangsana, masing-masing dengan **Pulihkan** dan **Hapus permanen** (tercatat di log). Pemulihan yang bentrok ditolak dengan pesan jelas (slug form sudah dipakai, orang sudah tercatat hadir lagi, review aktif sudah ada, juri yang sama sudah mengirim ulang, form kiriman masih di tempat sampah). Form yang masih punya kiriman tidak bisa dihapus permanen; berkas unggahan ikut dihapus saat kiriman dihapus permanen.

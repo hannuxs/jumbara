@@ -85,6 +85,10 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 
 ## Catatan sesi
 
+### 23 Oktober 2026 (Claude Code): revisi R7-R9
+
+Permintaan Farhan: tempat sampah, Nama Juri diingat, desain kartu modern per warna tingkat + Nomor Induk Anggota. Semua dikerjakan, diuji, dan dicatat di `REVISI.md` (R7, R8, R9). Temuan sendiri saat mengerjakan: desain pertama membuat QR kurang dari 45 mm (melanggar spesifikasi 13), tata letak diubah sehingga QR tetap 45 mm. **Kartu yang sudah dicetak dengan desain lama** tetap berlaku (QR sama); cetak ulang hanya bila panitia ingin desain baru.
+
 ### 23 Oktober 2026 (Claude Code): Tahap 4
 
 Farhan menguji pemindai di HP Android sungguhan lewat `jalankan.bat -Https` (hijau, kuning, merah tingkat beda): lancar, lalu meminta lanjut. Dikerjakan Tahap 4 (commit `41b82f9`, `576dae3`). Sintaks REF final dicatat di `16-FORM-BUILDER.md`.

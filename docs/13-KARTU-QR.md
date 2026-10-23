@@ -18,6 +18,7 @@
 
 - Ukuran **88 x 125 mm potret** (B-2, sekitar 8,8 x 12,5 cm). Simpan ukuran di konfigurasi agar mudah diganti jika panitia memakai ukuran B-2 yang sedikit berbeda.
 - **4 kartu per lembar F4** (215 x 330 mm): 2 kolom x 2 baris, jarak antar kartu kecil, **garis potong** (crop marks) di sudut dan garis putus-putus tipis di antara kartu. Pastikan skala cetak 100% (beri catatan di PDF: "Cetak dengan skala 100%/Actual size, kertas F4").
+- **Desain terbaru: REVISI R7 (23 Okt 2026)**, kepala bergradasi warna tingkat, logo di kapsul putih, foto 20 x 26,7 mm, Nomor Induk Anggota di bawah nama, QR 45 mm. Rincian di `REVISI.md`. Daftar di bawah adalah rancangan awal.
 - Isi kartu (atas ke bawah):
   1. Kepala berlatar putih: **logo PMI (wajib, permintaan panitia)** di kiri (`assets/brand/pmi-logo.png`) dan logo Jumbara V di kanan (`assets/brand/jumbara-v-logo.jpg`), di antaranya teks "JUMBARA PMR TINGKAT KABUPATEN BULUNGAN V 2026" dan tema "Unggul - Responsif - Berkarakter". Ikuti aturan logo di `assets/brand/README.md` (logo PMI tidak boleh diubah warna/bentuk, latar terang, ruang kosong di sekeliling).
   2. Pita warna peran/tingkat (lihat warna di bawah) bertuliskan PERAN (PESERTA / PIMPINAN KONTINGEN / PEMBINA PENDAMPING / PENINJAU).

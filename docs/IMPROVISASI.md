@@ -138,3 +138,7 @@ Semua hal yang **tidak diminta secara eksplisit** oleh panitia/Farhan tetapi dit
 | 23 Okt 2026 | 4 | Kiriman form memakai `client_uuid` | Tombol kirim ditekan dua kali / sinyal putus tidak membuat kiriman ganda | - |
 | 23 Okt 2026 | 4 | Semua 40 form template ditandai "perlu konfirmasi panitia" | Aspek dan bobot final dari panitia menyusul 5 Nov | Ubah centang di database |
 | 23 Okt 2026 | 4 | Tabel hasil di HP menampilkan nilai kolom peringkat di bawah nama subjek | Kolom nilai akhir tersembunyi di kanan tabel pada layar 360 px | Hapus baris `sm:hidden` di `admin_hasil.html` |
+| 23 Okt 2026 | 2 | Desain kartu R7: gradasi tingkat, kapsul logo, foto berbingkai, pita kaki; foto diperkecil ke 20 x 26,7 mm agar QR tetap 45 mm | Permintaan desain modern; spesifikasi QR minimal 45 mm | `gambar_kartu` di `apps/kartu/pdf.py` |
+| 23 Okt 2026 | 2 | Baris Nomor Induk Anggota tidak dicetak bila kosong | Kartu tidak menampilkan isian kosong | - |
+| 23 Okt 2026 | 4 | Halaman form juri otomatis memakai Nama Juri yang tersimpan di perangkat | Juri tidak perlu mengetik ulang setelah keluar/sesi habis (R8) | `namaJuri` di `isian.js` |
+| 23 Okt 2026 | 1 | Tempat sampah umum (`apps/inti/sampah.py`) dengan pemeriksaan bentrok sebelum memulihkan | Semua data soft delete bisa dipulihkan dari satu halaman (R9) | - |
