@@ -61,5 +61,19 @@
   </div>
   {% if ada_seri %}<div class="mt-3"><button class="btn-utama btn-kecil" type="submit">Simpan pemecah seri</button></div>{% endif %}
 </form>
+<details class="kartu mt-4" {% if n_piagam %}open{% endif %}>
+  <summary class="cursor-pointer font-semibold text-navy">Piagam juara{% if n_piagam %} ({{ n_piagam }} sudah terbit){% endif %}</summary>
+  <form method="post" action="{% url 'piagam_admin:juara_form' f.pk %}" class="mt-3 grid gap-3 sm:grid-cols-2">
+    {% csrf_token %}
+    <div><label class="label text-sm" for="pj-kegiatan">Nama kegiatan di piagam</label><input id="pj-kegiatan" name="kegiatan" value="{{ kegiatan_piagam }}" class="input" maxlength="150"></div>
+    <div class="grid grid-cols-2 gap-2">
+      <div><label class="label text-sm" for="pj-maks">Juara 1 sampai</label><select id="pj-maks" name="maks" class="input">{% for n in "12345"|make_list %}<option value="{{ n }}" {% if n == "3" %}selected{% endif %}>{{ n }}</option>{% endfor %}</select></div>
+      <div><label class="label text-sm" for="pj-template">Template</label><select id="pj-template" name="template" class="input">{% for t in template_juara %}<option value="{{ t.pk }}">{{ t.nama }}</option>{% endfor %}</select></div>
+    </div>
+    <label class="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" name="abaikan_seri" value="1" class="h-5 w-5 accent-oranye"> Tetap terbitkan meski ada nilai seri (yang seri mendapat juara yang sama)</label>
+    <div class="sm:col-span-2"><button class="btn-utama btn-kecil" type="submit">Terbitkan dan unduh PDF</button>
+      <span class="ml-2 text-xs text-abu">Atas nama {% if f.jenis_subjek == "PESERTA" %}orang{% else %}kontingen{% endif %}. Nomor tetap bila diterbitkan ulang.</span></div>
+  </form>
+</details>
 <p class="mt-3 text-xs text-abu">Ketuk nama subjek untuk melihat rincian per juri. Ketuk judul kolom untuk mengurutkan. Hasil rumus dihitung dengan presisi penuh dan ditampilkan sesuai pengaturan desimal kolom.</p>
 {% endblock %}

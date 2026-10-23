@@ -34,6 +34,7 @@ MENU_SUPERADMIN = [
     ("Penilaian", [
         ("form", "Form dan penilaian", "/superadmin/form/"),
         ("juri", "Halaman juri", "/juri/"),
+        ("piagam", "Piagam", "/superadmin/piagam/"),
     ]),
     ("Anjangsana", [
         ("anjangsana", "Sesi, status, poster", "/superadmin/anjangsana/"),

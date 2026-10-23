@@ -4,7 +4,7 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 
 ## Status singkat
 
-- Tahap aktif: **Tahap 4 selesai di laptop (23 Okt), berikutnya Tahap 5** (piagam). Tahap 3 selesai 22 Okt. Tahap 2 selesai 22 Okt. Tahap 1 selesai di laptop; pemasangan di server produksi + HTTPS + uji 3 HP dikerjakan paling akhir bersama Farhan (keputusan Farhan 22 Okt; lihat "Yang harus dikerjakan Farhan").
+- Tahap aktif: **Tahap 5 selesai di laptop (23 Okt). Semua tahap fitur selesai; berikutnya uji coba bersama panitia dan pemasangan di server produksi bersama Farhan.** Tahap 4 selesai 23 Okt. Tahap 2 selesai 22 Okt. Tahap 1 selesai di laptop; pemasangan di server produksi + HTTPS + uji 3 HP dikerjakan paling akhir bersama Farhan (keputusan Farhan 22 Okt; lihat "Yang harus dikerjakan Farhan").
 - Revisi R1-R5 dari Farhan (tingkat dulu + cari sekolah, foto wajib dan dicetak di kartu, nama kapital, tanpa pencocokan NIK, pemotong foto responsif) **selesai** 18 Okt; lihat `docs/REVISI.md`.
 - Terakhir diperbarui: 23 Oktober 2026
 - Tenggat terdekat: **25 Oktober 2026** (form biodata siap), dibuka 26 Oktober 00.00 WITA
@@ -65,6 +65,14 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 - [ ] Rumus juara umum per tingkat disusun bersama panitia (template baru contoh Traveling)
 
 ## Tahap 5: Piagam (14 Nov)
+- [x] App `piagam`: template (A4/F4, mendatar/tegak, latar gambar atau PDF panitia diubah ke gambar 200 dpi, desain bawaan SIGAP, tempel logo PMI + Jumbara V), elemen teks dengan placeholder `{nama}` `{kontingen}` `{peran}` `{tingkat}` `{kegiatan_tingkat}` `{juara}` `{nomor}` `{tanggal}` dll. (tanpa format/eval), huruf Poppins/Inter/serif, ukuran mengecil otomatis, teks dibungkus
+- [x] Editor tata letak: seret kotak di pratinjau (mm) + isian rinci, pratinjau dengan data terpanjang (PNG dan PDF)
+- [x] Piagam peserta semua peran; pengecualian "tidak berhak" (sanksi, dengan alasan, tercatat log) dan syarat sudah daftar ulang (bisa dimatikan); daftar pengecualian
+- [x] Nomor otomatis berformat (`{urut}`, digit), tetap saat diunduh ulang (data diperbarui, nomor tidak); aman bila diterbitkan bersamaan
+- [x] Unduh per orang, per kontingen (1 PDF), semua (ZIP per kontingen)
+- [x] Piagam juara dari tabel hasil form penilaian (juara 1-N, atas nama kontingen atau orang, nama kegiatan bisa diubah, ditolak bila seri kecuali dicentang) dan dari peringkat Anjangsana per tingkat/gabungan; unduh ulang per sumber
+- [x] Tes: 354 tes lulus; uji browser (seret posisi, simpan, pratinjau, lebar 360 px)
+- [ ] Desain dan penanda tangan dari panitia (5 Nov): unggah sebagai latar, atur posisi teks
 
 ## Yang harus dikerjakan Farhan
 
@@ -84,6 +92,14 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 14. Di laptop, status form biodata masih **Paksa buka** (untuk uji). Kembalikan ke **Otomatis** sebelum 26 Okt (`sigap_cek_lingkungan` mengingatkan).
 
 ## Catatan sesi
+
+### 23 Oktober 2026 (Claude Code): Tahap 5 (piagam)
+
+Dikerjakan Tahap 5 lengkap (lihat centang). Ditemukan dan diperbaiki saat uji: logo bawaan menimpa bingkai; teks "Tingkat " kosong untuk Got Talent (placeholder `{kegiatan_tingkat}`); halaman template melebar di HP; isian logo tidak menerima koma desimal. Huruf Poppins/Inter dikonversi ke TTF (OFL) untuk ReportLab. `pypdfium2` dipindah ke `requirements.txt` (produksi) untuk latar PDF dan pratinjau: **di server jalankan `pip install -r requirements.txt` (otomatis lewat `jalankan.bat`/`perbarui.ps1`)**.
+
+Tidak dibuat (opsional di spesifikasi): halaman publik unduh piagam sendiri; bawaannya superadmin membagikan PDF per kontingen.
+
+**Langkah berikutnya:** uji coba menyeluruh bersama panitia (7-8 Nov), lalu pemasangan di server produksi + HTTPS bersama Farhan.
 
 ### 23 Oktober 2026 (Claude Code): HTTPS menjadi bawaan jalankan.bat
 

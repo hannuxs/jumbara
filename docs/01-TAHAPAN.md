@@ -56,9 +56,9 @@ Kriteria selesai:
 
 ## Tahap 5: Piagam (14 November)
 
-- [ ] Unggah template piagam, atur posisi teks, pratinjau.
-- [ ] Piagam peserta untuk semua orang, piagam juara dari tabel hasil mode 2.
-- [ ] Unduh per orang, per kontingen (satu PDF atau ZIP), dan semua.
+- [x] Unggah template piagam, atur posisi teks, pratinjau.
+- [x] Piagam peserta untuk semua orang, piagam juara dari tabel hasil mode 2.
+- [x] Unduh per orang, per kontingen (satu PDF atau ZIP), dan semua.
 
 ## Setelah acara
 

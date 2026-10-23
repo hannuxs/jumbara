@@ -10,7 +10,9 @@ colorama==0.4.6
 ruff==0.17.1
 openpyxl==3.1.5
 et_xmlfile==2.0.0
-# Hanya untuk tes: merender PDF kartu dan memindai QR di dalamnya.
-pypdfium2==5.14.0
+# Hanya untuk tes: memindai QR di PDF yang dirender (pypdfium2 ada di requirements.txt).
 opencv-python-headless==5.0.0.93
 numpy==2.5.4
+# Sekali pakai: konversi huruf woff2 -> TTF untuk PDF piagam (apps/piagam/fonts).
+fonttools==4.60.1
+brotli==1.1.0

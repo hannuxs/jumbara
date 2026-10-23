@@ -1,0 +1,78 @@
+{% extends "superadmin/base.html" %}
+{% block judul %}Piagam{% endblock %}
+{% block judul_halaman %}Piagam{% endblock %}
+{% block aksi_judul %}<a href="{% url 'piagam_admin:unduh_semua' %}" class="btn-utama btn-kecil" data-unduh-semua>Unduh semua (ZIP)</a>{% endblock %}
+{% block konten %}
+<div class="mb-4 grid gap-4 lg:grid-cols-3">
+  <section class="kartu lg:col-span-2">
+    <h2 class="mb-2 font-semibold">Template</h2>
+    <div class="space-y-2">
+      {% for t in template %}
+        <a href="{% url 'piagam_admin:template' t.pk %}" class="flex items-center gap-3 rounded-xl border border-gray-200 p-3 hover:border-oranye">
+          <span class="min-w-0 flex-1"><span class="block font-semibold text-navy">{{ t.nama }}</span>
+            <span class="block text-xs text-abu">{{ t.get_jenis_display }} · {{ t.ukuran_kertas }} {{ t.get_orientasi_display|lower }} · {% if t.latar %}latar panitia: {{ t.latar_asli }}{% else %}desain bawaan SIGAP{% endif %}</span></span>
+          {% if t.aktif %}<span class="badge bg-green-100 text-green-800">aktif</span>{% else %}<span class="badge-abu">nonaktif</span>{% endif %}
+        </a>
+      {% endfor %}
+    </div>
+    <a href="{% url 'piagam_admin:template_tambah' %}" class="btn-abu btn-kecil mt-3">+ Template baru</a>
+    <p class="mt-3 text-xs text-abu">Desain dari panitia (paling lambat 5 November) diunggah sebagai latar. Selama belum ada, piagam memakai desain bawaan SIGAP.</p>
+  </section>
+  <section class="kartu">
+    <h2 class="mb-2 font-semibold">Pengaturan</h2>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% include "komponen/isian.html" with f=form.format_nomor_peserta %}
+      <p class="-mt-4 mb-4 text-xs text-abu">Contoh: {{ contoh_peserta }}</p>
+      {% include "komponen/isian.html" with f=form.format_nomor_juara %}
+      <p class="-mt-4 mb-4 text-xs text-abu">Contoh: {{ contoh_juara }}</p>
+      <div class="grid grid-cols-2 gap-x-3">
+        {% include "komponen/isian.html" with f=form.digit_urut %}
+        {% include "komponen/isian.html" with f=form.tanggal %}
+      </div>
+      {% include "komponen/isian.html" with f=form.tempat %}
+      {% include "komponen/isian.html" with f=form.syarat_daftar_ulang %}
+      <button class="btn-utama btn-kecil" type="submit">Simpan</button>
+    </form>
+  </section>
+</div>
+
+<div class="mb-2 flex flex-wrap items-center gap-2">
+  <h2 class="flex-1 text-lg font-bold">Piagam peserta</h2>
+  <span class="text-sm text-abu">{{ total_berhak }} dari {{ total }} orang berhak</span>
+  <a href="{% url 'piagam_admin:pengecualian' %}" class="btn-abu btn-kecil">Daftar pengecualian</a>
+</div>
+<p class="mb-2 text-xs text-abu">Mengunduh sekaligus menerbitkan nomor untuk yang belum punya. Nomor tidak berubah saat diunduh ulang. Yang tidak berhak (sanksi){% if form.syarat_daftar_ulang.value %} dan yang belum daftar ulang{% endif %} dilewati.</p>
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <table class="tabel">
+    <thead><tr><th>Kontingen</th><th class="text-right">Orang</th><th class="text-right">Berhak</th><th class="text-right">Sudah terbit</th><th></th></tr></thead>
+    <tbody>
+    {% for x in kontingen %}
+      <tr>
+        <td><a href="{% url 'piagam_admin:kontingen' x.k.pk %}" class="font-semibold hover:underline">{{ x.k.nama }}</a> <span class="badge-{{ x.k.tingkat }}">{{ x.k.kode }}</span></td>
+        <td class="text-right">{{ x.jumlah }}</td>
+        <td class="text-right">{{ x.berhak }}</td>
+        <td class="text-right">{{ x.terbit }}</td>
+        <td class="whitespace-nowrap text-right">{% if x.berhak %}<a href="{% url 'piagam_admin:unduh_kontingen' x.k.pk %}" class="btn-abu btn-kecil">Unduh PDF</a>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2 class="mb-2 mt-6 text-lg font-bold">Piagam juara</h2>
+<p class="mb-2 text-sm text-abu">Diterbitkan dari tabel hasil form penilaian (tombol "Piagam juara" di halaman hasil) dan dari peringkat Anjangsana.</p>
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <table class="tabel">
+    <thead><tr><th>Sumber</th><th class="text-right">Piagam</th><th></th></tr></thead>
+    <tbody>
+    {% for j in juara %}
+      <tr><td class="font-semibold">{{ j.judul }}</td><td class="text-right">{{ j.n }}</td>
+        <td class="text-right"><a href="{% url 'piagam_admin:juara_sumber' j.sumber %}" class="btn-abu btn-kecil">Unduh ulang</a></td></tr>
+    {% empty %}
+      <tr><td colspan="3" class="text-abu">Belum ada piagam juara.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

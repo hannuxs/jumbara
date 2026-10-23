@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "apps.absensi",
     "apps.anjangsana",
     "apps.penilaian",
+    "apps.piagam",
 ]
 
 MIDDLEWARE = [

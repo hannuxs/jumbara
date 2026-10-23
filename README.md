@@ -99,6 +99,10 @@ Perintah yang ditandai **(Admin)** harus dijalankan di PowerShell "Run as Admini
 
 Form dibuat dan diatur di **Superadmin > Form dan penilaian** (`/superadmin/form/`). Juri mengisi di `/juri/`. Form biasa yang dibuka untuk publik ada di `/f/<slug>/`.
 
+### Piagam (Tahap 5)
+
+Semua lewat **Superadmin > Piagam** (`/superadmin/piagam/`): template (unggah desain panitia PNG/JPG/PDF, atur posisi teks dengan menyeret), pengaturan nomor/tempat/tanggal, unduh per orang, per kontingen, atau semua (ZIP). Piagam juara diterbitkan dari halaman hasil form penilaian (bagian "Piagam juara") dan dari peringkat Anjangsana. Tidak ada perintah terminal khusus.
+
 ### Akun dan kata sandi
 
 | Perintah | Fungsi |

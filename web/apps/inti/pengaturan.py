@@ -49,6 +49,13 @@ BAWAAN: dict[str, Any] = {
     "absensi.menit_sesudah": 60,
     # Poin kehadiran: orang di atas kuota tidak menambah poin (docs/15-REKAP-POIN.md).
     "poin.batasi_ke_kuota": True,
+    # Piagam (docs/18-PIAGAM.md). {urut} = nomor urut per jenis piagam.
+    "piagam.format_nomor_peserta": "{urut}/PST/JUMBARA-V/PMI-BLG/XI/2026",
+    "piagam.format_nomor_juara": "{urut}/JR/JUMBARA-V/PMI-BLG/XI/2026",
+    "piagam.digit_urut": 3,
+    "piagam.tempat": "Tanjung Selor",
+    "piagam.tanggal": "2026-11-15",
+    "piagam.syarat_daftar_ulang": True,
 }
 
 

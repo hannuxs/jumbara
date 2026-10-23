@@ -1,0 +1,20 @@
+{% extends "superadmin/base.html" %}
+{% block judul %}Pengecualian piagam{% endblock %}
+{% block judul_halaman %}Tidak menerima piagam ({{ daftar|length }}){% endblock %}
+{% block konten %}
+<div class="mb-3"><a href="{% url 'piagam_admin:beranda' %}" class="btn-abu btn-kecil">← Piagam</a></div>
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <table class="tabel">
+    <thead><tr><th>Nama</th><th>Kontingen</th><th>Alasan</th></tr></thead>
+    <tbody>
+    {% for x in daftar %}
+      <tr><td class="font-semibold">{{ x.p.nama_lengkap }}<div class="text-xs font-normal text-abu">{{ x.p.get_peran_display }}</div></td>
+        <td><a href="{% url 'piagam_admin:kontingen' x.p.kontingen_id %}" class="hover:underline">{{ x.p.kontingen.nama }}</a></td>
+        <td class="text-sm {% if 'sanksi' in x.alasan %}text-merah{% endif %}">{{ x.alasan }}</td></tr>
+    {% empty %}
+      <tr><td colspan="3" class="text-abu">Semua orang berhak menerima piagam.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

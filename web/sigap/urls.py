@@ -20,6 +20,7 @@ urlpatterns = [
     path("superadmin/absensi/", include("apps.absensi.urls_admin")),
     path("superadmin/anjangsana/", include("apps.anjangsana.urls_admin")),
     path("superadmin/form/", include("apps.penilaian.urls_admin")),
+    path("superadmin/piagam/", include("apps.piagam.urls_admin")),
     path("superadmin/", include("apps.biodata.urls_admin")),
     path("superadmin/kontingen/", include("apps.kontingen.urls")),
     path("superadmin/akun/", include("apps.akun.urls_admin")),

@@ -335,7 +335,21 @@ def hasil(request, pk: int):
     return render(request, "penilaian/admin_hasil.html", {
         "menu_aktif": "form", "f": f, "tabel": tabel, "baris": baris, "kolom_tampil": kolom_tampil, "urut": urut,
         "ada_seri": ada_seri, "dinilai": sum(1 for b in baris if not b.belum_dinilai),
+        **_konteks_piagam(f),
     })  # fmt: skip
+
+
+def _konteks_piagam(f: Formulir) -> dict:
+    from apps.piagam.models import JenisPiagam, PiagamTerbit, TemplatePiagam
+    from apps.piagam.services import pastikan_template_bawaan
+    from apps.piagam.views_admin import kegiatan_dari_form
+
+    pastikan_template_bawaan()
+    return {
+        "template_juara": TemplatePiagam.objects.filter(jenis=JenisPiagam.JUARA, aktif=True),
+        "kegiatan_piagam": kegiatan_dari_form(f),
+        "n_piagam": PiagamTerbit.objects.filter(sumber=f"form:{f.pk}").count(),
+    }
 
 
 def _hasil_input(request, f: Formulir):

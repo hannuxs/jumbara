@@ -1,0 +1,29 @@
+{% extends "superadmin/base.html" %}
+{% block judul %}Piagam {{ k.nama }}{% endblock %}
+{% block judul_halaman %}Piagam · {{ k.nama }}{% endblock %}
+{% block aksi_judul %}<a href="{% url 'piagam_admin:unduh_kontingen' k.pk %}" class="btn-utama btn-kecil">Unduh PDF kontingen</a>{% endblock %}
+{% block konten %}
+<div class="mb-3"><a href="{% url 'piagam_admin:beranda' %}" class="btn-abu btn-kecil">← Piagam</a></div>
+<div class="space-y-2">
+  {% for x in daftar %}
+    <div class="kartu flex flex-wrap items-center gap-3" x-data="{ ubah: false }">
+      <div class="min-w-0 flex-1">
+        <div class="font-semibold text-navy">{{ x.p.nama_lengkap }}</div>
+        <div class="text-xs text-abu">{{ x.p.get_peran_display }}{% if x.terbit %} · <span class="font-mono">{{ x.terbit.nomor }}</span>{% endif %}</div>
+        {% if x.alasan %}<div class="mt-1 text-xs font-semibold text-merah">{{ x.alasan }}</div>{% endif %}
+      </div>
+      {% if not x.alasan %}<a href="{% url 'piagam_admin:unduh_peserta' x.p.pk %}" class="btn-abu btn-kecil">Unduh</a>{% endif %}
+      {% if x.p.tidak_berhak_piagam %}
+        <form method="post">{% csrf_token %}<input type="hidden" name="peserta" value="{{ x.p.pk }}"><input type="hidden" name="berhak" value="1"><button class="btn-abu btn-kecil" type="submit">Jadikan berhak</button></form>
+      {% else %}
+        <button type="button" class="btn-abu btn-kecil" @click="ubah = !ubah">Tidak berhak…</button>
+        <form method="post" x-show="ubah" x-cloak class="flex w-full gap-2">{% csrf_token %}<input type="hidden" name="peserta" value="{{ x.p.pk }}"><input type="hidden" name="berhak" value="0">
+          <input name="alasan" class="input min-h-[36px] flex-1 py-1 text-sm" maxlength="255" placeholder="Alasan (sanksi pedoman BAB VI D)" required>
+          <button class="btn-bahaya btn-kecil" type="submit">Simpan</button></form>
+      {% endif %}
+    </div>
+  {% empty %}
+    <p class="kartu text-abu">Belum ada biodata di kontingen ini.</p>
+  {% endfor %}
+</div>
+{% endblock %}

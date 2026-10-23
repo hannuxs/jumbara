@@ -1,0 +1,107 @@
+{% extends "superadmin/base.html" %}
+{% load sigap %}
+{% block judul %}{% if t %}Template {{ t.nama }}{% else %}Template piagam baru{% endif %}{% endblock %}
+{% block judul_halaman %}{% if t %}Template · {{ t.nama }}{% else %}Template piagam baru{% endif %}{% endblock %}
+{% block skrip_tambahan %}<script src="{% aset 'js/piagam.js' %}" defer></script>{% endblock %}
+{% block konten %}
+<div class="mb-3"><a href="{% url 'piagam_admin:beranda' %}" class="btn-abu btn-kecil">← Piagam</a></div>
+<div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
+  <section class="kartu min-w-0 xl:col-span-1">
+    <h2 class="mb-3 font-semibold">Pengaturan</h2>
+    <form method="post" novalidate>
+      {% csrf_token %}<input type="hidden" name="aksi" value="pengaturan">
+      {% if form.errors %}<div class="pesan-galat"><span>Ada isian yang perlu diperbaiki.</span></div>{% endif %}
+      {% include "komponen/isian.html" with f=form.nama %}
+      <div class="grid grid-cols-1 gap-x-3 sm:grid-cols-2">
+        {% include "komponen/isian.html" with f=form.jenis %}
+        {% include "komponen/isian.html" with f=form.ukuran_kertas %}
+      </div>
+      {% include "komponen/isian.html" with f=form.orientasi %}
+      {% include "komponen/isian.html" with f=form.desain_bawaan %}
+      {% include "komponen/isian.html" with f=form.tempel_logo %}
+      <div class="grid grid-cols-1 gap-x-2 sm:grid-cols-3">
+        {% include "komponen/isian.html" with f=form.logo_x %}
+        {% include "komponen/isian.html" with f=form.logo_y %}
+        {% include "komponen/isian.html" with f=form.logo_tinggi %}
+      </div>
+      {% include "komponen/isian.html" with f=form.aktif %}
+      <button class="btn-utama btn-kecil" type="submit">Simpan pengaturan</button>
+    </form>
+    {% if t %}
+    <div class="mt-5 border-t border-gray-100 pt-4">
+      <h3 class="mb-2 font-semibold">Latar dari panitia</h3>
+      {% if t.latar %}<p class="mb-2 text-sm">Terpasang: <strong>{{ t.latar_asli }}</strong></p>{% else %}<p class="mb-2 text-sm text-abu">Belum ada; memakai desain bawaan SIGAP.</p>{% endif %}
+      <form method="post" enctype="multipart/form-data" class="space-y-2">
+        {% csrf_token %}<input type="hidden" name="aksi" value="latar">
+        <input type="file" name="latar" accept=".png,.jpg,.jpeg,.pdf" class="block w-full text-sm" aria-label="File latar">
+        <p class="bantuan">PNG/JPG resolusi tinggi atau PDF satu halaman (maks. 20 MB). Orientasi menyesuaikan gambar.</p>
+        <div class="flex flex-wrap gap-2"><button class="btn-utama btn-kecil" type="submit">Unggah latar</button>
+          {% if t.latar %}<button class="btn-abu btn-kecil" type="submit" name="hapus_latar" value="1">Hapus latar</button>{% endif %}</div>
+      </form>
+    </div>
+    <div class="mt-5 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
+      <a href="{% url 'piagam_admin:template_pratinjau_pdf' t.pk %}" target="_blank" rel="noopener" class="btn-abu btn-kecil">Pratinjau PDF</a>
+      <form method="post" data-konfirmasi="Kembalikan semua elemen teks ke susunan bawaan?">{% csrf_token %}<input type="hidden" name="aksi" value="elemen_bawaan"><button class="btn-abu btn-kecil" type="submit">Susunan teks bawaan</button></form>
+      <form method="post" action="{% url 'piagam_admin:template_hapus' t.pk %}" data-konfirmasi="Hapus template ini?">{% csrf_token %}<button class="btn-abu btn-kecil text-merah" type="submit">Hapus template</button></form>
+    </div>
+    {% endif %}
+  </section>
+
+  {% if t %}
+  <section class="kartu min-w-0 xl:col-span-2" x-data="editorPiagam({ lebarMm: {{ lebar_mm|stringformat:'s' }}, tinggiMm: {{ tinggi_mm|stringformat:'s' }}, urlSimpan: '{% url 'piagam_admin:template_elemen' t.pk %}', urlPratinjau: '{% url 'piagam_admin:template_pratinjau' t.pk %}' })" x-init="mulai()">
+    {{ elemen|json_script:"data-elemen" }}
+    <div class="mb-2 flex flex-wrap items-center gap-2">
+      <h2 class="flex-1 font-semibold">Posisi teks <span class="text-xs font-normal text-abu">({{ lebar_mm }} x {{ tinggi_mm }} mm, data contoh terpanjang)</span></h2>
+      <button type="button" class="btn-abu btn-kecil" @click="tambah()">+ Teks</button>
+      <button type="button" class="btn-utama btn-kecil" @click="simpan()" :disabled="menyimpan" x-text="berubah ? 'Simpan dan perbarui pratinjau' : 'Simpan'"></button>
+    </div>
+    <p x-show="pesan" x-cloak class="mb-2 text-sm" :class="galat ? 'text-merah' : 'text-hijau'" x-text="pesan"></p>
+    <p class="mb-2 text-xs text-abu">Seret kotak untuk memindahkan teks. Kotak menunjukkan posisi; teks pada gambar diperbarui setelah disimpan.</p>
+    <div class="relative select-none overflow-hidden rounded-lg border border-gray-200 bg-gray-50" x-ref="kanvas" style="touch-action: none">
+      <img :src="urlGambar()" alt="Pratinjau piagam" class="block w-full" draggable="false">
+      <template x-for="(e, i) in elemen" :key="i">
+        <div class="absolute cursor-move rounded border-2" :style="kotak(e)" @pointerdown="tekan(i, $event)"
+             :class="pilih === i ? 'border-oranye bg-oranye/10' : 'border-sky-400/60 hover:border-sky-500'" :title="e.teks"></div>
+      </template>
+    </div>
+
+    <template x-if="elemen[pilih]">
+      <div class="mt-4 rounded-xl border border-gray-200 p-3">
+        <div class="mb-2 flex flex-wrap items-center gap-2">
+          <select class="input min-h-[36px] w-full min-w-0 py-1 text-sm sm:w-auto sm:max-w-xs" x-model.number="pilih" aria-label="Pilih elemen">
+            <template x-for="(e, i) in elemen" :key="i"><option :value="i" x-text="(i + 1) + '. ' + (e.teks || '').slice(0, 40)"></option></template>
+          </select>
+          <span class="flex-1"></span>
+          <button type="button" class="btn-abu btn-kecil px-2" @click="geser(0, -1)" aria-label="Naik 1 mm">↑</button>
+          <button type="button" class="btn-abu btn-kecil px-2" @click="geser(0, 1)" aria-label="Turun 1 mm">↓</button>
+          <button type="button" class="btn-abu btn-kecil px-2" @click="geser(-1, 0)" aria-label="Kiri 1 mm">←</button>
+          <button type="button" class="btn-abu btn-kecil px-2" @click="geser(1, 0)" aria-label="Kanan 1 mm">→</button>
+          <button type="button" class="btn-abu btn-kecil" @click="tengahkan()">Tengahkan</button>
+          <button type="button" class="btn-abu btn-kecil text-merah" @click="hapus()">Hapus</button>
+        </div>
+        <label class="label text-sm" for="el-teks">Teks</label>
+        <input id="el-teks" class="input mb-1" x-model="elemen[pilih].teks" @input="berubah = true" maxlength="300">
+        <div class="mb-3 flex flex-wrap gap-1">
+          {% for kunci, arti in placeholder.items %}<button type="button" class="rounded border border-gray-200 bg-white px-1.5 py-0.5 font-mono text-[11px] hover:border-oranye" title="{{ arti }}" data-kunci="{{ kunci }}" @click="sisip($el.dataset.kunci)">{{ "{" }}{{ kunci }}{{ "}" }}</button>{% endfor %}
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+          <label>x (mm)<input class="input min-h-[36px] py-1" type="number" step="0.5" x-model.number="elemen[pilih].x" @input="berubah = true"></label>
+          <label>y garis dasar (mm)<input class="input min-h-[36px] py-1" type="number" step="0.5" x-model.number="elemen[pilih].y" @input="berubah = true"></label>
+          <label>Lebar kotak (mm)<input class="input min-h-[36px] py-1" type="number" step="0.5" x-model.number="elemen[pilih].lebar" @input="berubah = true"></label>
+          <label>Rata<select class="input min-h-[36px] py-1" x-model="elemen[pilih].rata" @change="berubah = true"><option value="KIRI">Kiri</option><option value="TENGAH">Tengah</option><option value="KANAN">Kanan</option></select></label>
+          <label class="col-span-2">Huruf<select class="input min-h-[36px] py-1" x-model="elemen[pilih].font" @change="berubah = true">{% for kode, label in huruf %}<option value="{{ kode }}">{{ label }}</option>{% endfor %}</select></label>
+          <label>Ukuran (pt)<input class="input min-h-[36px] py-1" type="number" step="0.5" x-model.number="elemen[pilih].ukuran" @input="berubah = true"></label>
+          <label>Ukuran terkecil<input class="input min-h-[36px] py-1" type="number" step="0.5" x-model.number="elemen[pilih].ukuran_min" @input="berubah = true"></label>
+          <label>Warna<input class="input min-h-[36px] py-1" type="color" x-model="elemen[pilih].warna" @input="berubah = true"></label>
+          <label>Maks. baris<input class="input min-h-[36px] py-1" type="number" min="1" max="6" x-model.number="elemen[pilih].baris_maks" @input="berubah = true"></label>
+          <label class="col-span-2 flex items-center gap-2 pt-5"><input type="checkbox" class="h-5 w-5 accent-oranye" x-model="elemen[pilih].kapital" @change="berubah = true"> HURUF KAPITAL</label>
+        </div>
+        <p class="mt-2 text-xs text-abu">Teks yang terlalu panjang otomatis mengecil sampai "ukuran terkecil"; bila maks. baris lebih dari 1, teks dibungkus ke baris berikutnya.</p>
+      </div>
+    </template>
+  </section>
+  {% else %}
+  <section class="kartu xl:col-span-2 text-sm text-abu">Simpan pengaturan dulu; setelah itu latar bisa diunggah dan posisi teks diatur.</section>
+  {% endif %}
+</div>
+{% endblock %}

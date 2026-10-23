@@ -144,3 +144,10 @@ Semua hal yang **tidak diminta secara eksplisit** oleh panitia/Farhan tetapi dit
 | 23 Okt 2026 | 1 | Tempat sampah umum (`apps/inti/sampah.py`) dengan pemeriksaan bentrok sebelum memulihkan | Semua data soft delete bisa dipulihkan dari satu halaman (R9) | - |
 | 23 Okt 2026 | 2 | Kartu R7b: kode kartu dipindah ke dalam pelat putih QR; peran turun ke baris baru bila tidak muat di samping lencana tingkat; teks lencana Wira navy | Kode tetap terbaca di atas latar warna; nama peran panjang tidak terpotong; kontras | `gambar_kartu` |
 | 23 Okt 2026 | 3 | `jalankan.bat` selalu HTTPS (sertifikat buatan sendiri) dan `http://` ke port yang sama dialihkan ke `https://`; `-Https` dihapus, `-Http` untuk mode tanpa HTTPS | Kamera HP wajib HTTPS; satu alamat untuk laptop dan HP | `jalankan.bat -Http` |
+| 23 Okt 2026 | 5 | Desain piagam bawaan SIGAP (bingkai, ornamen, logo, teks) selama desain panitia belum ada | Panitia bisa melihat dan menguji piagam sebelum 5 Nov | Unggah latar / matikan "bingkai bawaan" |
+| 23 Okt 2026 | 5 | PDF piagam dibuat ulang setiap diunduh dari data tersimpan (bukan file tersimpan); nomor tetap, nama yang diperbaiki ikut diperbarui | Hemat disk; perbaikan nama tidak perlu menerbitkan nomor baru | - |
+| 23 Okt 2026 | 5 | Latar PDF dari panitia diubah menjadi gambar 200 dpi saat diunggah (pypdfium2) | ReportLab tidak bisa menempel halaman PDF; hasil cetak tetap tajam | - |
+| 23 Okt 2026 | 5 | Mengunduh piagam kontingen sekaligus menerbitkan nomor yang belum ada (satu klik) | Alur sederhana untuk superadmin | - |
+| 23 Okt 2026 | 5 | Piagam juara ditolak bila ada nilai seri di 1-N kecuali dicentang "tetap terbitkan" | Mencegah piagam juara salah sebelum pemecah seri diisi | - |
+| 23 Okt 2026 | 5 | Placeholder tambahan `{kegiatan_tingkat}`, `{juara_romawi}`, `{acara_panjang}`; huruf Poppins/Inter (TTF dari woff2, OFL) dan Times | Teks piagam rapi untuk lomba tanpa tingkat (Got Talent) | - |
+| 23 Okt 2026 | 5 | Isian angka mm menerima koma atau titik (`AngkaMm`) | Pengguna Indonesia mengetik koma | - |
