@@ -1,5 +1,7 @@
 {% extends "base.html" %}
+{% load sigap %}
 {% block judul %}{{ f.judul }}{% endblock %}
+{% block skrip %}<script src="{% aset 'js/isian.js' %}" defer></script>{% endblock %}
 {% block atribut_body %}data-ingat-rute{% endblock %}
 {% block kelas_main %}mx-auto w-full max-w-xl px-3 py-4{% endblock %}
 {% block isi %}
@@ -12,11 +14,11 @@
 {% if messages %}{% for m in messages %}<div class="{% if m.tags == 'error' %}pesan-galat{% else %}pesan-sukses{% endif %}" role="status">{{ m }}</div>{% endfor %}{% endif %}
 {% if not terbuka %}<div class="pesan-peringatan"><span>Form ini sedang tidak dibuka{% if f.terkunci %} (nilai sudah dikunci){% endif %}.</span></div>{% endif %}
 
-<form method="get" class="kartu mb-3">
+<form method="get" class="kartu mb-3" x-data="namaJuri()" x-init="mulai()" @submit="simpan()">
   <label for="nama-juri" class="label wajib">Nama Juri</label>
-  <div class="flex gap-2"><input id="nama-juri" name="nama" value="{{ nama }}" class="input" maxlength="60" placeholder="Contoh: Budi Santoso" autocomplete="name" required>
+  <div class="flex gap-2"><input id="nama-juri" name="nama" value="{{ nama }}" x-ref="nama" class="input" maxlength="60" placeholder="Contoh: Budi Santoso" autocomplete="name" required>
     <button class="btn-utama" type="submit">Pakai</button></div>
-  <p class="bantuan">Status "sudah dinilai" di bawah dihitung untuk nama ini.</p>
+  <p class="bantuan">Nama ini diingat di perangkat ini, juga setelah keluar atau sesi habis. Status "sudah dinilai" dihitung untuk nama ini.</p>
 </form>
 
 {% if nama %}<p class="mb-2 text-sm">Sudah dinilai oleh <strong>{{ nama }}</strong>: {{ n_sudah }} dari {{ subjek|length }}.</p>{% endif %}

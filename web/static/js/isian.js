@@ -14,6 +14,27 @@ document.addEventListener("alpine:init", function () {
     } catch (e) { /* penyimpanan tidak tersedia */ }
   }
 
+  function simpanNamaJuri(nama) {
+    // Hanya akun juri: nama perangkat = Nama Juri. Superadmin tetap memakai namanya sendiri untuk log.
+    if (nama && document.body.dataset.peran === "JURI" && window.SIGAP) { window.SIGAP.aturNama(nama); }
+  }
+
+  window.Alpine.data("namaJuri", function () {
+    return {
+      mulai: function () {
+        var isian = this.$refs.nama;
+        var tersimpan = window.SIGAP ? window.SIGAP.namaPelaku() : "";
+        if (isian && !isian.value && tersimpan) {
+          // Langsung tampilkan status untuk nama yang tersimpan, tanpa mengetik ulang.
+          var url = new URL(location.href);
+          url.searchParams.set("nama", tersimpan);
+          location.replace(url.toString());
+        }
+      },
+      simpan: function () { simpanNamaJuri(this.$refs.nama.value.trim()); }
+    };
+  });
+
   window.Alpine.data("isianForm", function (kunciDraf, penilaian) {
     return {
       batas: {},
@@ -26,6 +47,11 @@ document.addEventListener("alpine:init", function () {
         var adaIsi = Array.prototype.some.call(this.$refs.form.querySelectorAll("input[name^=k_]:not([type=hidden]):not([type=file]), textarea[name^=k_]"), function (el) {
           return (el.type === "radio" || el.type === "checkbox") ? el.checked : el.value !== "";
         });
+        // Nama Juri / pengisi: dari nama yang tersimpan di perangkat ini (tetap ada setelah keluar/sesi habis).
+        var isianNama = this.$refs.form.elements.nama_pengisi;
+        if (isianNama && !isianNama.value && window.SIGAP && window.SIGAP.namaPelaku()) {
+          isianNama.value = window.SIGAP.namaPelaku();
+        }
         var draf = bacaDraf(kunciDraf);
         if (!adaIsi && draf && draf.isi) {
           this.terapkan(draf.isi);
@@ -91,6 +117,7 @@ document.addEventListener("alpine:init", function () {
       },
       kirimSungguh: function () {
         this._yakin = true;
+        simpanNamaJuri((this.$refs.form.elements.nama_pengisi || {}).value);
         this.ringkas.buka = false;
         var form = this.$refs.form;
         tulisDraf(kunciDraf, null);
