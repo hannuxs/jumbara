@@ -1,12 +1,16 @@
 # SIGAP JUMBARA: satu perintah untuk memeriksa kesiapan lalu menjalankan server.
 #
 # Cara pakai (dari folder proyek):
-#   jalankan.bat                    periksa semua, perbaiki yang aman, lalu jalankan server (port 8000)
+#   jalankan.bat                    periksa semua, perbaiki yang aman, lalu jalankan server HTTPS (port 8000)
 #   jalankan.bat -CekSaja           hanya periksa, tidak menjalankan server
 #   jalankan.bat -Port 8080         pakai port lain
-#   jalankan.bat -Produksi          jalankan dengan Waitress (seperti server produksi), bukan runserver
+#   jalankan.bat -Produksi          jalankan dengan Waitress (seperti di belakang Apache), hanya http://
 #   jalankan.bat -Tes               jalankan juga tes otomatis (pytest) dan ruff sebelum server
-#   jalankan.bat -Https             server uji dengan HTTPS sementara (port 8443) agar kamera HP bisa diuji
+#   jalankan.bat -Http              tanpa HTTPS (http://), misalnya bila ada masalah sertifikat
+#
+# Bawaan HTTPS di laptop memakai sertifikat buatan sendiri (python manage.py sigap_https_dev) karena kamera HP
+# (pemindai, Anjangsana) hanya jalan lewat https://. Di server produksi HTTPS diurus Apache + sertifikat asli
+# (docs/21-DEPLOY-WINDOWS.md); aplikasi di sana berjalan sebagai Windows Service, bukan lewat jalankan.bat.
 #
 # Yang diperiksa dan diperbaiki otomatis bila aman:
 #   Python 3.12, virtualenv web\.venv, paket requirements, file web\.env, kunci rahasia,
@@ -18,12 +22,14 @@ param(
     [switch]$CekSaja,
     [switch]$Produksi,
     [switch]$Tes,
-    [switch]$Https
+    [switch]$Http,
+    [switch]$Https  # tidak dipakai lagi (HTTPS sudah bawaan); dibiarkan agar perintah lama tidak galat
 )
 # "Continue": peringatan di stderr dari program luar (pip, tailwind) tidak boleh menghentikan skrip.
 # Keberhasilan setiap langkah dinilai dari $LASTEXITCODE.
 $ErrorActionPreference = "Continue"
-if ($Https -and -not $PSBoundParameters.ContainsKey("Port")) { $Port = 8443 }
+# HTTPS bawaan, kecuali -Http atau -Produksi (Waitress tidak melayani TLS).
+$pakaiHttps = -not ($Http -or $Produksi)
 $env:BROWSERSLIST_IGNORE_OLD_DATA = "1"
 $env:PYTHONUTF8 = "1"
 $web = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
@@ -212,17 +218,17 @@ $hosts = ($envv["DJANGO_ALLOWED_HOSTS"] -split ",") | ForEach-Object { $_.Trim()
 $ipLan = @(Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
     Where-Object { $_.IPAddress -notlike "127.*" -and $_.IPAddress -notlike "169.254.*" -and $_.PrefixOrigin -ne "WellKnown" } |
     Select-Object -ExpandProperty IPAddress)
-$skema = if ($Https) { "https" } else { "http" }
+$skema = if ($pakaiHttps) { "https" } else { "http" }
 Info "Laptop ini : $skema`://localhost:$Port/"
 foreach ($ip in $ipLan) {
     if ($hosts -contains $ip) { Info "HP (Wi-Fi sama): $skema`://$ip`:$Port/   (ketik $skema`://)" }
     else { Peringatan "IP $ip belum ada di DJANGO_ALLOWED_HOSTS. Tambahkan ,$ip di web\.env bila ingin membuka dari HP." }
 }
 Info "Superadmin : $skema`://localhost:$Port/masuk/"
-if ($Https) {
-    Info "HTTPS sementara: di HP akan muncul peringatan sertifikat. Chrome: Lanjutan > Lanjutkan. Safari: Tampilkan Detail > kunjungi."
+if ($pakaiHttps) {
+    Info "Sertifikat buatan sendiri: pertama kali di HP/browser muncul peringatan. Chrome: Lanjutan > Lanjutkan. Safari: Tampilkan Detail > kunjungi."
 } else {
-    Info "Kamera HP butuh HTTPS. Untuk uji coba: jalankan.bat -Https  (lalu buka https://IP-laptop:8443 di HP)"
+    Peringatan "Mode http:// : kamera HP (pemindai, Anjangsana) tidak bisa dipakai. Jalankan jalankan.bat tanpa -Http/-Produksi untuk HTTPS."
 }
 
 Write-Host ""
@@ -232,8 +238,8 @@ else { Write-Host "Semua siap." -ForegroundColor Green }
 if ($CekSaja) { exit 0 }
 
 Write-Host ""
-if ($Https) {
-    Write-Host "Menjalankan server uji HTTPS sementara di port $Port. Hentikan dengan Ctrl+C." -ForegroundColor Cyan
+if ($pakaiHttps) {
+    Write-Host "Menjalankan server HTTPS di port $Port. Hentikan dengan Ctrl+C." -ForegroundColor Cyan
     & $py manage.py sigap_https_dev "0.0.0.0:$Port"
 } elseif ($Produksi) {
     $threads = if ($envv["WAITRESS_THREADS"]) { $envv["WAITRESS_THREADS"] } else { "48" }

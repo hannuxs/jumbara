@@ -46,14 +46,18 @@ Pilihan:
 
 | Perintah | Fungsi |
 |---|---|
-| `jalankan.bat` | Periksa semua lalu jalankan server pengembangan di port 8000 |
+| `jalankan.bat` | Periksa semua lalu jalankan server **HTTPS** di port 8000 (kamera HP bisa dipakai) |
 | `jalankan.bat -CekSaja` | Hanya periksa, tidak menjalankan server |
 | `jalankan.bat -Port 8080` | Pakai port lain |
-| `jalankan.bat -Produksi` | Jalankan dengan Waitress (seperti di server) |
+| `jalankan.bat -Produksi` | Jalankan dengan Waitress (seperti di belakang Apache), hanya `http://` |
 | `jalankan.bat -Tes` | Jalankan juga `ruff` dan `pytest` sebelum server |
-| `jalankan.bat -Https` | Server uji dengan HTTPS sementara di port 8443, agar **kamera HP** bisa diuji |
+| `jalankan.bat -Http` | Tanpa HTTPS (`http://`), misalnya bila ada masalah sertifikat. Kamera HP tidak bisa dipakai |
 
-Tanda `[OK]` = beres, `[!]` = peringatan (server tetap jalan), `[X]` = harus diperbaiki (ada baris "Solusi"). Hentikan server dengan **Ctrl+C**. Dari HP (Wi-Fi yang sama) buka **http://IP-laptop:8000**; untuk kamera (pemindai, Anjangsana) pakai `jalankan.bat -Https` lalu buka **https://IP-laptop:8443** dan terima peringatan sertifikat (Chrome: Lanjutan > Lanjutkan; Safari: Tampilkan Detail > kunjungi situs web ini).
+Tanda `[OK]` = beres, `[!]` = peringatan (server tetap jalan), `[X]` = harus diperbaiki (ada baris "Solusi"). Hentikan server dengan **Ctrl+C**.
+
+**HTTPS di laptop:** `jalankan.bat` selalu HTTPS (kamera HP untuk pemindai dan Anjangsana hanya jalan lewat `https://`). Dari HP di Wi-Fi yang sama buka **https://IP-laptop:8000** (alamatnya ditampilkan saat `jalankan.bat` berjalan). Mengetik `http://` otomatis dialihkan ke `https://`. Karena sertifikatnya buatan sendiri, pertama kali di setiap HP/browser muncul peringatan: Chrome > Lanjutan > Lanjutkan; Safari > Tampilkan Detail > kunjungi situs web ini. Sertifikat dibuat ulang otomatis bila IP laptop berubah.
+
+**Di server produksi** HTTPS diurus Apache XAMPP dengan sertifikat asli (tanpa peringatan), dan aplikasi berjalan sebagai Windows Service, bukan lewat `jalankan.bat`. Lihat `docs/21-DEPLOY-WINDOWS.md`.
 
 ## Daftar semua perintah
 
@@ -71,8 +75,8 @@ Perintah yang ditandai **(Admin)** harus dijalankan di PowerShell "Run as Admini
 | Perintah | Fungsi |
 |---|---|
 | `jalankan.bat` (dari folder proyek) | Cek menyeluruh lalu jalankan server (lihat pilihan di atas) |
-| `python manage.py runserver 0.0.0.0:8000` | Server pengembangan saja, tanpa pemeriksaan |
-| `python manage.py sigap_https_dev` | Server uji HTTPS di port 8443 (sertifikat buatan sendiri, dibuat otomatis). Bisa diberi alamat lain: `sigap_https_dev 0.0.0.0:9443`. **Hanya untuk uji**, bukan produksi |
+| `python manage.py runserver 0.0.0.0:8000` | Server pengembangan `http://` saja, tanpa pemeriksaan |
+| `python manage.py sigap_https_dev 0.0.0.0:8000` | Server HTTPS laptop tanpa pemeriksaan (yang dipakai `jalankan.bat`); sertifikat buatan sendiri dibuat otomatis |
 | `.venv\Scripts\waitress-serve.exe --listen=0.0.0.0:8000 --threads=48 sigap.wsgi:application` | Waitress seperti di server produksi |
 
 ### Database dan data awal
@@ -124,7 +128,7 @@ Memulihkan cadangan: ikuti `docs/21-DEPLOY-WINDOWS.md` bagian 10.
 | `pytest tests/test_absensi.py -q` | Tes satu file saja |
 | `ruff check .` | Periksa kerapian dan kesalahan kode |
 | `ruff format .` | Rapikan format kode |
-| `python manage.py sigap_uji_beban --url http://127.0.0.1:8000 --ya` | Uji beban absensi: 30 HP x 15 titik memindai bersamaan ke server yang sedang berjalan, lalu periksa tidak ada data dobel. Data uji dihapus otomatis. **Jangan dijalankan saat acara berlangsung** |
+| `python manage.py sigap_uji_beban --url https://127.0.0.1:8000 --ya` | Uji beban absensi: 30 HP x 15 titik memindai bersamaan ke server yang sedang berjalan, lalu periksa tidak ada data dobel. Data uji dihapus otomatis. **Jangan dijalankan saat acara berlangsung** |
 
 Pilihan `sigap_uji_beban`: `--perangkat 30`, `--titik 15`, `--pindaian 40`, `--jeda 0.5` (detik), `--dobel 0.10`, `--ulang 0.05`, `--simpan-data` (data uji tidak dihapus), `--ya` (wajib bila `DJANGO_DEBUG=False`). Hasil yang benar: "Uji beban LULUS" dengan 0 pasangan ganda.
 

@@ -79,11 +79,15 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 9. Laptop: MariaDB 10.11 pengembangan belum menjadi service (lihat bagian 13 dokumen deploy) dan perlu dinyalakan ulang setelah laptop restart. Sandi root-nya ada sebagai komentar di `web\.env` laptop.
 10. Konfirmasi panitia: kuota SD Negeri 006 Tanjung Palas Utara (25 peserta inti, batas Mula 20).
 11. **Sandi ketiga akun di laptop disetel ulang (22 Okt, 22.0x)** ke nilai `SIGAP_SANDI_AWAL_*` di `web\.env` laptop yang baru Farhan ubah, dengan `sigap_atur_sandi --semua --dari-env`. Sandi itu pendek (4-7 karakter): ganti dengan sandi kuat dari Superadmin > Akun dan kata sandi (aplikasi belum memaksa ganti sandi saat masuk). Sandi di `.env` hanya dipakai saat akun dibuat, jadi mengubah `.env` saja tidak mengubah sandi.
-12. **Uji kamera dari HP sebelum pemasangan:** jalankan `jalankan.bat -Https`, buka `https://IP-laptop:8443` di HP (Wi-Fi sama), terima peringatan sertifikat. Bila HP tidak bisa membuka, izinkan port 8443 di Windows Firewall (jendela izin muncul saat pertama kali dijalankan).
+12. **Laptop sudah selalu HTTPS:** `jalankan.bat` lalu buka `https://IP-laptop:8000` di HP (Wi-Fi sama), terima peringatan sertifikat sekali per HP. Bila HP tidak bisa membuka, izinkan port 8000 di Windows Firewall.
 13. **Panitia kirim kuota final per kegiatan** paling lambat 31 Okt, lalu isi di Superadmin > Kegiatan dan kuota.
 14. Di laptop, status form biodata masih **Paksa buka** (untuk uji). Kembalikan ke **Otomatis** sebelum 26 Okt (`sigap_cek_lingkungan` mengingatkan).
 
 ## Catatan sesi
+
+### 23 Oktober 2026 (Claude Code): HTTPS menjadi bawaan jalankan.bat
+
+Pertanyaan Farhan: kenapa setelah uji kamera berhasil `jalankan.bat` masih `http://`. Benar, seharusnya digabung. `jalankan.bat` kini selalu HTTPS di port 8000 (sertifikat buatan sendiri), `http://` ke port yang sama dialihkan 301 ke `https://`, opsi `-Https` dihapus (diganti `-Http` bila perlu tanpa HTTPS), `sigap_uji_beban` menerima `https://` dengan sertifikat buatan sendiri. Diuji: HTTPS dari localhost dan IP Wi-Fi 200, pengalihan http -> https, form masuk (CSRF) lewat browser, uji beban kecil lewat HTTPS lulus. Server produksi tetap HTTPS lewat Apache + sertifikat asli (docs/21).
 
 ### 23 Oktober 2026 (Claude Code): revisi R7-R9
 

@@ -1,7 +1,7 @@
 """Uji beban absensi: banyak HP memindai bersamaan ke server yang sedang berjalan (docs/14-ABSENSI.md).
 
 Contoh (server dev di port 8010):
-    python manage.py sigap_uji_beban --url http://127.0.0.1:8010
+    python manage.py sigap_uji_beban --url https://127.0.0.1:8000           (laptop, jalankan.bat)
     python manage.py sigap_uji_beban --url http://127.0.0.1:8000 --perangkat 30 --titik 15 --pindaian 40
 
 Yang dilakukan:
@@ -25,6 +25,7 @@ from __future__ import annotations
 import json
 import random
 import secrets
+import ssl
 import statistics
 import threading
 import time
@@ -52,6 +53,10 @@ from apps.kartu import services as kartu_svc
 from apps.kontingen.models import Kontingen
 
 KODE_KONTINGEN = "UJI-BEBAN"
+# Server laptop (jalankan.bat) memakai sertifikat buatan sendiri; alat uji lokal ini tidak memverifikasinya.
+KONTEKS_TLS = ssl.create_default_context()
+KONTEKS_TLS.check_hostname = False
+KONTEKS_TLS.verify_mode = ssl.CERT_NONE
 
 
 class HP:
@@ -75,7 +80,7 @@ class HP:
             req.add_header("Content-Type", "application/json")
         mulai = time.perf_counter()
         try:
-            with urllib.request.urlopen(req, timeout=30) as r:  # noqa: S310
+            with urllib.request.urlopen(req, timeout=30, context=KONTEKS_TLS) as r:  # noqa: S310
                 isi = r.read()
                 kode = r.status
         except urllib.error.HTTPError as e:
@@ -121,7 +126,7 @@ class Command(BaseCommand):
         if not url.startswith(("http://", "https://")):
             raise CommandError("--url harus diawali http:// atau https://")
         try:
-            urllib.request.urlopen(url + "/", timeout=10).read(1)  # noqa: S310
+            urllib.request.urlopen(url + "/", timeout=10, context=KONTEKS_TLS).read(1)  # noqa: S310
         except OSError as e:
             raise CommandError(f"Server {url} tidak bisa dihubungi ({e}). Jalankan dulu servernya.") from None
 

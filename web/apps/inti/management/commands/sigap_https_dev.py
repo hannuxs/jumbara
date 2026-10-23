@@ -1,4 +1,5 @@
-"""HTTPS sementara untuk menguji kamera di HP lewat Wi-Fi yang sama (HANYA pengembangan/uji coba).
+"""HTTPS untuk laptop (pengembangan/uji coba) agar kamera HP bisa dipakai lewat Wi-Fi yang sama.
+Dipakai otomatis oleh jalankan.bat. Alamat http:// ke port yang sama dialihkan ke https://.
 
 Kamera browser (getUserMedia) hanya mau jalan di https:// atau localhost. Perintah ini menjalankan
 server pengembangan Django dengan TLS memakai sertifikat self-signed yang dibuat otomatis untuk
@@ -15,6 +16,7 @@ Setelah itu kamera bisa dipakai. Produksi TIDAK memakai ini, melainkan Apache + 
 
 from __future__ import annotations
 
+import contextlib
 import ipaddress
 import json
 import socket
@@ -98,29 +100,78 @@ def siapkan_sertifikat(folder: Path, ips: list[str]) -> tuple[Path, Path, bool]:
 
 
 class ServerHTTPS(WSGIServer):
-    """WSGIServer Django yang socket-nya dibungkus TLS. Handshake terjadi di thread permintaan."""
+    """WSGIServer Django dengan TLS. Setiap koneksi diperiksa di thread-nya sendiri: bila browser mengirim
+    http:// biasa, dibalas pengalihan 301 ke https:// (alamat yang sama), bila TLS dibungkus lalu dilayani."""
 
     konteks: ssl.SSLContext | None = None
-
-    def server_bind(self):
-        super().server_bind()
-        self.socket = self.konteks.wrap_socket(self.socket, server_side=True, do_handshake_on_connect=False)
 
     def setup_environ(self):
         super().setup_environ()
         self.base_environ["HTTPS"] = "on"  # wsgi.url_scheme = https -> request.is_secure()
 
+    def finish_request(self, request, client_address):
+        request.settimeout(15)
+        try:
+            awal = request.recv(1, socket.MSG_PEEK)
+        except OSError:
+            return
+        if not awal:
+            return
+        if awal[0] != 0x16:  # bukan TLS handshake: permintaan http:// biasa
+            self._alihkan_ke_https(request)
+            return
+        request.settimeout(None)
+        tls = self.konteks.wrap_socket(request, server_side=True)
+        try:
+            self.RequestHandlerClass(tls, client_address, self)
+        finally:
+            with contextlib.suppress(OSError):
+                tls.close()
+
+    def _alihkan_ke_https(self, sock) -> None:
+        """Balas permintaan http:// biasa dengan pengalihan 301 ke https:// (alamat dan jalur sama)."""
+        data = b""
+        try:
+            while b"\r\n\r\n" not in data and len(data) < 16384:
+                potong = sock.recv(4096)
+                if not potong:
+                    break
+                data += potong
+        except OSError:
+            return
+        baris = data.split(b"\r\n")
+        try:
+            jalur = baris[0].split(b" ")[1].decode("latin-1")
+        except IndexError:
+            jalur = "/"
+        host = next(
+            (b.split(b":", 1)[1].strip().decode("latin-1") for b in baris[1:] if b.lower().startswith(b"host:")), ""
+        )
+        if not jalur.startswith("/") or not host or any(ch in host for ch in "/\\ \r\n"):
+            jalur, host = "/", f"localhost:{self.server_address[1]}"
+        tujuan = f"https://{host}{jalur}"
+        isi = f"Gunakan alamat https:// : {tujuan}\n".encode()
+        kepala = (
+            "HTTP/1.1 301 Moved Permanently\r\n"
+            f"Location: {tujuan}\r\n"
+            "Content-Type: text/plain; charset=utf-8\r\n"
+            f"Content-Length: {len(isi)}\r\n"
+            "Connection: close\r\n\r\n"
+        )
+        with contextlib.suppress(OSError):
+            sock.sendall(kepala.encode("latin-1", "replace") + isi)
+
     def handle_error(self, request, client_address):
         import sys
 
         e = sys.exc_info()[1]
-        if isinstance(e, (ssl.SSLError, ConnectionError, TimeoutError)):
-            return  # HP menolak sertifikat sebelum pengguna menekan "Lanjutkan": wajar, abaikan
+        if isinstance(e, (ssl.SSLError, ConnectionError, TimeoutError, OSError)):
+            return  # HP menolak sertifikat sebelum pengguna menekan "Lanjutkan", koneksi putus: wajar
         super().handle_error(request, client_address)
 
 
 class Command(RunserverCommand):
-    help = "Server pengembangan dengan HTTPS self-signed agar kamera bisa diuji di HP (bukan untuk produksi)."
+    help = "Server laptop dengan HTTPS (sertifikat buatan sendiri) agar kamera HP bisa dipakai; dipakai jalankan.bat."
     default_port = "8443"
     default_addr = "0.0.0.0"
     server_cls = ServerHTTPS
@@ -136,7 +187,7 @@ class Command(RunserverCommand):
         w = self.stdout.write
         w(
             self.style.WARNING(
-                "HTTPS SEMENTARA untuk uji kamera di HP (sertifikat buatan sendiri, BUKAN untuk produksi)."
+                "HTTPS laptop (sertifikat buatan sendiri). Server produksi memakai Apache + sertifikat asli."
             )
         )
         w(f"Sertifikat {'baru dibuat' if baru else 'dipakai ulang'}: {sert} (berlaku {UMUR_HARI} hari).")
