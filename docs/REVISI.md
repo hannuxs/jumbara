@@ -286,3 +286,13 @@ Halaman **Superadmin > Tempat sampah** sekarang juga memuat form, kiriman form, 
 ## R7c. Kuning Wira lebih cerah dan bergradasi (permintaan Farhan, 23 Okt 2026)
 
 Latar kartu Wira diganti dari kuning gelap (#CA8A04 -> #FACC15) menjadi **kuning cerah bergradasi** #FACC15 (kiri atas) -> #FDE047 -> #FEF08A (kanan bawah). Teks tetap navy agar terbaca. QR 4/4 terbaca pada render uji; tes kartu lulus.
+
+---
+
+## R7d. Hiasan latar kartu Wira terlihat (laporan Farhan, 23 Okt 2026)
+
+**Laporan:** di kartu Wira, lingkaran hiasan latar tidak terlihat sehingga kartu monoton.
+
+**Penyebab:** hiasan berwarna putih transparan; di atas kuning muda tidak kelihatan.
+
+**Perbaikan:** warna hiasan menyesuaikan latar: putih transparan untuk Mula dan Madya (tetap), **kuning keemasan (#F59E0B) transparan** dengan opasitas lebih tinggi untuk Wira (lingkaran dan garis gelombang). QR 4/4 terbaca pada render uji; tes kartu lulus.

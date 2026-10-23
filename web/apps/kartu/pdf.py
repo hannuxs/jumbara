@@ -209,15 +209,20 @@ def gambar_kartu(c: canvas.Canvas, p: Peserta, x: float, y: float, uk: UkuranKar
 
     # 1. Latar penuh gradasi diagonal (gelap kiri atas -> terang kanan bawah) + hiasan transparan.
     c.linearGradient(x, atas, x + w, y, gradasi, extend=True)
-    c.setFillColor(colors.white)
-    c.setFillAlpha(0.10)
+    # Hiasan: putih transparan di latar gelap (Mula, Madya); kuning keemasan transparan di latar terang (Wira)
+    # karena putih tidak terlihat di atas kuning muda.
+    latar_terang = teks != colors.white
+    hias = colors.HexColor("#F59E0B") if latar_terang else colors.white
+    a_besar, a_kecil, a_garis = (0.22, 0.16, 0.45) if latar_terang else (0.10, 0.07, 0.18)
+    c.setFillColor(hias)
+    c.setFillAlpha(a_besar)
     c.circle(x + w + 2 * mm, atas - 8 * mm, 24 * mm, stroke=0, fill=1)
     c.circle(x - 6 * mm, y + 40 * mm, 20 * mm, stroke=0, fill=1)
-    c.setFillAlpha(0.07)
+    c.setFillAlpha(a_kecil)
     c.circle(x + w - 10 * mm, t(52), 9 * mm, stroke=0, fill=1)
     c.setFillAlpha(1)
-    c.setStrokeColor(colors.white)
-    c.setStrokeAlpha(0.18)
+    c.setStrokeColor(hias)
+    c.setStrokeAlpha(a_garis)
     c.setLineWidth(0.8)
     gel = c.beginPath()
     gel.moveTo(x, t(60))
