@@ -263,3 +263,20 @@ Pengujian: 154 tes otomatis lulus (tes baru: tingkat beda ditolak, urutan isian,
 ## R9. Tempat sampah untuk data lain (temuan Claude, 23 Okt 2026)
 
 Halaman **Superadmin > Tempat sampah** sekarang juga memuat form, kiriman form, kehadiran yang dibatalkan, dan review Anjangsana, masing-masing dengan **Pulihkan** dan **Hapus permanen** (tercatat di log). Pemulihan yang bentrok ditolak dengan pesan jelas (slug form sudah dipakai, orang sudah tercatat hadir lagi, review aktif sudah ada, juri yang sama sudah mengirim ulang, form kiriman masih di tempat sampah). Form yang masih punya kiriman tidak bisa dihapus permanen; berkas unggahan ikut dihapus saat kiriman dihapus permanen.
+
+---
+
+## R7b. Kartu: tingkat lebih kecil, latar penuh warna tingkat (permintaan panitia lewat Farhan, 23 Okt 2026)
+
+**Permintaan:** tulisan Mula/Madya/Wira tidak perlu sebesar sebelumnya; warna dominan menjadi latar **seluruh kartu** kecuali QR dan sekitarnya yang tetap hitam putih; susunan dan estetika ditinjau ulang.
+
+**Desain akhir (`gambar_kartu`):**
+1. Seluruh kartu berlatar gradasi diagonal warna tingkat (Mula #14532D -> #16A34A, Madya #1E3A8A -> #2563EB, Wira #CA8A04 -> #FACC15) dengan lingkaran transparan dan garis gelombang tipis sebagai hiasan.
+2. Kapsul putih logo PMI + Jumbara V, judul acara dan tema di bawahnya.
+3. Foto 24 x 32 mm (sesuai spesifikasi) berbingkai putih dan bayangan di kiri.
+4. Di kanan foto: lencana kecil **"TINGKAT MADYA"** (putih, teks gelap) dan lencana peran (garis), nama besar (maksimal 3 baris, huruf menyesuaikan), No. Induk Anggota (bila ada), garis tipis, kontingen.
+5. **Pelat putih** berisi QR hitam putih 45 x 45 mm dengan margin 3 mm dan kode kartu di dalamnya, berbayang halus.
+6. Kaki: "KARTU WAJIB DIPAKAI SELAMA KEGIATAN" dan kode kontingen + versi.
+- Teks putih di atas hijau/biru, teks navy di atas kuning (kontras cukup). Lencana tingkat Wira memakai teks navy.
+
+**Pengujian:** 4 kartu contoh (3 tingkat, nama 3 baris, peran panjang yang turun ke baris baru) dirender dan QR dipindai OpenCV: 4/4 terbaca; seluruh tes lulus.

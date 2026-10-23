@@ -42,11 +42,11 @@ WARNA_TINGKAT = {
     "WIRA": (colors.HexColor("#EAB308"), NAVY),
 }
 ORANYE_TUA = colors.HexColor("#E2451F")
-# Gradasi kartu per tingkat (gelap -> terang) dan warna teks di atasnya; warna dasar sama dengan tema web.
+# Latar kartu per tingkat (gradasi gelap -> terang) dan warna teks di atasnya; warna dasar = tema web.
 GRADASI_TINGKAT = {
-    "MULA": ([colors.HexColor("#14532D"), colors.HexColor("#16A34A"), colors.HexColor("#4ADE80")], colors.white),
-    "MADYA": ([colors.HexColor("#1E3A8A"), colors.HexColor("#2563EB"), colors.HexColor("#60A5FA")], colors.white),
-    "WIRA": ([colors.HexColor("#B45309"), colors.HexColor("#EAB308"), colors.HexColor("#FDE68A")], NAVY),
+    "MULA": ([colors.HexColor("#14532D"), colors.HexColor("#15803D"), colors.HexColor("#16A34A")], colors.white),
+    "MADYA": ([colors.HexColor("#1E3A8A"), colors.HexColor("#1D4ED8"), colors.HexColor("#2563EB")], colors.white),
+    "WIRA": ([colors.HexColor("#CA8A04"), colors.HexColor("#EAB308"), colors.HexColor("#FACC15")], NAVY),
 }
 CATATAN_CETAK = "Cetak dengan skala 100% (Actual size), kertas F4 215 x 330 mm."
 
@@ -156,8 +156,8 @@ def _teks_tengah_muat(c, teks, font, besar, kecil, x_tengah, y, lebar):
 
 
 def _gradasi(tingkat: str) -> tuple[list, colors.Color]:
-    """(warna gradasi gelap -> terang, warna teks di atas gradasi) per tingkat."""
-    return GRADASI_TINGKAT.get(tingkat, ([ORANYE_TUA, ORANYE, colors.HexColor("#FDBA74")], colors.white))
+    """(warna gradasi gelap -> terang, warna teks di atasnya) per tingkat."""
+    return GRADASI_TINGKAT.get(tingkat, ([ORANYE_TUA, ORANYE, colors.HexColor("#FB923C")], colors.white))
 
 
 def _jalur_bulat(c: canvas.Canvas, x: float, y: float, w: float, h: float, r: float):
@@ -166,15 +166,31 @@ def _jalur_bulat(c: canvas.Canvas, x: float, y: float, w: float, h: float, r: fl
     return p
 
 
+def _lencana(c: canvas.Canvas, teks: str, x: float, y: float, ukuran: float, isi, warna_teks, garis=None) -> float:
+    """Lencana bulat (pil). Mengembalikan lebarnya."""
+    lebar = stringWidth(teks, "Helvetica-Bold", ukuran) + 3.6 * mm
+    tinggi = ukuran * 0.36 * mm + 2.6 * mm
+    if isi is not None:
+        c.setFillColor(isi)
+    if garis is not None:
+        c.setStrokeColor(garis)
+        c.setLineWidth(0.6)
+    c.roundRect(x, y, lebar, tinggi, tinggi / 2, stroke=1 if garis is not None else 0, fill=1 if isi is not None else 0)
+    c.setFillColor(warna_teks)
+    c.setFont("Helvetica-Bold", ukuran)
+    c.drawString(x + 1.8 * mm, y + (tinggi - ukuran * 0.7) / 2 + 0.15 * mm, teks)
+    return lebar
+
+
 QR_KARTU = 45 * mm  # spesifikasi 13-KARTU-QR: QR minimal 45 x 45 mm
 
 
 def gambar_kartu(c: canvas.Canvas, p: Peserta, x: float, y: float, uk: UkuranKartu) -> float:
     """Satu kartu (sudut kiri bawah di x, y). Mengembalikan ukuran QR (untuk tes).
 
-    Desain: kepala bergradasi warna tingkat dengan tepi melengkung, kapsul logo PMI + Jumbara V, foto
-    berbingkai, tingkat dan peran di samping foto, nama besar + Nomor Induk Anggota, QR hitam putih 45 mm
-    di pelat putih, pita kaki bergradasi."""
+    Desain (REVISI R7b): seluruh kartu berlatar gradasi warna tingkat; QR 45 mm dan kode kartu di pelat
+    putih (tetap hitam putih); kapsul logo PMI + Jumbara V; foto berbingkai di kiri, di kanan lencana
+    tingkat dan peran, nama, Nomor Induk Anggota, kontingen; pita teks di kaki."""
     w, h = uk.lebar, uk.tinggi
     tepi = 4.5 * mm
     atas = y + h
@@ -182,36 +198,34 @@ def gambar_kartu(c: canvas.Canvas, p: Peserta, x: float, y: float, uk: UkuranKar
     def t(mm_dari_atas: float) -> float:
         return atas - mm_dari_atas * mm
 
-    warna, _ = WARNA_TINGKAT.get(p.tingkat, (ORANYE, colors.white))
-    gradasi, teks_kepala = _gradasi(p.tingkat)
+    gradasi, teks = _gradasi(p.tingkat)
+    # Warna teks lencana putih: warna tingkat tergelap; untuk Wira (kuning) pakai navy agar kontras.
+    gelap = gradasi[0] if teks == colors.white else NAVY
+    teks_lembut = colors.Color(teks.red, teks.green, teks.blue, alpha=0.85)
     radius = 3.5 * mm
-    dasar_kepala = 40  # mm dari atas
 
     c.saveState()
     c.clipPath(_jalur_bulat(c, x, y, w, h, radius), stroke=0, fill=0)
 
-    # 1. Latar putih + kepala bergradasi diagonal dengan tepi bawah melengkung.
+    # 1. Latar penuh gradasi diagonal (gelap kiri atas -> terang kanan bawah) + hiasan transparan.
+    c.linearGradient(x, atas, x + w, y, gradasi, extend=True)
     c.setFillColor(colors.white)
-    c.rect(x, y, w, h, stroke=0, fill=1)
-    c.saveState()
-    gel = c.beginPath()
-    gel.moveTo(x, atas)
-    gel.lineTo(x + w, atas)
-    gel.lineTo(x + w, t(dasar_kepala - 5))
-    gel.curveTo(x + w * 0.7, t(dasar_kepala + 3), x + w * 0.35, t(dasar_kepala - 4), x, t(dasar_kepala))
-    gel.close()
-    c.clipPath(gel, stroke=0, fill=0)
-    c.linearGradient(x, t(dasar_kepala), x + w, atas, gradasi, extend=True)
-    c.setFillColor(colors.white)
-    c.setFillAlpha(0.13)
-    c.circle(x + w - 6 * mm, t(6), 17 * mm, stroke=0, fill=1)
-    c.setFillAlpha(0.09)
-    c.circle(x + w - 16 * mm, t(32), 11 * mm, stroke=0, fill=1)
-    c.circle(x + 4 * mm, t(2), 8 * mm, stroke=0, fill=1)
+    c.setFillAlpha(0.10)
+    c.circle(x + w + 2 * mm, atas - 8 * mm, 24 * mm, stroke=0, fill=1)
+    c.circle(x - 6 * mm, y + 40 * mm, 20 * mm, stroke=0, fill=1)
+    c.setFillAlpha(0.07)
+    c.circle(x + w - 10 * mm, t(52), 9 * mm, stroke=0, fill=1)
     c.setFillAlpha(1)
-    c.restoreState()
+    c.setStrokeColor(colors.white)
+    c.setStrokeAlpha(0.18)
+    c.setLineWidth(0.8)
+    gel = c.beginPath()
+    gel.moveTo(x, t(60))
+    gel.curveTo(x + w * 0.35, t(54), x + w * 0.6, t(66), x + w, t(57))
+    c.drawPath(gel, stroke=1, fill=0)
+    c.setStrokeAlpha(1)
 
-    # 2. Kapsul putih berisi logo PMI dan Jumbara V (logo PMI wajib tampil jelas, latar terang).
+    # 2. Kapsul putih berisi logo PMI dan Jumbara V (logo PMI di latar terang, tidak diubah).
     tinggi_logo = 8 * mm
     img_pmi = ImageReader(str(FOLDER_IMG / "pmi-logo-160.png"))
     img_jv = ImageReader(str(FOLDER_IMG / "jumbara-v-400.jpg"))
@@ -221,7 +235,7 @@ def gambar_kartu(c: canvas.Canvas, p: Peserta, x: float, y: float, uk: UkuranKar
     lebar_kapsul = lb_pmi + lb_jv + jarak + 6 * mm
     tinggi_kapsul = tinggi_logo + 2.2 * mm
     xk = x + (w - lebar_kapsul) / 2
-    yk = t(2.8) - tinggi_kapsul
+    yk = t(3) - tinggi_kapsul
     c.setFillColor(colors.white)
     c.roundRect(xk, yk, lebar_kapsul, tinggi_kapsul, tinggi_kapsul / 2, stroke=0, fill=1)
     c.drawImage(img_pmi, xk + 3 * mm, yk + 1.1 * mm, width=lb_pmi, height=tinggi_logo, mask="auto")
@@ -232,19 +246,20 @@ def gambar_kartu(c: canvas.Canvas, p: Peserta, x: float, y: float, uk: UkuranKar
     c.drawImage(img_jv, xk + 3 * mm + lb_pmi + jarak, yk + 1.1 * mm, width=lb_jv, height=tinggi_logo, mask="auto")
 
     # 3. Judul acara.
-    c.setFillColor(teks_kepala)
-    _teks_tengah_muat(c, "JUMBARA PMR KABUPATEN BULUNGAN V · 2026", "Helvetica-Bold", 6.6, 4.8, x + w / 2, t(16.2),
+    c.setFillColor(teks)
+    _teks_tengah_muat(c, "JUMBARA PMR KABUPATEN BULUNGAN V · 2026", "Helvetica-Bold", 6.6, 4.8, x + w / 2, t(16.6),
                       w - 2 * tepi)  # fmt: skip
-    _teks_tengah_muat(c, "Unggul · Responsif · Berkarakter", "Helvetica-Oblique", 4.8, 3.8, x + w / 2, t(18.7),
+    c.setFillColor(teks_lembut)
+    _teks_tengah_muat(c, "Unggul · Responsif · Berkarakter", "Helvetica-Oblique", 4.8, 3.8, x + w / 2, t(19.1),
                       w - 2 * tepi)  # fmt: skip
 
-    # 4. Foto 3x4 berbingkai putih dengan bayangan, menimpa batas kepala.
-    lebar_foto, tinggi_foto = 20 * mm, 26.67 * mm
-    xf = x + tepi + 0.5 * mm
-    yf = t(21) - tinggi_foto
+    # 4. Foto 3x4 berbingkai putih dengan bayangan.
+    lebar_foto, tinggi_foto = 24 * mm, 32 * mm
+    xf = x + tepi + 0.6 * mm
+    yf = t(23) - tinggi_foto
     bingkai = 1 * mm
     c.setFillColor(colors.black)
-    c.setFillAlpha(0.16)
+    c.setFillAlpha(0.18)
     c.roundRect(xf - bingkai + 0.6 * mm, yf - bingkai - 0.8 * mm, lebar_foto + 2 * bingkai, tinggi_foto + 2 * bingkai,
                 2.2 * mm, stroke=0, fill=1)  # fmt: skip
     c.setFillAlpha(1)
@@ -265,85 +280,72 @@ def gambar_kartu(c: canvas.Canvas, p: Peserta, x: float, y: float, uk: UkuranKar
         c.drawCentredString(xf + lebar_foto / 2, yf + tinggi_foto / 2, "FOTO 3x4")
     c.restoreState()
 
-    # 5. Di samping foto: tingkat besar, lencana peran, kontingen.
+    # 5. Kolom identitas di kanan foto.
     x_id = xf + lebar_foto + bingkai + 3.5 * mm
     lebar_id = x + w - tepi - x_id
-    c.setFillColor(teks_kepala)
-    c.setFont("Helvetica", 5.5)
-    c.drawString(x_id, t(24.2), "TINGKAT")
-    _teks_kiri_muat(c, p.get_tingkat_display().upper(), "Helvetica-Bold", 18, 10, x_id, t(30.6), lebar_id)
+    # Lencana tingkat (isi putih, teks warna tingkat) dan peran (garis putih/gelap).
+    y_lencana = t(23) - 4.4 * mm
+    lb = _lencana(c, f"TINGKAT {p.get_tingkat_display().upper()}", x_id, y_lencana, 6.2, colors.white, gelap)
     peran = p.get_peran_display().upper()
-    ukuran_peran = 6.4
-    while ukuran_peran > 4.5 and stringWidth(peran, "Helvetica-Bold", ukuran_peran) + 4 * mm > lebar_id:
-        ukuran_peran -= 0.2
-    lebar_peran = stringWidth(peran, "Helvetica-Bold", ukuran_peran) + 4 * mm
-    y_peran = t(dasar_kepala - 1.5)
-    c.setFillColor(colors.white)
-    c.setStrokeColor(warna)
-    c.setLineWidth(0.6)
-    c.roundRect(x_id, y_peran, lebar_peran, 4.8 * mm, 2.4 * mm, stroke=1, fill=1)
-    c.setFillColor(gradasi[0])
-    c.setFont("Helvetica-Bold", ukuran_peran)
-    c.drawString(x_id + 2 * mm, y_peran + 1.6 * mm, peran)
-    yy = y_peran - 1.2 * mm
+    ukuran_peran = 6.2
+    sisa = lebar_id - lb - 1.5 * mm
+    if stringWidth(peran, "Helvetica-Bold", ukuran_peran) + 3.6 * mm <= sisa:
+        _lencana(c, peran, x_id + lb + 1.5 * mm, y_lencana, ukuran_peran, None, teks, garis=teks)
+        yy = y_lencana - 1.8 * mm
+    else:
+        while ukuran_peran > 4.6 and stringWidth(peran, "Helvetica-Bold", ukuran_peran) + 3.6 * mm > lebar_id:
+            ukuran_peran -= 0.2
+        y_peran = y_lencana - 5.2 * mm
+        _lencana(c, peran, x_id, y_peran, ukuran_peran, None, teks, garis=teks)
+        yy = y_peran - 1.8 * mm
+    # Nama (maksimal 3 baris, huruf menyesuaikan).
+    ukuran, baris = _pas_baris(p.nama_lengkap.upper(), "Helvetica-Bold", lebar_id, 11.5, 7, 3)
+    c.setFillColor(teks)
+    c.setFont("Helvetica-Bold", ukuran)
+    for b in baris[:3]:
+        yy -= ukuran * 1.08
+        c.drawString(x_id, yy, b)
+    nia = " ".join((p.nomor_induk_anggota or "").split())
+    if nia:
+        yy -= 3.2 * mm
+        c.setFillColor(teks_lembut)
+        _teks_kiri_muat(c, f"No. Induk Anggota: {nia}", "Helvetica", 6.6, 4.8, x_id, yy, lebar_id)
+    # Garis pemisah tipis lalu kontingen.
+    yy -= 2.2 * mm
+    c.setStrokeColor(teks)
+    c.setStrokeAlpha(0.45)
+    c.setLineWidth(0.5)
+    c.line(x_id, yy, x_id + min(lebar_id, 22 * mm), yy)
+    c.setStrokeAlpha(1)
     ukuran_k, baris_k = _pas_baris(p.kontingen.nama, "Helvetica-Bold", lebar_id, 7, 5, 2)
-    c.setFillColor(colors.HexColor("#374151"))
+    c.setFillColor(teks)
     c.setFont("Helvetica-Bold", ukuran_k)
     for b in baris_k[:2]:
-        yy -= ukuran_k * 1.15
+        yy -= ukuran_k * 1.2
         c.drawString(x_id, yy, b)
 
-    # 6. Pita kaki, kode kartu, dan QR 45 mm (posisi tetap dari bawah).
-    tinggi_kaki = 4.8 * mm
-    c.saveState()
-    kaki = c.beginPath()
-    kaki.rect(x, y, w, tinggi_kaki)
-    c.clipPath(kaki, stroke=0, fill=0)
-    c.linearGradient(x, y, x + w, y, gradasi, extend=True)
-    c.restoreState()
-    c.setFillColor(teks_kepala)
-    c.setFont("Helvetica-Bold", 5.2)
-    c.drawString(x + tepi, y + 1.7 * mm, "KARTU WAJIB DIPAKAI SELAMA KEGIATAN")
-    c.drawRightString(x + w - tepi, y + 1.7 * mm, f"{p.kontingen.kode} · v{p.versi_kartu}")
-    y_kode = y + tinggi_kaki + 2.3 * mm
+    # 6. Pelat putih berisi QR 45 mm (hitam putih) dan kode kartu.
+    pad = 3 * mm
+    lebar_pelat = QR_KARTU + 2 * pad
+    tinggi_pelat = QR_KARTU + pad + 7.2 * mm
+    x_pelat = x + (w - lebar_pelat) / 2
+    y_pelat = y + 7.2 * mm
+    c.setFillColor(colors.black)
+    c.setFillAlpha(0.18)
+    c.roundRect(x_pelat + 0.5 * mm, y_pelat - 0.8 * mm, lebar_pelat, tinggi_pelat, 3 * mm, stroke=0, fill=1)
+    c.setFillAlpha(1)
+    c.setFillColor(colors.white)
+    c.roundRect(x_pelat, y_pelat, lebar_pelat, tinggi_pelat, 3 * mm, stroke=0, fill=1)
+    gambar_qr(c, tk.isi_qr_peserta(p.qr_token), x_pelat + pad, y_pelat + tinggi_pelat - pad - QR_KARTU, QR_KARTU)
     c.setFillColor(NAVY)
     c.setFont("Courier-Bold", 11.5)
-    c.drawCentredString(x + w / 2, y_kode, p.kode_kartu or "")
-    pelat = QR_KARTU + 2.4 * mm
-    x_pelat = x + (w - pelat) / 2
-    y_pelat = y_kode + 4.1 * mm
-    c.setFillColor(colors.white)
-    c.setStrokeColor(warna)
-    c.setLineWidth(0.8)
-    c.roundRect(x_pelat, y_pelat, pelat, pelat, 2.2 * mm, stroke=1, fill=1)
-    gambar_qr(c, tk.isi_qr_peserta(p.qr_token), x_pelat + 1.2 * mm, y_pelat + 1.2 * mm, QR_KARTU)
+    c.drawCentredString(x + w / 2, y_pelat + 2.6 * mm, p.kode_kartu or "")
 
-    # 7. Nama besar (+ Nomor Induk Anggota) di ruang antara foto dan QR; ukuran huruf menyesuaikan ruang.
-    nia = " ".join((p.nomor_induk_anggota or "").split())
-    y_atas_nama = yf - bingkai - 1.8 * mm
-    y_bawah_nama = y_pelat + pelat + 1.8 * mm + 2.2 * mm + (3.3 * mm if nia else 0)
-    ruang_nama = y_atas_nama - y_bawah_nama
-    nama = p.nama_lengkap.upper()
-    # Satuan ReportLab = point; ruang_nama juga dalam point.
-    maks = min(13, (ruang_nama / 2) / 1.05)
-    ukuran, baris = _pas_baris(nama, "Helvetica-Bold", w - 2 * tepi, 13, 7, 1)
-    if len(baris) > 1 or ukuran < 9:
-        ukuran, baris = _pas_baris(nama, "Helvetica-Bold", w - 2 * tepi, maks, 6, 2)
-        baris = baris[:2]
-    yy = y_atas_nama
-    c.setFillColor(NAVY)
-    c.setFont("Helvetica-Bold", ukuran)
-    for b in baris:
-        yy -= ukuran * 1.05
-        c.drawCentredString(x + w / 2, yy, b)
-    if nia:
-        yy -= 3.3 * mm
-        c.setFillColor(colors.HexColor("#4B5563"))
-        _teks_tengah_muat(c, f"No. Induk Anggota: {nia}", "Helvetica", 7, 5, x + w / 2, yy, w - 2 * tepi)
-    y_garis = yy - 2 * mm
-    c.setStrokeColor(warna)
-    c.setLineWidth(1.2)
-    c.line(x + w / 2 - 8 * mm, y_garis, x + w / 2 + 8 * mm, y_garis)
+    # 7. Kaki: teks di atas warna.
+    c.setFillColor(teks)
+    c.setFont("Helvetica-Bold", 5.2)
+    c.drawString(x + tepi, y + 3 * mm, "KARTU WAJIB DIPAKAI SELAMA KEGIATAN")
+    c.drawRightString(x + w - tepi, y + 3 * mm, f"{p.kontingen.kode} · v{p.versi_kartu}")
     c.restoreState()
 
     # Garis tepi tipis kartu (panduan potong).

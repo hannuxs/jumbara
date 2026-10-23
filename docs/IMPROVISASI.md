@@ -142,3 +142,4 @@ Semua hal yang **tidak diminta secara eksplisit** oleh panitia/Farhan tetapi dit
 | 23 Okt 2026 | 2 | Baris Nomor Induk Anggota tidak dicetak bila kosong | Kartu tidak menampilkan isian kosong | - |
 | 23 Okt 2026 | 4 | Halaman form juri otomatis memakai Nama Juri yang tersimpan di perangkat | Juri tidak perlu mengetik ulang setelah keluar/sesi habis (R8) | `namaJuri` di `isian.js` |
 | 23 Okt 2026 | 1 | Tempat sampah umum (`apps/inti/sampah.py`) dengan pemeriksaan bentrok sebelum memulihkan | Semua data soft delete bisa dipulihkan dari satu halaman (R9) | - |
+| 23 Okt 2026 | 2 | Kartu R7b: kode kartu dipindah ke dalam pelat putih QR; peran turun ke baris baru bila tidak muat di samping lencana tingkat; teks lencana Wira navy | Kode tetap terbaca di atas latar warna; nama peran panjang tidak terpotong; kontras | `gambar_kartu` |
