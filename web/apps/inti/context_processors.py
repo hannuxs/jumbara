@@ -31,6 +31,10 @@ MENU_SUPERADMIN = [
         ("rekap", "Rekap dan poin", "/rekap/"),
         ("kegiatan_kuota", "Kegiatan dan kuota", "/superadmin/absensi/kegiatan/"),
     ]),
+    ("Penilaian", [
+        ("form", "Form dan penilaian", "/superadmin/form/"),
+        ("juri", "Halaman juri", "/juri/"),
+    ]),
     ("Anjangsana", [
         ("anjangsana", "Sesi, status, poster", "/superadmin/anjangsana/"),
         ("anjangsana_peringkat", "Peringkat dan review", "/rekap/anjangsana/"),

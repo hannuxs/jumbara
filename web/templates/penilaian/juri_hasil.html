@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load sigap penilaian %}
+{% block judul %}Hasil {{ f.judul }}{% endblock %}
+{% block kelas_main %}mx-auto w-full max-w-xl px-3 py-4{% endblock %}
+{% block isi %}
+<div class="mb-3 flex items-center gap-2"><a href="{% url 'penilaian:juri_subjek' f.slug %}" class="btn-abu btn-kecil">←</a><h1 class="text-xl font-bold">Hasil · {{ f.judul }}</h1></div>
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <table class="tabel text-sm">
+    <thead><tr><th>#</th><th>Subjek</th>{% for k in kolom %}<th class="text-right">{{ k.label }}</th>{% endfor %}</tr></thead>
+    <tbody>{% for b in baris %}<tr><td class="font-bold">{{ b.peringkat|default:"-" }}{% if b.seri %}={% endif %}</td><td>{{ b.subjek.label }}</td>{% for k in kolom %}<td class="text-right">{{ b.nilai|get_item:k.kode|angka_tampil:k }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% endblock %}

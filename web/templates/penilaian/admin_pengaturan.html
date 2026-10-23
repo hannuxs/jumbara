@@ -1,0 +1,58 @@
+{% extends "superadmin/base.html" %}
+{% block judul %}{% if f %}Pengaturan {{ f.judul }}{% else %}Form baru{% endif %}{% endblock %}
+{% block judul_halaman %}{% if f %}Pengaturan · {{ f.judul }}{% else %}Form baru{% endif %}{% endblock %}
+{% block konten %}
+<form method="post" novalidate class="kartu max-w-3xl" x-data="{ mode: '{{ form.mode.value|default:'INPUT' }}', akses: '{{ form.akses.value|default:'SUPERADMIN' }}', subjek: '{{ form.jenis_subjek.value|default:'BEBAS' }}' }">
+  {% csrf_token %}
+  {% if form.errors %}<div class="pesan-galat"><span>Ada isian yang perlu diperbaiki.{% for e in form.non_field_errors %} {{ e }}{% endfor %}</span></div>{% endif %}
+  {% include "komponen/isian.html" with f=form.judul %}
+  {% include "komponen/isian.html" with f=form.deskripsi %}
+  <div class="grid gap-x-4 sm:grid-cols-3">
+    <div class="isian"><label class="label wajib" for="{{ form.mode.id_for_label }}">Mode</label>
+      <select name="mode" id="{{ form.mode.id_for_label }}" class="input" x-model="mode">{% for v, l in form.fields.mode.choices %}<option value="{{ v }}" {% if form.mode.value == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>{% for e in form.mode.errors %}<p class="galat">{{ e }}</p>{% endfor %}</div>
+    <div class="isian"><label class="label wajib" for="{{ form.akses.id_for_label }}">Siapa yang mengisi</label>
+      <select name="akses" id="{{ form.akses.id_for_label }}" class="input" x-model="akses">{% for v, l in form.fields.akses.choices %}<option value="{{ v }}" {% if form.akses.value == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>{% for e in form.akses.errors %}<p class="galat">{{ e }}</p>{% endfor %}</div>
+    {% include "komponen/isian.html" with f=form.status %}
+  </div>
+  <div class="grid gap-x-4 sm:grid-cols-2">
+    {% include "komponen/isian.html" with f=form.buka_pada %}
+    {% include "komponen/isian.html" with f=form.tutup_pada %}
+  </div>
+  <div class="grid gap-x-4 sm:grid-cols-3">
+    <div class="isian"><label class="label wajib" for="{{ form.jenis_subjek.id_for_label }}">Subjek</label>
+      <select name="jenis_subjek" id="{{ form.jenis_subjek.id_for_label }}" class="input" x-model="subjek">{% for v, l in form.fields.jenis_subjek.choices %}<option value="{{ v }}" {% if form.jenis_subjek.value == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>{% for e in form.jenis_subjek.errors %}<p class="galat">{{ e }}</p>{% endfor %}</div>
+    {% include "komponen/isian.html" with f=form.tingkat %}
+    {% include "komponen/isian.html" with f=form.kegiatan %}
+  </div>
+  <div x-show="mode === 'INPUT' && subjek !== 'BEBAS'">{% include "komponen/isian.html" with f=form.satu_per_subjek %}</div>
+
+  <fieldset x-show="mode === 'PENILAIAN'" class="mb-5 rounded-2xl border border-gray-200 p-4">
+    <legend class="px-2 text-sm font-semibold text-oranye-tua">Pengaturan penilaian</legend>
+    <div class="grid gap-x-4 sm:grid-cols-3">
+      {% include "komponen/isian.html" with f=form.jenis_penilaian %}
+      {% include "komponen/isian.html" with f=form.agregasi %}
+      {% include "komponen/isian.html" with f=form.jumlah_juri %}
+    </div>
+    <div class="grid gap-x-4 sm:grid-cols-3">
+      {% include "komponen/isian.html" with f=form.cabang %}
+      {% include "komponen/isian.html" with f=form.kolom_urut %}
+      {% include "komponen/isian.html" with f=form.arah_urut %}
+    </div>
+    {% if not f %}<p class="bantuan -mt-3 mb-4">Kolom peringkat bisa dipilih setelah kolom-kolom form dibuat.</p>{% endif %}
+    {% include "komponen/isian.html" with f=form.juri_lihat_hasil %}
+    {% include "komponen/isian.html" with f=form.kunci_ref %}
+  </fieldset>
+  {% include "komponen/isian.html" with f=form.slug %}
+
+  <details class="mb-5" x-show="subjek === 'KONTINGEN'" {% if form.subjek_kontingen.value %}open{% endif %}>
+    <summary class="cursor-pointer text-sm font-semibold text-navy">Pilih kontingen tertentu saja (misal 8 finalis Got Talent)</summary>
+    <div class="mt-2 grid max-h-72 gap-1 overflow-y-auto rounded-xl border border-gray-200 p-2 text-sm sm:grid-cols-2">
+      {% for c in form.subjek_kontingen %}<label class="flex items-center gap-2">{{ c.tag }} {{ c.choice_label }}</label>{% endfor %}
+    </div>
+    <p class="bantuan">Kosongkan untuk semua kontingen pada tingkat form.</p>
+  </details>
+  {% include "komponen/isian.html" with f=form.catatan %}
+  <p x-show="akses === 'PUBLIK'" class="pesan-info"><span>Form publik dibuka lewat link tanpa login. Jangan meminta data pribadi anak yang tidak perlu.</span></p>
+  <div class="flex gap-2"><button class="btn-utama" type="submit">Simpan</button><a href="{% if f %}{% url 'penilaian_admin:detail' f.pk %}{% else %}{% url 'penilaian_admin:daftar' %}{% endif %}" class="btn-abu">Batal</a></div>
+</form>
+{% endblock %}

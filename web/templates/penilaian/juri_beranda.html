@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block judul %}Form penilaian{% endblock %}
+{% block atribut_body %}data-ingat-rute{% endblock %}
+{% block kelas_main %}mx-auto w-full max-w-xl px-3 py-4{% endblock %}
+{% block isi %}
+<h1 class="mb-1 text-xl font-bold">Form penilaian</h1>
+<p class="mb-4 text-sm text-abu">Pilih form yang akan Anda isi. Isi Nama Juri dengan benar; nama itu tercatat di setiap nilai.</p>
+{% for nama, daftar in grup.items %}
+  <h2 class="mb-2 mt-4 text-sm font-semibold uppercase tracking-wide text-abu">{{ nama }}</h2>
+  <div class="space-y-2">
+    {% for x in daftar %}
+      <a href="{% url 'penilaian:juri_subjek' x.f.slug %}" class="flex items-center gap-3 rounded-2xl border border-garis/60 bg-white p-3 shadow-kartu hover:border-oranye" data-form="{{ x.f.slug }}">
+        <span class="h-12 w-2 shrink-0 rounded-full {% if x.f.tingkat == 'MULA' %}bg-mula{% elif x.f.tingkat == 'MADYA' %}bg-madya{% elif x.f.tingkat == 'WIRA' %}bg-wira{% else %}bg-oranye{% endif %}"></span>
+        <span class="min-w-0 flex-1"><span class="block font-semibold text-navy">{{ x.f.judul }}</span>
+          <span class="block text-xs text-abu">{{ x.f.get_tingkat_display }}{% if x.f.cabang %} · {{ x.f.cabang }}{% endif %}</span></span>
+        {% if x.terbuka %}<span class="badge bg-green-100 text-green-800">dibuka</span>{% elif x.f.terkunci %}<span class="badge bg-red-100 text-red-800">dikunci</span>{% else %}<span class="badge-abu">belum dibuka</span>{% endif %}
+      </a>
+    {% endfor %}
+  </div>
+{% empty %}
+  <div class="kartu text-center text-abu">Belum ada form penilaian yang ditugaskan. Hubungi superadmin.</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block judul %}Terkirim{% endblock %}
+{% block kelas_main %}mx-auto w-full max-w-xl px-3 py-6{% endblock %}
+{% block isi %}
+<div class="kartu text-center" data-terkirim>
+  <div class="mb-2 text-5xl text-hijau">✓</div>
+  <h1 class="mb-1 text-xl font-bold">Terima kasih!</h1>
+  <p class="mb-5">Isian untuk <strong>{{ f.judul }}</strong> sudah terkirim.</p>
+  <a href="{% url 'penilaian:isi_publik' f.slug %}" class="btn-abu w-full">Isi lagi</a>
+</div>
+{% endblock %}

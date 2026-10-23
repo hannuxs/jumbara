@@ -1,0 +1,42 @@
+{% extends "superadmin/base.html" %}
+{% load sigap penilaian %}
+{% block judul %}Kiriman #{{ x.pk }}{% endblock %}
+{% block judul_halaman %}Kiriman #{{ x.pk }} · {{ f.judul }}{% endblock %}
+{% block konten %}
+<div class="mb-3 flex flex-wrap gap-2">
+  <a href="{% url 'penilaian_admin:hasil' f.pk %}" class="btn-abu btn-kecil">← {% if f.penilaian %}Tabel hasil{% else %}Kiriman{% endif %}</a>
+  {% if not form %}<a href="?ubah=1" class="btn-abu btn-kecil">Ubah isi</a>{% endif %}
+  <form method="post">{% csrf_token %}<input type="hidden" name="aksi" value="{% if x.terkunci %}buka{% else %}kunci{% endif %}">
+    <button class="btn-abu btn-kecil" type="submit">{% if x.terkunci %}Buka kunci (juri boleh kirim ulang){% else %}Kunci lagi{% endif %}</button></form>
+  <form method="post" data-konfirmasi="Pindahkan kiriman ini ke tempat sampah?">{% csrf_token %}<input type="hidden" name="aksi" value="hapus"><button class="btn-abu btn-kecil text-merah" type="submit">Hapus</button></form>
+</div>
+<div class="kartu mb-4 max-w-3xl text-sm">
+  <div><span class="text-abu">{% if f.penilaian %}Nama Juri{% else %}Pengisi{% endif %}:</span> <strong>{{ x.nama_pengisi }}</strong></div>
+  {% if subjek %}<div><span class="text-abu">Subjek:</span> {{ subjek }}</div>{% endif %}
+  <div><span class="text-abu">Dikirim:</span> {{ x.dikirim_pada|date:"l, d F Y H.i" }} · {% if x.terkunci %}terkunci{% else %}<span class="text-amber-700">dibuka untuk diubah juri</span>{% endif %}</div>
+</div>
+{% if form %}
+  <form method="post" enctype="multipart/form-data" novalidate class="kartu max-w-3xl">
+    {% csrf_token %}<input type="hidden" name="aksi" value="ubah">
+    {% if form.errors %}<div class="pesan-galat"><span>Ada isian yang perlu diperbaiki.</span></div>{% endif %}
+    {% include "komponen/isian.html" with f=form.nama_pengisi %}
+    {% for k, fld in form.baris %}
+      {% if fld %}{% include "komponen/isian.html" with f=fld %}{% if k.jenis == "BERKAS" %}<p class="-mt-4 mb-5 text-xs text-abu">Kosongkan bila file lama tetap dipakai.</p>{% endif %}
+      {% else %}<h3 class="mb-2 mt-4 font-bold text-oranye-tua">{{ k.label }}</h3>{% endif %}
+    {% endfor %}
+    <div class="flex gap-2"><button class="btn-utama" type="submit">Simpan perubahan</button><a href="{% url 'penilaian_admin:kiriman' f.pk x.pk %}" class="btn-abu">Batal</a></div>
+  </form>
+{% else %}
+  <dl class="kartu max-w-3xl divide-y divide-gray-100 p-0 sm:p-0">
+    {% for k, v in isian %}
+      {% if k.jenis == "JUDUL" %}<div class="bg-krem px-4 py-2 font-bold text-oranye-tua">{{ k.label }}</div>
+      {% else %}<div class="grid gap-1 px-4 py-2 sm:grid-cols-3"><dt class="text-sm text-abu">{{ k.label }}</dt>
+        <dd class="text-sm font-semibold sm:col-span-2">{% if k.jenis == "BERKAS" and v %}<a class="tautan" href="{% url 'penilaian_admin:berkas' f.pk x.pk k.kode %}">{{ v.nama }}</a> <span class="text-xs text-abu">({{ v.ukuran|filesizeformat }})</span>{% else %}{{ v|isi_tampil }}{% endif %}</dd></div>{% endif %}
+    {% endfor %}
+  </dl>
+{% endif %}
+{% if x.riwayat %}
+  <h2 class="mb-2 mt-5 font-bold">Riwayat ({{ x.riwayat|length }})</h2>
+  <div class="space-y-2">{% for h in x.riwayat reversed %}<div class="kartu text-xs"><div class="font-semibold">{{ h.dikirim_pada|slice:":16"|cut:"T" }} · {{ h.nama_pengisi }}{% if h.diubah_oleh %} · diubah {{ h.diubah_oleh }}{% endif %}</div><div class="break-all text-abu">{{ h.data }}</div></div>{% endfor %}</div>
+{% endif %}
+{% endblock %}

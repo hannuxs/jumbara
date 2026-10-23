@@ -308,12 +308,16 @@ class Penghitung:
             for b in baris.values():
                 b.nilai[kode] = r.hitung_aman(pohon[kode], self._konteks(b, baris, cache_peringkat), kode)
 
-        # 4. Peringkat akhir form (kolom urut + pemecah seri).
+        # 4. Peringkat akhir form (kolom urut + pemecah seri). Bila form punya isian juri, subjek yang
+        # belum dinilai tidak diberi peringkat (nilainya hanya dari poin kehadiran/rumus).
         kolom_urut = f.kolom_urut if f.kolom_urut else ""
+        ada_isian = any(k.diisi for k in kolom)
         if kolom_urut:
             pemecah = dict(PemecahSeri.objects.filter(formulir=f).values_list("kunci_subjek", "nilai"))
             p, seri = hitung_peringkat(
-                {kk: b.nilai.get(kolom_urut) for kk, b in baris.items()}, f.arah_urut == ArahUrut.NAIK, pemecah
+                {kk: (None if ada_isian and b.belum_dinilai else b.nilai.get(kolom_urut)) for kk, b in baris.items()},
+                f.arah_urut == ArahUrut.NAIK,
+                pemecah,
             )
             for kk, b in baris.items():
                 b.peringkat = p.get(kk)

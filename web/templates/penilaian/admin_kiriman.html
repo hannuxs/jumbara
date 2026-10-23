@@ -1,0 +1,52 @@
+{% extends "superadmin/base.html" %}
+{% load sigap penilaian %}
+{% block judul %}Kiriman {{ f.judul }}{% endblock %}
+{% block judul_halaman %}Kiriman · {{ f.judul }}{% endblock %}
+{% block aksi_judul %}<a href="?unduh=xlsx{% if q %}&q={{ q|urlencode }}{% endif %}" class="btn-garis btn-kecil">Unduh Excel</a>{% endblock %}
+{% block konten %}
+<div class="mb-3 flex flex-wrap items-center gap-2">
+  <a href="{% url 'penilaian_admin:detail' f.pk %}" class="btn-abu btn-kecil">← Form</a>
+  <a href="{% url 'penilaian:isi_admin' f.slug %}" class="btn-abu btn-kecil">Isi form</a>
+  <form method="get" class="flex flex-1 gap-2"><input name="q" value="{{ q }}" class="input min-h-[36px] py-1" placeholder="Cari pengisi atau subjek" aria-label="Cari"><button class="btn-utama btn-kecil" type="submit">Cari</button></form>
+</div>
+
+<h2 class="mb-2 font-bold">Rekap ({{ total }} kiriman)</h2>
+<div class="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+  {% for r in rekap %}
+    <div class="kartu">
+      <div class="font-semibold text-navy">{{ r.k.label }}</div>
+      <div class="mb-2 text-xs text-abu">{{ r.k.get_jenis_display }} · terisi {{ r.terisi }}</div>
+      {% if r.rata %}<div class="text-sm">Rata-rata <strong>{{ r.rata }}</strong> · terkecil {{ r.min }} · terbesar {{ r.max }}</div>{% endif %}
+      {% if r.batang %}
+        <div class="space-y-1">
+          {% for b in r.batang %}
+            <div class="text-xs"><div class="flex justify-between"><span class="truncate">{{ b.label }}</span><span class="font-semibold">{{ b.n }}</span></div>
+              <div class="h-2 rounded bg-gray-100"><div class="h-2 rounded bg-oranye" style="width: {{ b.persen }}%"></div></div></div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  {% empty %}<p class="text-abu">Form belum punya isian.</p>{% endfor %}
+</div>
+
+<h2 class="mb-2 font-bold">Semua kiriman</h2>
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <table class="tabel text-sm">
+    <thead><tr><th><a href="?urut={% if request.GET.urut == '-dikirim_pada' or not request.GET.urut %}dikirim_pada{% else %}-dikirim_pada{% endif %}" class="hover:underline">Waktu</a></th><th><a href="?urut=nama_pengisi" class="hover:underline">Pengisi</a></th><th>Subjek</th>{% for k in kolom %}<th>{{ k.label|truncatechars:20 }}</th>{% endfor %}<th></th></tr></thead>
+    <tbody>
+    {% for x in halaman %}
+      <tr>
+        <td class="whitespace-nowrap text-xs">{{ x.dikirim_pada|date:"d/m H.i" }}</td>
+        <td class="font-semibold">{{ x.nama_pengisi }}</td>
+        <td class="text-xs">{% if x.kontingen %}{{ x.kontingen.nama }}{% elif x.peserta %}{{ x.peserta.nama_lengkap }}{% else %}{{ x.data|get_item:"_subjek"|default:"-" }}{% endif %}</td>
+        {% for k in kolom %}<td class="max-w-[12rem] truncate text-xs">{{ x.data|get_item:k.kode|isi_tampil|truncatechars:40 }}</td>{% endfor %}
+        <td><a href="{% url 'penilaian_admin:kiriman' f.pk x.pk %}" class="btn-abu btn-kecil">Detail</a></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="20" class="text-abu">Belum ada kiriman.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "komponen/paginasi.html" %}
+{% endblock %}

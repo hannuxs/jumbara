@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block judul %}{{ f.judul }}{% endblock %}
+{% block atribut_body %}data-ingat-rute{% endblock %}
+{% block kelas_main %}mx-auto w-full max-w-xl px-3 py-4{% endblock %}
+{% block isi %}
+<div class="mb-3 flex items-start gap-2">
+  <a href="{% url 'penilaian:juri' %}" class="btn-abu btn-kecil shrink-0">←</a>
+  <div class="min-w-0 flex-1"><h1 class="text-xl font-bold leading-tight">{{ f.judul }}</h1>
+    <div class="text-xs text-abu">{{ f.get_tingkat_display }}{% if f.cabang %} · {{ f.cabang }}{% endif %}</div></div>
+  {% if f.juri_lihat_hasil %}<a href="{% url 'penilaian:juri_hasil' f.slug %}" class="btn-abu btn-kecil shrink-0">Hasil</a>{% endif %}
+</div>
+{% if messages %}{% for m in messages %}<div class="{% if m.tags == 'error' %}pesan-galat{% else %}pesan-sukses{% endif %}" role="status">{{ m }}</div>{% endfor %}{% endif %}
+{% if not terbuka %}<div class="pesan-peringatan"><span>Form ini sedang tidak dibuka{% if f.terkunci %} (nilai sudah dikunci){% endif %}.</span></div>{% endif %}
+
+<form method="get" class="kartu mb-3">
+  <label for="nama-juri" class="label wajib">Nama Juri</label>
+  <div class="flex gap-2"><input id="nama-juri" name="nama" value="{{ nama }}" class="input" maxlength="60" placeholder="Contoh: Budi Santoso" autocomplete="name" required>
+    <button class="btn-utama" type="submit">Pakai</button></div>
+  <p class="bantuan">Status "sudah dinilai" di bawah dihitung untuk nama ini.</p>
+</form>
+
+{% if nama %}<p class="mb-2 text-sm">Sudah dinilai oleh <strong>{{ nama }}</strong>: {{ n_sudah }} dari {{ subjek|length }}.</p>{% endif %}
+<div class="space-y-2">
+  {% for x in subjek %}
+    <a href="{% url 'penilaian:juri_isi' f.slug x.s.kunci %}{% if nama %}?nama={{ nama|urlencode }}{% endif %}" class="flex items-center gap-3 rounded-2xl border bg-white p-3 shadow-kartu {% if x.kiriman %}border-hijau/40{% else %}border-garis/60 hover:border-oranye{% endif %}" data-subjek="{{ x.s.kunci }}">
+      <span class="min-w-0 flex-1 font-semibold text-navy">{{ x.s.label }}</span>
+      {% if x.kiriman %}<span class="badge bg-green-100 text-green-800">{% if x.kiriman.terkunci %}sudah dinilai{% else %}dibuka untuk diubah{% endif %}</span>{% else %}<span class="badge-abu">belum</span>{% endif %}
+    </a>
+  {% empty %}
+    <p class="kartu text-abu">Belum ada subjek untuk form ini.</p>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -165,6 +165,9 @@ class FormIsian(forms.Form):
                 self.fields[f"k_{k.kode}"] = f
                 if awal_data and k.kode in awal_data and k.jenis != JenisKolom.BERKAS:
                     self.initial[f"k_{k.kode}"] = awal_data[k.kode]
+        for fld in self.fields.values():
+            if not isinstance(fld.widget, (forms.CheckboxInput, forms.CheckboxSelectMultiple, forms.RadioSelect)):
+                fld.widget.attrs.setdefault("class", "input")
 
     def clean_nama_pengisi(self) -> str:
         nama = " ".join(self.cleaned_data["nama_pengisi"].split())

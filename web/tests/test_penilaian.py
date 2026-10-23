@@ -100,6 +100,7 @@ def test_tabel_traveling_agregasi_poin_peringkat(madya, traveling, panitia, juri
     assert per["MA-01"].seri and per["MA-03"].seri and not per["MA-02"].seri
     assert per["MA-04"].belum_dinilai and per["MA-04"].nilai["pengetahuan"] is None
     assert per["MA-04"].nilai["nilai_akhir"] == pytest.approx(-2)
+    assert per["MA-04"].peringkat is None  # belum dinilai juri: tanpa peringkat
     assert "poin_kehadiran" in tab.bawaan_tampil and "jumlah_juri" in tab.bawaan_tampil
     # Pemecah seri manual: MA-03 di atas MA-01.
     PemecahSeri.objects.create(formulir=f, kunci_subjek=f"K{c.pk}", nilai=1)

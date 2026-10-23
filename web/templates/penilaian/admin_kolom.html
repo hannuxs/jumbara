@@ -1,0 +1,98 @@
+{% extends "superadmin/base.html" %}
+{% load sigap %}
+{% block judul %}{% if k %}Ubah kolom{% else %}Tambah kolom{% endif %} · {{ f.judul }}{% endblock %}
+{% block judul_halaman %}{% if k %}Ubah kolom [{{ k.kode }}]{% else %}Tambah kolom{% endif %}{% endblock %}
+{% block skrip_tambahan %}<script src="{% aset 'js/formbuilder.js' %}" defer></script>{% endblock %}
+{% block konten %}
+<p class="mb-3 text-sm text-abu">Form: <a href="{% url 'penilaian_admin:detail' f.pk %}" class="tautan">{{ f.judul }}</a></p>
+<form method="post" novalidate class="kartu max-w-3xl" x-data="editorKolom('{{ awal.jenis }}', '{% url 'penilaian_admin:rumus_cek' f.pk %}')" x-init="mulai()">
+  {% csrf_token %}
+  {% if galat %}<div class="pesan-galat" role="alert"><span>{{ galat }}</span></div>{% endif %}
+  <div class="grid gap-x-4 sm:grid-cols-2">
+    <div class="isian"><label class="label wajib" for="isian-jenis">Jenis</label>
+      <select id="isian-jenis" name="jenis" class="input" x-model="jenis">{% for v, l in jenis %}<option value="{{ v }}" {% if awal.jenis == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+    <div class="isian"><label class="label wajib" for="isian-label">Label (tampil ke pengisi)</label>
+      <input id="isian-label" name="label" value="{{ awal.label|default:'' }}" class="input" maxlength="200" required></div>
+  </div>
+  <div class="grid gap-x-4 sm:grid-cols-2">
+    <div class="isian"><label class="label" for="isian-kode">Kode (dipakai di rumus)</label>
+      <input id="isian-kode" name="kode" value="{{ awal.kode|default:'' }}" class="input font-mono" maxlength="40" placeholder="otomatis dari label" autocomplete="off" spellcheck="false">
+      <p class="bantuan">Huruf kecil, angka, garis bawah. Contoh: nilai_akhir.</p></div>
+    <div class="isian" x-show="!['JUDUL','RUMUS','OTOMATIS','PERINGKAT'].includes(jenis)">
+      <span class="label">Wajib diisi?</span>
+      <label class="pilihan items-center"><input type="checkbox" name="wajib" value="1" {% if awal.wajib %}checked{% endif %}><span class="text-sm font-semibold">Ya, wajib</span></label></div>
+  </div>
+  <div class="isian"><label class="label" for="isian-bantuan">Teks bantuan / keterangan</label>
+    <input id="isian-bantuan" name="bantuan" value="{{ awal.bantuan|default:'' }}" class="input" maxlength="300"></div>
+
+  <div x-show="jenis === 'ANGKA'" class="grid gap-x-4 sm:grid-cols-4">
+    <div class="isian"><label class="label" for="isian-min">Minimal</label><input id="isian-min" name="min" value="{{ awal.min|default:'' }}" class="input" inputmode="decimal"></div>
+    <div class="isian"><label class="label" for="isian-max">Maksimal</label><input id="isian-max" name="max" value="{{ awal.max|default:'' }}" class="input" inputmode="decimal"></div>
+    <div class="isian"><label class="label" for="isian-desimal">Desimal boleh</label><input id="isian-desimal" name="desimal" value="{{ awal.desimal|default:'0' }}" class="input" inputmode="numeric"></div>
+  </div>
+  <div x-show="['PILIHAN','DROPDOWN','CENTANG'].includes(jenis)" class="isian">
+    <label class="label" for="isian-pilihan">Pilihan (satu per baris)</label>
+    <textarea id="isian-pilihan" name="pilihan" rows="5" class="input">{{ awal.pilihan|default:'' }}</textarea>
+    <p class="bantuan">Bila semua pilihan berupa angka, kolom ini bisa dipakai di rumus.</p>
+  </div>
+  <div x-show="['TEKS','PARAGRAF'].includes(jenis)" class="isian sm:w-1/3">
+    <label class="label" for="isian-maks">Panjang maksimal (huruf)</label><input id="isian-maks" name="maks" value="{{ awal.maks|default:'' }}" class="input" inputmode="numeric">
+  </div>
+  <div x-show="jenis === 'BERKAS'" class="grid gap-x-4 sm:grid-cols-2">
+    <div class="isian"><label class="label" for="isian-tipe">Jenis file yang boleh</label><input id="isian-tipe" name="tipe_berkas" value="{{ awal.tipe_berkas|default:'pdf, jpg, jpeg, png' }}" class="input"></div>
+    <div class="isian"><label class="label" for="isian-ukuran">Ukuran maksimal (MB, paling besar 20)</label><input id="isian-ukuran" name="ukuran_mb" value="{{ awal.ukuran_mb|default:'5' }}" class="input" inputmode="decimal"></div>
+    <p class="bantuan sm:col-span-2 -mt-3">File disimpan di folder privat dan hanya bisa diunduh superadmin.</p>
+  </div>
+  <div x-show="jenis === 'OTOMATIS'" class="isian sm:w-1/2">
+    <label class="label" for="isian-sumber">Sumber</label>
+    <select id="isian-sumber" name="sumber" class="input">{% for v, l in sumber %}<option value="{{ v }}" {% if awal.sumber == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+  </div>
+  <div x-show="jenis === 'PERINGKAT'" class="grid gap-x-4 sm:grid-cols-2">
+    <div class="isian"><label class="label" for="isian-dasar">Peringkat berdasarkan kolom</label>
+      <select id="isian-dasar" name="dasar" class="input">{% for kode, label in tersedia.items %}<option value="{{ kode }}" {% if awal.dasar == kode %}selected{% endif %}>[{{ kode }}] {{ label }}</option>{% endfor %}</select></div>
+    <div class="isian"><label class="label" for="isian-arah">Arah</label>
+      <select id="isian-arah" name="arah" class="input"><option value="TURUN">Terbesar menjadi 1</option><option value="NAIK" {% if awal.arah == "NAIK" %}selected{% endif %}>Terkecil menjadi 1</option></select></div>
+  </div>
+
+  <div x-show="jenis === 'RUMUS'" class="isian">
+    <label class="label wajib" for="isian-rumus">Rumus</label>
+    <textarea id="isian-rumus" name="rumus" x-ref="rumus" rows="3" class="input font-mono" spellcheck="false" @input="rumus = $event.target.value; periksa()" placeholder="Contoh: 0.25*[pengetahuan] + 0.25*[sikap] + 0.5*[keterampilan] + [poin_kehadiran]">{{ awal.rumus|default:'' }}</textarea>
+    <div class="mt-2 text-sm" aria-live="polite">
+      <p x-show="cek.status === 'memeriksa'" class="text-abu">Memeriksa…</p>
+      <p x-show="cek.status === 'ok'" x-cloak class="font-semibold text-hijau">✓ <span x-text="cek.pesan"></span></p>
+      <p x-show="cek.status === 'galat'" x-cloak class="font-semibold text-merah" x-text="cek.pesan"></p>
+      <div x-show="cek.status === 'ok' && cek.contoh.length" x-cloak class="mt-2 rounded-xl bg-gray-50 p-2">
+        <div class="mb-1 text-xs font-semibold text-abu">Pratinjau hasil (data saat ini):</div>
+        <template x-for="c in cek.contoh" :key="c.subjek"><div class="flex justify-between gap-2 text-xs"><span class="truncate" x-text="c.subjek"></span><span class="font-mono font-semibold" x-text="c.nilai"></span></div></template>
+      </div>
+    </div>
+    <div class="mt-3">
+      <div class="mb-1 text-xs font-semibold text-abu">Kolom (ketuk untuk menyisipkan):</div>
+      <div class="flex flex-wrap gap-1">{% for kode, label in tersedia.items %}<button type="button" class="rounded-lg border border-gray-200 bg-white px-2 py-1 font-mono text-xs hover:border-oranye" title="{{ label }}" data-sisip="[{{ kode }}]" @click="sisip($el.dataset.sisip)">[{{ kode }}]</button>{% endfor %}</div>
+      <div class="mb-1 mt-3 text-xs font-semibold text-abu">Operator dan fungsi:</div>
+      <div class="flex flex-wrap gap-1">
+        {% for op in "+-*/()="|make_list %}<button type="button" class="rounded-lg border border-gray-200 bg-white px-2.5 py-1 font-mono text-xs" data-sisip=" {{ op }} " @click="sisip($el.dataset.sisip)">{{ op }}</button>{% endfor %}
+        {% for contoh, arti in fungsi %}<button type="button" class="rounded-lg border border-gray-200 bg-white px-2 py-1 font-mono text-xs hover:border-oranye" title="{{ arti }}" data-sisip="{{ contoh }}" @click="sisip($el.dataset.sisip)">{{ contoh }}</button>{% endfor %}
+      </div>
+      <details class="mt-3 text-xs">
+        <summary class="cursor-pointer font-semibold text-navy">Bantuan rumus</summary>
+        <ul class="mt-2 list-disc space-y-1 pl-5 text-abu">
+          {% for contoh, arti in fungsi %}<li><code>{{ contoh }}</code>: {{ arti }}</li>{% endfor %}
+          <li>Kali boleh ditulis <code>*</code>, <code>x</code>, atau <code>×</code>. Desimal: <code>0.25</code> atau <code>0,25</code> (di dalam fungsi pakai titik: <code>ROUND([a], 2)</code>, <code>MAX(1.5, 2)</code>).</li>
+          <li>Kolom kosong dihitung 0 dalam + - * /, diabaikan oleh AVG/MIN/MAX. Pembagian dengan nol membuat hasil kosong.</li>
+          <li><code>REF("kunci-atau-slug", "kode")</code> mencari form dengan tingkat yang sama dengan subjek. Kode <code>"peringkat"</code> = peringkat akhir form sumber.</li>
+        </ul>
+        {% if form_lain %}<div class="mt-2 font-semibold text-navy">Form yang bisa ditarik dengan REF:</div>
+        <ul class="mt-1 space-y-1">{% for x in form_lain %}<li><button type="button" class="font-mono text-oranye-tua underline" data-sisip='REF("{{ x.slug }}", "peringkat")' @click="sisip($el.dataset.sisip)">{{ x.slug }}</button> <span class="text-abu">{{ x.judul }}: {{ x.kolom|join:", "|truncatechars:120 }}</span></li>{% endfor %}</ul>{% endif %}
+      </details>
+    </div>
+    <div class="isian mt-4 sm:w-1/3"><label class="label" for="isian-td">Tampil desimal</label><input id="isian-td" name="tampil_desimal" value="{{ awal.tampil_desimal|default:'2' }}" class="input" inputmode="numeric"></div>
+  </div>
+
+  <div class="flex flex-wrap gap-2">
+    <button class="btn-utama" type="submit">Simpan</button>
+    {% if not k %}<button class="btn-garis" type="submit" name="lanjut" value="1">Simpan dan tambah lagi</button>{% endif %}
+    <a href="{% url 'penilaian_admin:detail' f.pk %}" class="btn-abu">Batal</a>
+  </div>
+</form>
+{% endblock %}

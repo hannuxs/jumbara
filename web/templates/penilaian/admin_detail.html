@@ -1,0 +1,86 @@
+{% extends "superadmin/base.html" %}
+{% load sigap %}
+{% block judul %}{{ f.judul }}{% endblock %}
+{% block judul_halaman %}{{ f.judul }}{% endblock %}
+{% block skrip_tambahan %}<script src="{% aset 'js/formbuilder.js' %}" defer></script>{% endblock %}
+{% block aksi_judul %}<a href="{% url 'penilaian_admin:hasil' f.pk %}" class="btn-utama btn-kecil">{% if f.penilaian %}Tabel hasil{% else %}Kiriman{% endif %} ({{ n_kiriman }})</a>{% endblock %}
+{% block konten %}
+<div class="mb-4 grid gap-4 lg:grid-cols-3">
+  <section class="kartu lg:col-span-2">
+    <div class="mb-2 flex flex-wrap items-center gap-2 text-sm">
+      {% if f.status == "AKTIF" %}<span class="badge bg-green-100 text-green-800">aktif</span>{% elif f.status == "DRAF" %}<span class="badge-abu">draf</span>{% else %}<span class="badge-abu">arsip</span>{% endif %}
+      <span class="badge-{{ f.tingkat }}">{{ f.get_tingkat_display }}</span>
+      <span class="text-abu">{{ f.get_mode_display }} · {{ f.get_akses_display }} · {{ f.get_jenis_subjek_display }}</span>
+      {% if f.terkunci %}<span class="badge bg-red-100 text-red-800">terkunci</span>{% endif %}
+    </div>
+    <dl class="grid gap-x-4 gap-y-1 text-sm sm:grid-cols-2">
+      <div><dt class="inline text-abu">Slug:</dt> <dd class="inline font-mono">{{ f.slug }}</dd></div>
+      {% if f.kunci_ref %}<div><dt class="inline text-abu">Kunci REF:</dt> <dd class="inline font-mono">{{ f.kunci_ref }}</dd></div>{% endif %}
+      {% if f.kegiatan %}<div><dt class="inline text-abu">Kegiatan:</dt> <dd class="inline">{{ f.kegiatan.nama }}</dd></div>{% endif %}
+      {% if f.cabang %}<div><dt class="inline text-abu">Cabang:</dt> <dd class="inline">{{ f.cabang }}</dd></div>{% endif %}
+      {% if f.penilaian %}
+        <div><dt class="inline text-abu">Jenis:</dt> <dd class="inline">{{ f.get_jenis_penilaian_display }}, {{ f.get_agregasi_display|lower }}, target {{ f.jumlah_juri }} juri</dd></div>
+        <div><dt class="inline text-abu">Peringkat:</dt> <dd class="inline">{% if f.kolom_urut %}[{{ f.kolom_urut }}], {{ f.get_arah_urut_display|lower }}{% else %}<span class="text-merah">belum dipilih</span>{% endif %}</dd></div>
+      {% endif %}
+      <div><dt class="inline text-abu">Jadwal:</dt> <dd class="inline">{% if f.buka_pada %}{{ f.buka_pada|date:"d/m H.i" }}{% else %}langsung{% endif %} sampai {% if f.tutup_pada %}{{ f.tutup_pada|date:"d/m H.i" }}{% else %}tanpa batas{% endif %}</dd></div>
+    </dl>
+    {% if f.perlu_konfirmasi %}<p class="pesan-peringatan mt-3"><span><strong>Perlu dikonfirmasi panitia.</strong> {{ f.catatan }}</span></p>{% elif f.catatan %}<p class="mt-2 text-sm text-abu">{{ f.catatan }}</p>{% endif %}
+    {% if url_publik %}<p class="mt-3 text-sm">Link publik: <a href="{{ url_publik }}" class="tautan break-all" target="_blank" rel="noopener">{{ url_publik }}</a></p>{% endif %}
+  </section>
+  <section class="kartu space-y-2">
+    <a href="{% url 'penilaian_admin:ubah' f.pk %}" class="btn-abu w-full">Ubah pengaturan</a>
+    <a href="{% url 'penilaian_admin:pratinjau' f.pk %}" class="btn-abu w-full" target="_blank" rel="noopener">Pratinjau sebagai pengisi</a>
+    <a href="{% url 'penilaian:isi_admin' f.slug %}" class="btn-abu w-full">Isi sebagai superadmin</a>
+    <form method="post" action="{% url 'penilaian_admin:status' f.pk %}" class="flex gap-1">
+      {% csrf_token %}
+      {% if f.status != "AKTIF" %}<button name="status" value="AKTIF" class="btn-utama btn-kecil flex-1" type="submit">Aktifkan</button>{% endif %}
+      {% if f.status != "DRAF" %}<button name="status" value="DRAF" class="btn-abu btn-kecil flex-1" type="submit">Jadikan draf</button>{% endif %}
+      {% if f.status != "ARSIP" %}<button name="status" value="ARSIP" class="btn-abu btn-kecil flex-1" type="submit">Arsipkan</button>{% endif %}
+    </form>
+    <form method="post" action="{% url 'penilaian_admin:salin' f.pk %}" class="flex gap-1">
+      {% csrf_token %}
+      <select name="tingkat" class="input min-h-[36px] flex-1 py-1 text-sm" aria-label="Tingkat salinan"><option value="">Salin (tingkat sama)</option><option value="MULA">Salin untuk Mula</option><option value="MADYA">Salin untuk Madya</option><option value="WIRA">Salin untuk Wira</option></select>
+      <button class="btn-abu btn-kecil" type="submit">Salin</button>
+    </form>
+    <form method="post" action="{% url 'penilaian_admin:hapus' f.pk %}" data-konfirmasi="Pindahkan form &quot;{{ f.judul }}&quot; ke tempat sampah?">
+      {% csrf_token %}<button class="btn-abu btn-kecil w-full text-merah" type="submit">Hapus form</button>
+    </form>
+  </section>
+</div>
+
+<div class="mb-2 flex flex-wrap items-center gap-2">
+  <h2 class="flex-1 text-lg font-bold">Kolom dan isian ({{ kolom|length }})</h2>
+  <a href="{% url 'penilaian_admin:kolom_tambah' f.pk %}?jenis=ANGKA" class="btn-utama btn-kecil">+ Isian</a>
+  {% if f.penilaian %}<a href="{% url 'penilaian_admin:kolom_tambah' f.pk %}?jenis=RUMUS" class="btn-garis btn-kecil">+ Rumus</a>{% endif %}
+  <a href="{% url 'penilaian_admin:kolom_tambah' f.pk %}?jenis=JUDUL" class="btn-abu btn-kecil">+ Judul bagian</a>
+</div>
+{% if f.penilaian %}<p class="mb-2 text-xs text-abu">Kolom otomatis yang selalu tersedia di rumus: [poin_kehadiran], [jumlah_hadir], [kuota]{% if not f.kegiatan %} (pilih kegiatan di pengaturan){% endif %}, [jumlah_juri].</p>{% endif %}
+<div x-data="urutKolom('{% url 'penilaian_admin:kolom_urutan' f.pk %}')" class="kartu p-0 sm:p-0">
+  <ul x-ref="daftar" class="divide-y divide-gray-100">
+    {% for k in kolom %}
+      <li data-id="{{ k.pk }}" draggable="true" @dragstart="mulaiSeret($event)" @dragover.prevent="seretLewat($event)" @drop.prevent="lepas()" @dragend="lepas()"
+          class="flex items-start gap-2 bg-white px-3 py-3 {% if k.jenis == 'JUDUL' %}bg-krem{% endif %}">
+        <span class="mt-1 cursor-move select-none text-abu" title="Seret untuk mengurutkan" aria-hidden="true">⋮⋮</span>
+        <div class="min-w-0 flex-1">
+          <div class="font-semibold text-navy">{{ k.label }}{% if k.wajib %} <span class="text-merah">*</span>{% endif %}</div>
+          <div class="text-xs text-abu"><span class="font-mono">[{{ k.kode }}]</span> · {{ k.get_jenis_display }}
+            {% if k.jenis == "ANGKA" %} · {% if k.pengaturan.min is not None %}{{ k.pengaturan.min|floatformat:"-2" }}{% else %}-{% endif %} sampai {% if k.pengaturan.max is not None %}{{ k.pengaturan.max|floatformat:"-2" }}{% else %}-{% endif %}{% endif %}
+            {% if k.pengaturan.pilihan %} · {{ k.pengaturan.pilihan|join:", "|truncatechars:60 }}{% endif %}
+            {% if k.jenis == "OTOMATIS" %} · {{ k.pengaturan.sumber }}{% endif %}
+            {% if k.jenis == "PERINGKAT" %} · dari [{{ k.pengaturan.dasar }}]{% endif %}</div>
+          {% if k.jenis == "RUMUS" %}<div class="mt-1 break-all rounded bg-gray-50 px-2 py-1 font-mono text-xs">{{ k.pengaturan.rumus }}</div>{% endif %}
+        </div>
+        <div class="flex shrink-0 flex-col gap-1 sm:flex-row">
+          <button type="button" class="btn-abu btn-kecil px-2" @click="geser($el.closest('li'), -1)" aria-label="Naikkan">↑</button>
+          <button type="button" class="btn-abu btn-kecil px-2" @click="geser($el.closest('li'), 1)" aria-label="Turunkan">↓</button>
+          <a href="{% url 'penilaian_admin:kolom_ubah' f.pk k.pk %}" class="btn-abu btn-kecil">Ubah</a>
+          <form method="post" action="{% url 'penilaian_admin:kolom_hapus' f.pk k.pk %}" data-konfirmasi="Hapus kolom [{{ k.kode }}]?">{% csrf_token %}<button class="btn-abu btn-kecil text-merah" type="submit">Hapus</button></form>
+        </div>
+      </li>
+    {% empty %}
+      <li class="px-3 py-4 text-abu">Belum ada kolom. Tambahkan isian di atas.</li>
+    {% endfor %}
+  </ul>
+  <p x-show="pesan" x-text="pesan" x-cloak class="px-3 pb-3 text-sm" :class="galat ? 'text-merah' : 'text-hijau'"></p>
+</div>
+{% endblock %}

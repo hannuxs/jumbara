@@ -1,0 +1,10 @@
+{% extends "superadmin/base.html" %}
+{% block judul %}Isi {{ f.judul }}{% endblock %}
+{% block judul_halaman %}Isi · {{ f.judul }}{% endblock %}
+{% block konten %}
+<p class="mb-3 text-sm text-abu">Pilih {% if f.jenis_subjek == "KONTINGEN" %}kontingen{% else %}orang{% endif %} yang akan diisi. <a href="{{ kembali }}" class="tautan">Kembali ke form</a></p>
+<input type="search" class="input mb-3" placeholder="Cari…" aria-label="Cari subjek" x-data @input="document.querySelectorAll('[data-subjek]').forEach(el => el.hidden = !el.textContent.toLowerCase().includes($event.target.value.toLowerCase()))">
+<div class="grid gap-2 sm:grid-cols-2">
+  {% for s in subjek %}<a href="?subjek={{ s.kunci }}" data-subjek class="rounded-xl bg-white p-3 font-semibold text-navy shadow-kartu hover:bg-krem">{{ s.label }}</a>{% empty %}<p class="text-abu">Belum ada subjek.</p>{% endfor %}
+</div>
+{% endblock %}

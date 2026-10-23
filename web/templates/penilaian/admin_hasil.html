@@ -1,0 +1,65 @@
+{% extends "superadmin/base.html" %}
+{% load sigap penilaian %}
+{% block judul %}Hasil {{ f.judul }}{% endblock %}
+{% block judul_halaman %}Hasil · {{ f.judul }}{% endblock %}
+{% block aksi_judul %}<a href="?{% if urut %}urut={{ urut }}&{% endif %}unduh=xlsx" class="btn-garis btn-kecil">Unduh Excel</a>{% endblock %}
+{% block konten %}
+<div class="mb-3 flex flex-wrap items-center gap-2 text-sm">
+  <a href="{% url 'penilaian_admin:detail' f.pk %}" class="btn-abu btn-kecil">← Form</a>
+  <a href="{% url 'penilaian:isi_admin' f.slug %}" class="btn-abu btn-kecil">Isi nilai</a>
+  <span class="badge-{{ f.tingkat }}">{{ f.get_tingkat_display }}</span>
+  <span class="text-abu">{{ dinilai }} dari {{ baris|length }} subjek sudah dinilai · {{ f.get_agregasi_display|lower }} · target {{ f.jumlah_juri }} juri</span>
+  <span class="flex-1"></span>
+  <form method="post" action="{% url 'penilaian_admin:kunci' f.pk %}" {% if not f.terkunci %}data-konfirmasi="Kunci form? Juri tidak bisa lagi mengirim atau mengubah nilai."{% endif %}>
+    {% csrf_token %}<input type="hidden" name="kunci" value="{% if f.terkunci %}0{% else %}1{% endif %}">
+    <button class="btn-kecil {% if f.terkunci %}btn-abu{% else %}btn-utama{% endif %}" type="submit">{% if f.terkunci %}Buka kunci form{% else %}Kunci nilai{% endif %}</button>
+  </form>
+</div>
+{% if f.terkunci %}<p class="pesan-info"><span>Form terkunci {{ f.terkunci_pada|date:"d/m H.i" }} oleh {{ f.terkunci_oleh|default:"superadmin" }}. Nilai tidak bisa dikirim atau diubah juri.</span></p>{% endif %}
+{% for g in tabel.galat %}<p class="pesan-galat"><span>{{ g }}</span></p>{% endfor %}
+{% if not f.kolom_urut %}<p class="pesan-peringatan"><span>Kolom peringkat belum dipilih. <a href="{% url 'penilaian_admin:ubah' f.pk %}" class="tautan">Atur di pengaturan</a>.</span></p>{% endif %}
+{% if ada_seri %}<p class="pesan-peringatan"><span>Ada nilai seri (tanda <strong>=</strong>). Isi kolom "Pemecah seri" (1 = di atas) lalu simpan bila perlu.</span></p>{% endif %}
+
+<form method="post">
+  {% csrf_token %}<input type="hidden" name="aksi" value="pemecah">
+  <div class="kartu overflow-x-auto p-0 sm:p-0">
+    <table class="tabel text-sm">
+      <thead><tr>
+        <th class="w-12">#</th>
+        <th>Subjek</th>
+        {% for k in kolom_tampil %}<th class="whitespace-nowrap text-right"><a href="?urut={% if urut == k.kode %}-{% endif %}{{ k.kode }}" class="hover:underline {% if k.kode == f.kolom_urut %}text-oranye-tua{% endif %}">{{ k.label|truncatechars:22 }}</a><div class="font-mono text-[10px] font-normal text-abu">{{ k.kode }}</div></th>{% endfor %}
+        {% for x in tabel.bawaan_tampil %}<th class="whitespace-nowrap text-right"><a href="?urut={% if urut == x %}-{% endif %}{{ x }}" class="hover:underline">{{ x|label_bawaan }}</a></th>{% endfor %}
+        {% if ada_seri %}<th class="w-20">Pemecah seri</th>{% endif %}
+      </tr></thead>
+      <tbody>
+      {% for b in baris %}
+        <tr class="{% if b.belum_dinilai %}bg-gray-50 text-abu{% endif %}" x-data="{ buka: false }">
+          <td class="font-judul font-bold">{% if b.peringkat %}{{ b.peringkat }}{% if b.seri %}<span class="text-amber-600" title="seri">=</span>{% endif %}{% else %}-{% endif %}</td>
+          <td class="min-w-[12rem]">
+            <button type="button" class="text-left font-semibold text-navy hover:underline" @click="buka = !buka">{{ b.subjek.label }}</button>
+            {% if f.kolom_urut and not b.belum_dinilai %}<div class="text-xs text-abu sm:hidden">[{{ f.kolom_urut }}] <strong class="text-navy">{{ b.nilai|get_item:f.kolom_urut|angka_tampil }}</strong></div>{% endif %}
+            <div class="text-xs">
+              {% if b.belum_dinilai %}<span class="badge-abu">belum dinilai</span>{% elif b.jumlah_juri < f.jumlah_juri %}<span class="badge bg-amber-100 text-amber-900">{{ b.jumlah_juri }}/{{ f.jumlah_juri }} juri</span>{% endif %}
+              {% for p in b.peringatan|slice:":2" %}<div class="text-merah">{{ p }}</div>{% endfor %}
+            </div>
+            <div x-show="buka" x-cloak class="mt-2 space-y-1 text-xs">
+              {% for x in b.kiriman %}
+                <div class="rounded-lg bg-gray-50 px-2 py-1"><a href="{% url 'penilaian_admin:kiriman' f.pk x.pk %}" class="font-semibold text-oranye-tua hover:underline">{{ x.nama_pengisi }}</a> · {{ x.dikirim_pada|date:"d/m H.i" }}{% if not x.terkunci %} · <span class="text-amber-700">dibuka</span>{% endif %}
+                  <div class="text-abu">{% for k in kolom_tampil %}{% if k.diisi %}{{ k.kode }}: {{ x.data|get_item:k.kode|default_if_none:"-" }}{% if not forloop.last %}; {% endif %}{% endif %}{% endfor %}</div></div>
+              {% empty %}<div class="text-abu">Belum ada kiriman juri.</div>{% endfor %}
+            </div>
+          </td>
+          {% for k in kolom_tampil %}<td class="whitespace-nowrap text-right {% if k.kode == f.kolom_urut %}font-bold text-navy{% endif %}">{{ b.nilai|get_item:k.kode|angka_tampil:k }}</td>{% endfor %}
+          {% for x in tabel.bawaan_tampil %}<td class="whitespace-nowrap text-right">{{ b.nilai|get_item:x|angka_tampil }}</td>{% endfor %}
+          {% if ada_seri %}<td><input name="ps_{{ b.subjek.kunci }}" value="{{ b.pemecah|default_if_none:'' }}" inputmode="numeric" class="input min-h-[32px] w-16 py-1 text-right" aria-label="Pemecah seri {{ b.subjek.label }}" {% if not b.seri and not b.pemecah %}disabled{% endif %}></td>{% endif %}
+        </tr>
+      {% empty %}
+        <tr><td colspan="20" class="text-abu">Belum ada subjek. Periksa tingkat dan subjek di pengaturan.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if ada_seri %}<div class="mt-3"><button class="btn-utama btn-kecil" type="submit">Simpan pemecah seri</button></div>{% endif %}
+</form>
+<p class="mt-3 text-xs text-abu">Ketuk nama subjek untuk melihat rincian per juri. Ketuk judul kolom untuk mengurutkan. Hasil rumus dihitung dengan presisi penuh dan ditampilkan sesuai pengaturan desimal kolom.</p>
+{% endblock %}

@@ -34,7 +34,7 @@
       {% block aksi_judul %}{% endblock %}
     </div>
     {% if request.user.wajib_ganti_sandi %}
-      <div class="pesan-peringatan">Kata sandi akun superadmin masih bawaan. <a href="{% url 'akun_admin:daftar' %}" class="tautan">Ganti sekarang</a>.</div>
+      <div class="pesan-peringatan"><span>Kata sandi akun superadmin masih bawaan. <a href="{% url 'akun_admin:daftar' %}" class="tautan">Ganti sekarang</a>.</span></div>
     {% endif %}
     {% if messages %}
       {% for m in messages %}

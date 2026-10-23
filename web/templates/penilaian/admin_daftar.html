@@ -1,0 +1,46 @@
+{% extends "superadmin/base.html" %}
+{% block judul %}Form builder{% endblock %}
+{% block judul_halaman %}Form dan penilaian{% endblock %}
+{% block aksi_judul %}
+<div class="flex gap-2">
+  <a href="{% url 'penilaian_admin:tambah' %}?mode=PENILAIAN" class="btn-utama btn-kecil">+ Penilaian</a>
+  <a href="{% url 'penilaian_admin:tambah' %}?mode=INPUT" class="btn-garis btn-kecil">+ Form biasa</a>
+</div>
+{% endblock %}
+{% block konten %}
+<form method="get" class="kartu mb-4" data-filter-halaman="form">
+  <div class="grid gap-3 sm:grid-cols-4">
+    <div><label class="label text-sm" for="f-q">Cari</label><input id="f-q" name="q" value="{{ g.q }}" class="input" placeholder="Judul atau slug"></div>
+    <div><label class="label text-sm" for="f-mode">Mode</label>
+      <select id="f-mode" name="mode" class="input"><option value="">Semua</option>{% for v, l in mode %}<option value="{{ v }}" {% if g.mode == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+    <div><label class="label text-sm" for="f-status">Status</label>
+      <select id="f-status" name="status" class="input"><option value="">Draf dan aktif</option>{% for v, l in status %}<option value="{{ v }}" {% if g.status == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+    <div><label class="label text-sm" for="f-tingkat">Tingkat</label>
+      <select id="f-tingkat" name="tingkat" class="input"><option value="">Semua</option>{% for v, l in tingkat %}<option value="{{ v }}" {% if g.tingkat == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+  </div>
+  <div class="mt-3 flex gap-2"><button class="btn-utama btn-kecil" type="submit">Terapkan</button><a href="?reset=1" class="btn-abu btn-kecil">Hapus saringan</a></div>
+</form>
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <table class="tabel">
+    <thead><tr><th>Form</th><th>Mode</th><th>Tingkat</th><th>Akses</th><th>Status</th><th class="text-right">Kiriman</th><th></th></tr></thead>
+    <tbody>
+    {% for f in daftar %}
+      <tr>
+        <td class="min-w-[16rem]"><a href="{% url 'penilaian_admin:detail' f.pk %}" class="font-semibold hover:underline">{{ f.judul }}</a>
+          <div class="text-xs text-abu">{{ f.slug }}{% if f.kegiatan %} · {{ f.kegiatan.nama }}{% endif %}{% if f.cabang %} · {{ f.cabang }}{% endif %}</div>
+          {% if f.perlu_konfirmasi %}<span class="badge bg-amber-100 text-amber-900">perlu konfirmasi panitia</span>{% endif %}
+          {% if f.terkunci %}<span class="badge bg-red-100 text-red-800">terkunci</span>{% endif %}</td>
+        <td class="whitespace-nowrap text-xs">{% if f.penilaian %}Penilaian{% else %}Biasa{% endif %}</td>
+        <td><span class="badge-{{ f.tingkat }}">{{ f.get_tingkat_display }}</span></td>
+        <td class="whitespace-nowrap text-xs">{{ f.get_akses_display }}</td>
+        <td class="whitespace-nowrap text-xs">{% if f.status == "AKTIF" %}<span class="badge bg-green-100 text-green-800">aktif</span>{% elif f.status == "DRAF" %}<span class="badge-abu">draf</span>{% else %}<span class="badge-abu">arsip</span>{% endif %}</td>
+        <td class="text-right font-semibold">{{ f.n_kiriman }}</td>
+        <td class="whitespace-nowrap text-right"><a href="{% url 'penilaian_admin:hasil' f.pk %}" class="btn-abu btn-kecil">Hasil</a></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="7" class="text-abu">Belum ada form. Buat form baru, atau jalankan <code>python manage.py sigap_buat_template_penilaian</code> untuk membuat draf penilaian dari pedoman.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

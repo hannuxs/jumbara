@@ -112,4 +112,7 @@ def panitia_awal(request):
 
 @peran_wajib("JURI", "SUPERADMIN")
 def juri_awal(request):
-    return render(request, "akun/segera.html", {"judul": "Form penilaian juri", "tahap": "Tahap 4 (7 November 2026)"})
+    """Daftar form penilaian yang ditugaskan (docs/16-FORM-BUILDER.md)."""
+    from apps.penilaian.views import juri_beranda
+
+    return juri_beranda(request)

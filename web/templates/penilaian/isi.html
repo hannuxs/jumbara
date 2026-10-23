@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load sigap l10n %}
+{% block judul %}{{ f.judul }}{% endblock %}
+{% block kelas_main %}mx-auto w-full max-w-xl px-3 py-4{% endblock %}
+{% block skrip %}<script src="{% aset 'js/isian.js' %}" defer></script>{% endblock %}
+{% block isi %}
+{% if pratinjau %}<div class="pesan-info"><span>Pratinjau sebagai pengisi. Tombol kirim tidak aktif. <a href="{{ kembali }}" class="tautan">Kembali</a></span></div>{% endif %}
+<div class="mb-3 flex items-start gap-2">
+  {% if kembali and not publik %}<a href="{{ kembali }}" class="btn-abu btn-kecil shrink-0">←</a>{% endif %}
+  <div class="min-w-0 flex-1">
+    <h1 class="text-xl font-bold leading-tight">{{ f.judul }}</h1>
+    <div class="mt-1 flex flex-wrap gap-1 text-xs">{% if f.tingkat != "SEMUA" %}<span class="badge-{{ f.tingkat }}">{{ f.get_tingkat_display }}</span>{% endif %}{% if f.cabang %}<span class="badge-abu">{{ f.cabang }}</span>{% endif %}</div>
+  </div>
+</div>
+{% if f.deskripsi %}<p class="mb-3 whitespace-pre-line text-sm text-abu">{{ f.deskripsi }}</p>{% endif %}
+{% if not terbuka and not pratinjau %}<div class="pesan-peringatan"><span>Form ini sedang tidak dibuka{% if f.terkunci %} (nilai sudah dikunci){% endif %}. Hubungi superadmin bila perlu.</span></div>{% endif %}
+{% if messages %}{% for m in messages %}<div class="{% if m.tags == 'error' %}pesan-galat{% else %}pesan-sukses{% endif %}">{{ m }}</div>{% endfor %}{% endif %}
+{% if galat %}<div class="pesan-galat" role="alert" data-galat><span>{{ galat }}</span></div>{% endif %}
+{% if sudah %}{% with x=sudah|last %}<div class="pesan-peringatan"><span>{% if x.terkunci %}Anda ({{ x.nama_pengisi }}) sudah mengirim nilai untuk subjek ini pada {{ x.dikirim_pada|date:"d/m H.i" }}. Nilai tidak bisa diubah; hubungi superadmin bila salah.{% else %}Superadmin membuka kiriman Anda untuk diperbaiki. Kiriman baru akan mengganti nilai sebelumnya.{% endif %}</span></div>{% endwith %}{% endif %}
+
+<form method="post" enctype="multipart/form-data" novalidate class="space-y-4"
+      x-data="isianForm('{{ kunci_draf }}', {{ f.penilaian|yesno:'true,false' }})" x-init="mulai()" @submit="kirim($event)" @input="simpanDraf()" @change="simpanDraf()" x-ref="form">
+  {% csrf_token %}
+  <input type="hidden" name="client_uuid" x-ref="uuid">
+  {% if subjek_terpilih %}
+    <input type="hidden" name="subjek_kunci" value="{{ subjek_terpilih.kunci }}">
+    <div class="kartu border-2 border-oranye">
+      <div class="text-xs text-abu">{% if f.jenis_subjek == "KONTINGEN" %}Kontingen yang dinilai{% else %}Orang yang dinilai{% endif %}</div>
+      <div class="font-judul text-xl font-bold text-navy" data-subjek>{{ subjek_terpilih.label }}</div>
+    </div>
+  {% elif daftar_subjek %}
+    <div class="kartu"><label for="subjek" class="label wajib">Kontingen</label>
+      <select id="subjek" name="subjek_kunci" class="input" required><option value="">Pilih kontingen…</option>{% for s in daftar_subjek %}<option value="{{ s.kunci }}" {% if request.POST.subjek_kunci == s.kunci %}selected{% endif %}>{{ s.label }}</option>{% endfor %}</select></div>
+  {% endif %}
+
+  <div class="kartu">{% include "komponen/isian.html" with f=form.nama_pengisi %}
+    {% if f.penilaian %}<p class="-mt-3 text-xs text-abu">Wajib. Tercatat di setiap nilai yang Anda kirim.</p>{% endif %}</div>
+
+  <div class="kartu">
+    {% for k, fld in form.baris %}
+      {% if not fld %}
+        <h2 class="mb-2 {% if not forloop.first %}mt-6 border-t border-gray-100 pt-4{% endif %} font-bold text-oranye-tua">{{ k.label }}</h2>
+        {% if k.bantuan %}<p class="mb-3 text-sm text-abu">{{ k.bantuan }}</p>{% endif %}
+      {% elif k.jenis == "ANGKA" %}
+        <div class="isian" data-isian="{{ fld.name }}">
+          <label for="{{ fld.id_for_label }}" class="label {% if fld.field.required %}wajib{% endif %}">{{ fld.label }}</label>
+          {% if k.pengaturan.min is not None or k.pengaturan.max is not None %}<p class="mb-1 text-xs text-abu">Nilai {% if k.pengaturan.min is not None %}{{ k.pengaturan.min|floatformat:"-2" }}{% endif %}{% if k.pengaturan.min is not None and k.pengaturan.max is not None %} sampai {% endif %}{% if k.pengaturan.max is not None %}{{ k.pengaturan.max|floatformat:"-2" }}{% endif %}</p>{% endif %}
+          <input type="text" name="{{ fld.html_name }}" id="{{ fld.id_for_label }}" value="{{ fld.value|default_if_none:'' }}" inputmode="decimal" autocomplete="off"
+                 class="input text-center font-judul text-2xl font-bold" style="min-height: 56px" {% if k.pengaturan.min is not None %}data-min="{{ k.pengaturan.min|unlocalize }}"{% endif %} {% if k.pengaturan.max is not None %}data-max="{{ k.pengaturan.max|unlocalize }}"{% endif %} @input="cekBatas($event.target)">
+          <p class="galat" x-show="batas['{{ fld.html_name }}']" x-text="batas['{{ fld.html_name }}']" x-cloak></p>
+          {% for e in fld.errors %}<p class="galat">{{ e }}</p>{% endfor %}
+          {% if fld.help_text %}<p class="bantuan">{{ fld.help_text }}</p>{% endif %}
+        </div>
+      {% elif k.jenis == "SKALA" %}
+        <fieldset class="isian" data-isian="{{ fld.name }}">
+          <legend class="label {% if fld.field.required %}wajib{% endif %}">{{ fld.label }}</legend>
+          <div class="grid grid-cols-5 gap-2">{% for r in fld %}<label class="pilihan justify-center"><input type="radio" class="sr-only" name="{{ r.data.name }}" value="{{ r.data.value }}" {% if r.data.selected %}checked{% endif %}><span class="font-judul text-2xl font-bold">{{ r.choice_label }}</span></label>{% endfor %}</div>
+          <div class="mt-1 flex justify-between text-[11px] text-abu"><span>kurang</span><span>sangat baik</span></div>
+          {% for e in fld.errors %}<p class="galat">{{ e }}</p>{% endfor %}
+          {% if fld.help_text %}<p class="bantuan">{{ fld.help_text }}</p>{% endif %}
+        </fieldset>
+      {% elif k.jenis == "CENTANG" %}
+        <fieldset class="isian" data-isian="{{ fld.name }}">
+          <legend class="label {% if fld.field.required %}wajib{% endif %}">{{ fld.label }}</legend>
+          <div class="grid gap-2 sm:grid-cols-2">{% for c in fld %}<label class="pilihan items-center">{{ c.tag }}<span class="text-sm font-semibold">{{ c.choice_label }}</span></label>{% endfor %}</div>
+          {% for e in fld.errors %}<p class="galat">{{ e }}</p>{% endfor %}
+          {% if fld.help_text %}<p class="bantuan">{{ fld.help_text }}</p>{% endif %}
+        </fieldset>
+      {% else %}
+        {% include "komponen/isian.html" with f=fld %}
+      {% endif %}
+    {% empty %}
+      <p class="text-abu">Form ini belum punya isian.</p>
+    {% endfor %}
+  </div>
+
+  {% if not pratinjau %}
+  <button type="submit" class="btn-utama btn-besar w-full" {% if not terbuka %}disabled{% endif %}>Kirim</button>
+  <p class="text-center text-xs text-abu">Isian tersimpan sementara di perangkat ini sampai dikirim.</p>
+  {% endif %}
+
+  {# Ringkasan sebelum kirim #}
+  <div x-show="ringkas.buka" x-cloak class="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center" role="dialog" aria-modal="true" @keydown.escape.window="ringkas.buka = false">
+    <div class="flex max-h-[90vh] w-full max-w-lg flex-col rounded-t-2xl bg-white p-4 sm:rounded-2xl">
+      <h2 class="mb-1 text-lg font-bold">Periksa sebelum kirim</h2>
+      {% if f.penilaian %}<p class="pesan-peringatan mb-3"><span>Nilai yang sudah dikirim tidak bisa diubah.</span></p>{% endif %}
+      <dl class="min-h-0 flex-1 divide-y divide-gray-100 overflow-y-auto text-sm">
+        <template x-for="b in ringkas.baris" :key="b.label"><div class="flex justify-between gap-3 py-2"><dt class="text-abu" x-text="b.label"></dt><dd class="text-right font-semibold" x-text="b.nilai"></dd></div></template>
+      </dl>
+      <div class="mt-3 grid grid-cols-2 gap-2">
+        <button type="button" class="btn-abu" @click="ringkas.buka = false">Periksa lagi</button>
+        <button type="button" class="btn-utama" @click="kirimSungguh()" data-kirim-sungguh>Kirim</button>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

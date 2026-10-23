@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block judul %}{{ f.judul }}{% endblock %}
+{% block kelas_main %}mx-auto w-full max-w-xl px-3 py-6{% endblock %}
+{% block isi %}
+<div class="kartu text-center">
+  <h1 class="mb-2 text-xl font-bold">{{ f.judul }}</h1>
+  {% if f.buka_pada and f.buka_pada > now %}<p>Form ini dibuka {{ f.buka_pada|date:"l, d F Y" }} pukul {{ f.buka_pada|date:"H.i" }} WITA.</p>
+  {% else %}<p>Form ini sedang tidak dibuka.</p>{% endif %}
+  {% if tautan_wa_superadmin %}<a href="{{ tautan_wa_superadmin }}" class="btn-hijau mt-4 w-full" target="_blank" rel="noopener">WhatsApp {{ kontak_nama }}</a>{% endif %}
+</div>
+{% endblock %}
