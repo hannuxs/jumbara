@@ -4,9 +4,9 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 
 ## Status singkat
 
-- Tahap aktif: **Tahap 3 selesai di laptop (22 Okt), berikutnya Tahap 4** (form builder dan juri). Tahap 2 selesai 22 Okt. Tahap 1 selesai di laptop; pemasangan di server produksi + HTTPS + uji 3 HP dikerjakan paling akhir bersama Farhan (keputusan Farhan 22 Okt; lihat "Yang harus dikerjakan Farhan").
+- Tahap aktif: **Tahap 4 selesai di laptop (23 Okt), berikutnya Tahap 5** (piagam). Tahap 3 selesai 22 Okt. Tahap 2 selesai 22 Okt. Tahap 1 selesai di laptop; pemasangan di server produksi + HTTPS + uji 3 HP dikerjakan paling akhir bersama Farhan (keputusan Farhan 22 Okt; lihat "Yang harus dikerjakan Farhan").
 - Revisi R1-R5 dari Farhan (tingkat dulu + cari sekolah, foto wajib dan dicetak di kartu, nama kapital, tanpa pencocokan NIK, pemotong foto responsif) **selesai** 18 Okt; lihat `docs/REVISI.md`.
-- Terakhir diperbarui: 22 Oktober 2026
+- Terakhir diperbarui: 23 Oktober 2026
 - Tenggat terdekat: **25 Oktober 2026** (form biodata siap), dibuka 26 Oktober 00.00 WITA
 
 ## Tahap 0: Fondasi
@@ -53,6 +53,16 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 - [ ] Uji beban di PC server Windows sungguhan (`22-PENGUJIAN.md`) dan uji kamera dari HP Android + iPhone sungguhan (Farhan, saat pemasangan/uji coba)
 
 ## Tahap 4: Form builder dan juri (7 Nov)
+- [x] App `penilaian`: Formulir, Kolom (15 jenis), Kiriman (isian JSON + riwayat), PemecahSeri
+- [x] Mesin rumus sendiri tanpa `eval` (`apps/penilaian/rumus.py`): tokenizer + recursive descent; + - * / x ×, perbandingan, SUM AVG MIN MAX ROUND ABS IF COALESCE ISBLANK AND OR NOT REF PERINGKAT POIN_PERINGKAT; rumus melingkar ditolak (di dalam form dan antarform); bagi nol -> kosong + peringatan
+- [x] Tabel hasil mode 2: agregasi antarjuri (rata-rata/jumlah/terakhir), kolom otomatis [poin_kehadiran] [jumlah_hadir] [kuota] [jumlah_juri], REF antarform per tingkat (kunci REF) dan `REF("anjangsana", ...)`, peringkat dengan seri + pemecah seri, penanda belum dinilai / juri kurang, rincian per juri, Excel, kunci form, buka kunci per kiriman
+- [x] Form builder superadmin `/superadmin/form/`: pengaturan, editor kolom (seret untuk urutan), editor rumus dengan cek langsung + pratinjau, salin antartingkat, arsip, pratinjau sebagai pengisi, isi sebagai superadmin
+- [x] Mode 1: kiriman, rekap + grafik batang, detail/ubah/hapus, berkas unggahan privat, Excel; form publik `/f/<slug>/`
+- [x] Juri `/juri/`: daftar form per kegiatan, Nama Juri, status per subjek, isian besar untuk HP, draf localStorage, ringkasan + peringatan sebelum kirim, terkunci setelah kirim
+- [x] `sigap_buat_template_penilaian`: 40 form DRAF dari pedoman (sudah dijalankan di DB laptop)
+- [x] Tes: 340 tes lulus (77 tes mesin rumus), `ruff` bersih; uji browser Chrome 360 px (editor rumus, alur juri, tabel hasil)
+- [ ] Aspek dan bobot final dari panitia (5 Nov), lalu sesuaikan 40 form draf dan aktifkan
+- [ ] Rumus juara umum per tingkat disusun bersama panitia (template baru contoh Traveling)
 
 ## Tahap 5: Piagam (14 Nov)
 
@@ -74,6 +84,16 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 14. Di laptop, status form biodata masih **Paksa buka** (untuk uji). Kembalikan ke **Otomatis** sebelum 26 Okt (`sigap_cek_lingkungan` mengingatkan).
 
 ## Catatan sesi
+
+### 23 Oktober 2026 (Claude Code): Tahap 4
+
+Farhan menguji pemindai di HP Android sungguhan lewat `jalankan.bat -Https` (hijau, kuning, merah tingkat beda): lancar, lalu meminta lanjut. Dikerjakan Tahap 4 (commit `41b82f9`, `576dae3`). Sintaks REF final dicatat di `16-FORM-BUILDER.md`.
+
+Ditemukan dan diperbaiki saat uji browser: batas angka di HP tidak muncul karena angka di atribut HTML ditulis format Indonesia (`100,0`); subjek yang belum dinilai ikut mendapat peringkat dari poin kehadiran saja (sekarang tanpa peringkat bila form punya isian juri); kotak pesan berisi tautan terpotong.
+
+Catatan: kiriman/form yang dihapus masuk tempat sampah (soft delete) tetapi belum tampil di halaman Tempat sampah; pemulihan sementara lewat django-admin.
+
+**Langkah berikutnya:** Tahap 5 (piagam peserta dan juara, termasuk "buat piagam juara" dari tabel hasil), lalu pemasangan di server produksi bersama Farhan.
 
 ### 22 Oktober 2026 (Claude Code): Tahap 3
 

@@ -87,6 +87,14 @@ Perintah yang ditandai **(Admin)** harus dijalankan di PowerShell "Run as Admini
 | `python manage.py createcachetable` | Buat tabel cache (pembatas percobaan login) |
 | `python manage.py sigap_seed` | Isi data awal dari folder `data/`: 3 akun, 29 kontingen, kegiatan, 60 titik absen, sesi Anjangsana, pengaturan. **Aman diulang**, tidak menimpa data yang sudah ada. Pilihan: `--folder-data <folder>` |
 
+### Form penilaian (Tahap 4)
+
+| Perintah | Fungsi |
+|---|---|
+| `python manage.py sigap_buat_template_penilaian` | Buat form penilaian **DRAF** dari `data/template_penilaian.json` untuk setiap tingkat (40 form). Aman diulang, form yang sudah ada tidak ditimpa. Pilihan: `--file <json>` |
+
+Form dibuat dan diatur di **Superadmin > Form dan penilaian** (`/superadmin/form/`). Juri mengisi di `/juri/`. Form biasa yang dibuka untuk publik ada di `/f/<slug>/`.
+
 ### Akun dan kata sandi
 
 | Perintah | Fungsi |

@@ -48,11 +48,11 @@ Kriteria selesai:
 
 ## Tahap 4: Form builder dan juri (7 November)
 
-- [ ] Mode 1 dan mode 2 sesuai `16-FORM-BUILDER.md`.
-- [ ] Mesin rumus aman dengan tes unit lengkap.
-- [ ] Tarik data antarform, poin kehadiran otomatis, peringkat otomatis, kunci nilai.
-- [ ] Akun juri: daftar form yang ditugaskan, isi nilai dengan Nama Juri, tidak bisa ubah setelah kirim.
-- [ ] Template penilaian dari `data/template_penilaian.json` tersedia sebagai draf.
+- [x] Mode 1 dan mode 2 sesuai `16-FORM-BUILDER.md`.
+- [x] Mesin rumus aman dengan tes unit lengkap.
+- [x] Tarik data antarform, poin kehadiran otomatis, peringkat otomatis, kunci nilai.
+- [x] Akun juri: daftar form yang ditugaskan, isi nilai dengan Nama Juri, tidak bisa ubah setelah kirim.
+- [x] Template penilaian dari `data/template_penilaian.json` tersedia sebagai draf.
 
 ## Tahap 5: Piagam (14 November)
 

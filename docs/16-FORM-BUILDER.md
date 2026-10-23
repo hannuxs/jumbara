@@ -71,6 +71,16 @@ Semua kemampuan mode 1, ditambah:
 - Juri tidak melihat nilai juri lain dan tidak melihat tabel peringkat (kecuali superadmin mengizinkan per form).
 - Tampilan besar dan sederhana untuk HP; tombol angka mudah ditekan; validasi min/max.
 
+## Keputusan sintaks (dibuat 23 Okt 2026, juga tampil di "Bantuan rumus" editor)
+
+- `REF("kunci", "kode")`: `kunci` boleh **slug** form (misal `penilaian-traveling-wira`, selalu form itu) atau **kunci REF bersama** (misal `penilaian-traveling`), lalu dipilih form dengan tingkat yang sama dengan subjek; bila tidak ada, form tingkat Semua. `REF("kunci", "kode", "TINGKAT_INI")` memaksa tingkat sama (kosong bila tidak ada).
+- `kode` = kode kolom form sumber, kolom otomatis, atau `"peringkat"` (peringkat akhir form sumber, kecuali form itu punya kolom bernama `peringkat`).
+- `REF("anjangsana", ...)`: `rata_rata`, `jumlah_review`, `tamu_berbeda`, `jumlah_kunjungan`, `peringkat` (per tingkat subjek), `peringkat_gabungan`.
+- `PERINGKAT([kolom])` terbesar = 1; `PERINGKAT([kolom], "NAIK")` terkecil = 1.
+- Koma desimal `0,25` hanya di luar fungsi. Di dalam fungsi `1,2` ditolak (membingungkan); tulis `1.2` atau `1, 2`. Titik koma juga pemisah argumen.
+- Kosong: dihitung 0 pada + - * / dan SUM; diabaikan AVG/MIN/MAX. Subjek yang belum dinilai juri tidak diberi peringkat akhir (kecuali form tanpa isian, misal juara umum).
+- Template: kunci REF = `penilaian-<kegiatan>`, `<kegiatan>` untuk form gugur, `<kegiatan>-<cabang>` per cabang, `juara-umum`; slug = kunci + `-mula`/`-madya`/`-wira`.
+
 ## Template awal
 
 `data/template_penilaian.json` berisi contoh form dari pedoman (Traveling, Jurnalistik, Kewirausahaan, Drama, Got Talent, Ranking 1, Wahana per cabang, Bakti Masyarakat, Ngobrol Bareng, Sarasehan, Juara Umum). Buat seeder/perintah `python manage.py sigap_buat_template_penilaian` yang membuatnya sebagai **DRAF** per tingkat. Aspek dan bobot final dari panitia menyusul (paling lambat 5 November); superadmin akan menyesuaikan di form builder. Bobot Got Talent di pedoman tidak lengkap, jadi template menandainya "perlu konfirmasi".
