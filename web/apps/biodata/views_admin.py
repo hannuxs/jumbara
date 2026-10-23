@@ -11,10 +11,12 @@ from django.contrib.auth import authenticate
 from django.core.paginator import Paginator
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from apps.akun.decorators import superadmin_wajib
+from apps.inti import sampah as sampah_umum
 from apps.inti.log import catat
 from apps.inti.models import LogAktivitas, Tingkat
 from apps.kartu.models import AlasanKartu, KartuRiwayat
@@ -220,8 +222,25 @@ def sampah(request):
             .select_related("kontingen")
             .order_by("-dihapus_pada"),
             "kontingen": Kontingen.semua.filter(dihapus_pada__isnull=False).order_by("-dihapus_pada"),
+            "lainnya": sampah_umum.daftar(),
         },
     )
+
+
+@superadmin_wajib
+@require_POST
+def sampah_aksi(request, jenis: str, pk: int, aksi: str):
+    """Pulihkan / hapus permanen form, kiriman form, kehadiran, review Anjangsana."""
+    try:
+        if aksi == "pulihkan":
+            label = sampah_umum.pulihkan(request, jenis, pk)
+            messages.success(request, f"Dipulihkan: {label}.")
+        elif aksi == "hapus-permanen":
+            label = sampah_umum.hapus_permanen(request, jenis, pk)
+            messages.success(request, f"Dihapus permanen: {label}.")
+    except sampah_umum.GagalSampah as e:
+        messages.error(request, e.pesan)
+    return redirect(f"{reverse('biodata_admin:sampah')}#{jenis}")
 
 
 @superadmin_wajib

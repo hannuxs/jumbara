@@ -1,4 +1,5 @@
 {% extends "superadmin/base.html" %}
+{% load sigap %}
 {% block judul %}Tempat sampah{% endblock %}
 {% block judul_halaman %}Tempat sampah{% endblock %}
 {% block konten %}
@@ -38,4 +39,23 @@
   </tbody></table>
   {% else %}<p class="px-4 pb-4 text-sm text-abu sm:px-6">Kosong.</p>{% endif %}
 </div>
+{% for grup in lainnya %}
+<div class="kartu mt-4 overflow-x-auto p-0 sm:p-0" id="{{ grup.j.kode }}">
+  <h2 class="p-4 text-base font-bold sm:px-6">{{ grup.j.judul }} ({{ grup.isi|length }})</h2>
+  {% if grup.isi %}
+  <table class="tabel"><thead><tr><th>Data</th><th>Dihapus</th><th>Aksi</th></tr></thead><tbody>
+  {% for o in grup.isi %}
+    <tr>
+      <td class="min-w-[14rem]"><div class="font-semibold">{{ o|label_sampah:grup.j }}</div><div class="text-xs text-abu">{{ o|keterangan_sampah:grup.j }}</div></td>
+      <td class="whitespace-nowrap text-xs">{{ o.dihapus_pada|date:"d/m/Y H.i" }}<br>{{ o.dihapus_oleh }}</td>
+      <td class="whitespace-nowrap">
+        <form method="post" action="{% url 'biodata_admin:sampah_aksi' grup.j.kode o.pk 'pulihkan' %}" class="inline">{% csrf_token %}<button class="btn-hijau btn-kecil" type="submit">Pulihkan</button></form>
+        <form method="post" action="{% url 'biodata_admin:sampah_aksi' grup.j.kode o.pk 'hapus-permanen' %}" class="inline" data-konfirmasi="Hapus PERMANEN data ini? Tidak bisa dibatalkan.">{% csrf_token %}<button class="btn-bahaya btn-kecil" type="submit">Hapus permanen</button></form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody></table>
+  {% else %}<p class="px-4 pb-4 text-sm text-abu sm:px-6">Kosong.</p>{% endif %}
+</div>
+{% endfor %}
 {% endblock %}

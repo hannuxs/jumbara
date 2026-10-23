@@ -21,4 +21,5 @@ urlpatterns = [
     path("sampah/", v.sampah, name="sampah"),
     path("sampah/biodata/<int:pk>/pulihkan/", v.pulihkan, name="pulihkan"),
     path("sampah/biodata/<int:pk>/hapus-permanen/", v.hapus_permanen, name="hapus_permanen"),
+    path("sampah/<str:jenis>/<int:pk>/<str:aksi>/", v.sampah_aksi, name="sampah_aksi"),
 ]

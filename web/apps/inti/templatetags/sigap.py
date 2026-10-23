@@ -74,3 +74,14 @@ def aset(path: str) -> str:
         with contextlib.suppress(OSError):
             url += f"?v={int(berkas.stat().st_mtime)}"
     return url
+
+
+@register.filter
+def label_sampah(obj, jenis) -> str:
+    """Judul satu data di tempat sampah (lihat apps/inti/sampah.py)."""
+    return jenis.label(obj)
+
+
+@register.filter
+def keterangan_sampah(obj, jenis) -> str:
+    return jenis.keterangan(obj)
