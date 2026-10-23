@@ -46,7 +46,7 @@ ORANYE_TUA = colors.HexColor("#E2451F")
 GRADASI_TINGKAT = {
     "MULA": ([colors.HexColor("#14532D"), colors.HexColor("#15803D"), colors.HexColor("#16A34A")], colors.white),
     "MADYA": ([colors.HexColor("#1E3A8A"), colors.HexColor("#1D4ED8"), colors.HexColor("#2563EB")], colors.white),
-    "WIRA": ([colors.HexColor("#CA8A04"), colors.HexColor("#EAB308"), colors.HexColor("#FACC15")], NAVY),
+    "WIRA": ([colors.HexColor("#FACC15"), colors.HexColor("#FDE047"), colors.HexColor("#FEF08A")], NAVY),
 }
 CATATAN_CETAK = "Cetak dengan skala 100% (Actual size), kertas F4 215 x 330 mm."
 
