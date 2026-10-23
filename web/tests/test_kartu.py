@@ -193,6 +193,11 @@ def test_kunci_data_menutup_form_dan_menandai_cetak_ulang(client, kontingen_mady
     klien_superadmin.post("/superadmin/kartu/tercetak/", {"peserta": p.pk})
     p.refresh_from_db()
     assert not p.perlu_cetak_ulang
+    # Nomor Induk Anggota tercetak di kartu (R7) -> mengubahnya juga perlu cetak ulang.
+    klien_superadmin.post(f"/superadmin/biodata/{p.pk}/ubah/", data_ubah(p, nomor_induk_anggota="SIAMO-12345"))
+    p.refresh_from_db()
+    assert p.perlu_cetak_ulang and p.nomor_induk_anggota == "SIAMO-12345"
+    klien_superadmin.post("/superadmin/kartu/tercetak/", {"peserta": p.pk})
     # Buka kunci -> form publik kembali mengikuti jadwal (di tes: paksa buka).
     klien_superadmin.post("/superadmin/kartu/kunci/", {"kunci": "0"})
     r = Client().post("/daftar/", data_valid(kontingen_madya, nik="6501019999990004", token=token_lama()))

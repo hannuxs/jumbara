@@ -24,7 +24,7 @@ URUTAN_PERAN = {
 }
 
 # Isian yang tercetak di kartu: bila berubah setelah data dikunci, kartu perlu dicetak ulang.
-ISIAN_TERCETAK = ("nama_lengkap", "peran", "kontingen_id", "tingkat", "foto_path")
+ISIAN_TERCETAK = ("nama_lengkap", "nomor_induk_anggota", "peran", "kontingen_id", "tingkat", "foto_path")
 
 
 # --- Token --------------------------------------------------------------------
