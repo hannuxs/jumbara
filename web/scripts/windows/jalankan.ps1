@@ -29,7 +29,8 @@ param(
 # "Continue": peringatan di stderr dari program luar (pip, tailwind) tidak boleh menghentikan skrip.
 # Keberhasilan setiap langkah dinilai dari $LASTEXITCODE.
 $ErrorActionPreference = "Continue"
-# Pengembangan: HTTPS bawaan kecuali -Http. Produksi: HTTPS oleh Caddy, Waitress hanya di 127.0.0.1.
+# pakaiHttps = HTTPS buatan sendiri di laptop (sigap_https_dev), bawaan kecuali -Http.
+# Produksi: HTTPS asli oleh Caddy (bukan pakaiHttps), Waitress hanya di 127.0.0.1.
 $pakaiHttps = -not ($Http -or $Produksi)
 $env:BROWSERSLIST_IGNORE_OLD_DATA = "1"
 $env:PYTHONUTF8 = "1"
@@ -283,18 +284,25 @@ $hosts = ($envv["DJANGO_ALLOWED_HOSTS"] -split ",") | ForEach-Object { $_.Trim()
 $ipLan = @(Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
     Where-Object { $_.IPAddress -notlike "127.*" -and $_.IPAddress -notlike "169.254.*" -and $_.PrefixOrigin -ne "WellKnown" } |
     Select-Object -ExpandProperty IPAddress)
-$skema = if ($pakaiHttps) { "https" } else { "http" }
-if ($Produksi) { Info "Alamat publik: https://$domain/  (superadmin: https://$domain/masuk/)" }
-Info "Laptop ini : $skema`://localhost:$Port/"
-foreach ($ip in $ipLan) {
-    if ($hosts -contains $ip) { Info "HP (Wi-Fi sama): $skema`://$ip`:$Port/   (ketik $skema`://)" }
-    else { Peringatan "IP $ip belum ada di DJANGO_ALLOWED_HOSTS. Tambahkan ,$ip di web\.env bila ingin membuka dari HP." }
-}
-Info "Superadmin : $skema`://localhost:$Port/masuk/"
-if ($pakaiHttps) {
-    Info "Sertifikat buatan sendiri: pertama kali di HP/browser muncul peringatan. Chrome: Lanjutan > Lanjutkan. Safari: Tampilkan Detail > kunjungi."
+if ($Produksi) {
+    # Produksi: HTTPS asli oleh Caddy. Waitress hanya mendengar 127.0.0.1, jadi alamat IP LAN tidak dipakai.
+    Info "Alamat publik (HTTPS asli lewat Caddy): https://$domain/"
+    Info "Superadmin : https://$domain/masuk/"
+    Info "Kamera HP (pemindai, Anjangsana) bisa dipakai lewat alamat https di atas."
+    Info "Waitress internal (hanya dari PC ini, untuk mencari masalah): http://127.0.0.1:$Port/"
 } else {
-    Peringatan "Mode http:// : kamera HP (pemindai, Anjangsana) tidak bisa dipakai. Jalankan jalankan.bat tanpa -Http/-Produksi untuk HTTPS."
+    $skema = if ($pakaiHttps) { "https" } else { "http" }
+    Info "Laptop ini : $skema`://localhost:$Port/"
+    foreach ($ip in $ipLan) {
+        if ($hosts -contains $ip) { Info "HP (Wi-Fi sama): $skema`://$ip`:$Port/   (ketik $skema`://)" }
+        else { Peringatan "IP $ip belum ada di DJANGO_ALLOWED_HOSTS. Tambahkan ,$ip di web\.env bila ingin membuka dari HP." }
+    }
+    Info "Superadmin : $skema`://localhost:$Port/masuk/"
+    if ($pakaiHttps) {
+        Info "Sertifikat buatan sendiri: pertama kali di HP/browser muncul peringatan. Chrome: Lanjutan > Lanjutkan. Safari: Tampilkan Detail > kunjungi."
+    } else {
+        Peringatan "Mode http:// (-Http): kamera HP (pemindai, Anjangsana) tidak bisa dipakai. Jalankan jalankan.bat tanpa -Http untuk HTTPS."
+    }
 }
 
 Write-Host ""
