@@ -7,18 +7,18 @@ Folder ini berisi dokumen proyek dan aplikasinya. Aplikasi **Python (Django)** a
 
 ## Yang perlu dipasang dulu di laptop Windows
 
-1. **XAMPP** di `C:\xampp`. Yang dipakai hanya **Apache** (meneruskan ke aplikasi Python dan menyajikan file statis) dan **MariaDB** (database). PHP tidak dipakai.
-2. **MariaDB 10.5 atau lebih baru.** Cek dengan `mysql --version`. XAMPP lama membawa 10.4 yang tidak didukung Django 5.2; Claude Code akan memandu menggantinya (disarankan MariaDB 10.11 LTS).
+1. **MariaDB 10.5 atau lebih baru** (disarankan 10.11 LTS). Cek dengan `mysql --version`. XAMPP tidak dibutuhkan (keputusan 24 Okt 2026); MariaDB bawaan XAMPP lama (10.4) tidak didukung Django 5.2.
+2. Apache, IIS, atau program lain **tidak boleh** memakai port 80/443 di server produksi (dipakai Caddy).
 3. **Python 3.12** untuk Windows dari python.org. Saat instalasi centang **"Add python.exe to PATH"**.
 4. **Git for Windows**.
 5. **VS Code** dan **Claude Code** (ekstensi VS Code atau versi terminal), plus ekstensi Python.
-6. Tambahkan `C:\xampp\mysql\bin` ke PATH Windows, lalu buka ulang VS Code.
+6. Tambahkan folder `bin` MariaDB ke PATH Windows, lalu buka ulang VS Code.
 
 Node.js tidak wajib. Tailwind CSS memakai program standalone yang akan diunduh Claude Code.
 
 ## Cara mulai
 
-1. Ekstrak zip ini, misalnya ke `C:\sigap-jumbara`. Sebaiknya **bukan** di dalam `C:\xampp\htdocs`; Apache nanti hanya meneruskan permintaan ke aplikasi Python.
+1. Ekstrak zip ini, misalnya ke `C:\sigap-jumbara`.
 2. Buka folder `sigap-jumbara` di VS Code (File > Open Folder).
 3. Buka Claude Code di folder itu.
 4. Buka `PROMPT_TAHAP_1.md`, salin teks di dalam kotak, tempel ke Claude Code, lalu kirim.
@@ -42,22 +42,23 @@ Perintah ini memeriksa semuanya lalu menjalankan server:
 6. `manage.py check` dan `sigap_cek_lingkungan` (laporan lengkap: kunci NIK, folder, akun, jadwal form).
 7. Port bebas, alamat untuk laptop dan HP (IP Wi-Fi harus ada di `DJANGO_ALLOWED_HOSTS`).
 
+**Port** diatur hanya di `web\.env`: `SIGAP_PORT=8585` (bawaan 8585). Tidak ada lagi pilihan `-Port`.
+
 Pilihan:
 
 | Perintah | Fungsi |
 |---|---|
-| `jalankan.bat` | Periksa semua lalu jalankan server **HTTPS** di port 8000 (kamera HP bisa dipakai) |
-| `jalankan.bat -CekSaja` | Hanya periksa, tidak menjalankan server |
-| `jalankan.bat -Port 8080` | Pakai port lain |
-| `jalankan.bat -Produksi` | Jalankan dengan Waitress (seperti di belakang Apache), hanya `http://` |
+| `jalankan.bat` | **Pengembangan (laptop).** Periksa semua lalu jalankan server **HTTPS** di port `SIGAP_PORT` (bawaan 8585; kamera HP bisa dipakai) |
+| `jalankan.bat -Produksi` | **Produksi (server).** Caddy (HTTPS asli Let's Encrypt untuk `SIGAP_DOMAIN`, port 80/443) + Waitress di `127.0.0.1:SIGAP_PORT`. Biarkan jendela terminal terbuka |
+| `jalankan.bat -CekSaja` | Hanya periksa, tidak menjalankan server (bisa digabung: `-Produksi -CekSaja`) |
 | `jalankan.bat -Tes` | Jalankan juga `ruff` dan `pytest` sebelum server |
 | `jalankan.bat -Http` | Tanpa HTTPS (`http://`), misalnya bila ada masalah sertifikat. Kamera HP tidak bisa dipakai |
 
 Tanda `[OK]` = beres, `[!]` = peringatan (server tetap jalan), `[X]` = harus diperbaiki (ada baris "Solusi"). Hentikan server dengan **Ctrl+C**.
 
-**HTTPS di laptop:** `jalankan.bat` selalu HTTPS (kamera HP untuk pemindai dan Anjangsana hanya jalan lewat `https://`). Dari HP di Wi-Fi yang sama buka **https://IP-laptop:8000** (alamatnya ditampilkan saat `jalankan.bat` berjalan). Mengetik `http://` otomatis dialihkan ke `https://`. Karena sertifikatnya buatan sendiri, pertama kali di setiap HP/browser muncul peringatan: Chrome > Lanjutan > Lanjutkan; Safari > Tampilkan Detail > kunjungi situs web ini. Sertifikat dibuat ulang otomatis bila IP laptop berubah.
+**HTTPS di laptop:** `jalankan.bat` selalu HTTPS (kamera HP untuk pemindai dan Anjangsana hanya jalan lewat `https://`). Dari HP di Wi-Fi yang sama buka **https://IP-laptop:8585** (alamatnya ditampilkan saat `jalankan.bat` berjalan). Mengetik `http://` otomatis dialihkan ke `https://`. Karena sertifikatnya buatan sendiri, pertama kali di setiap HP/browser muncul peringatan: Chrome > Lanjutan > Lanjutkan; Safari > Tampilkan Detail > kunjungi situs web ini. Sertifikat dibuat ulang otomatis bila IP laptop berubah.
 
-**Di server produksi** HTTPS diurus Apache XAMPP dengan sertifikat asli (tanpa peringatan), dan aplikasi berjalan sebagai Windows Service, bukan lewat `jalankan.bat`. Lihat `docs/21-DEPLOY-WINDOWS.md`.
+**Di server produksi** jalankan `jalankan.bat -Produksi`. Caddy (`web\tools\caddy.exe`) mengambil sertifikat asli Let's Encrypt untuk domain di `SIGAP_DOMAIN` secara otomatis (tanpa peringatan di HP) dan meneruskan ke Waitress. Syaratnya: domain mengarah ke IP publik server, router meneruskan port **80 dan 443** ke server, Windows Firewall mengizinkan 80/443, dan isian `.env` produksi benar (`DJANGO_DEBUG=False`, `SIGAP_HTTPS=True`, lihat `docs/21-DEPLOY-WINDOWS.md`). Pemeriksaan `jalankan.bat -Produksi` menolak jalan bila isian itu salah.
 
 ## Daftar semua perintah
 
@@ -75,9 +76,9 @@ Perintah yang ditandai **(Admin)** harus dijalankan di PowerShell "Run as Admini
 | Perintah | Fungsi |
 |---|---|
 | `jalankan.bat` (dari folder proyek) | Cek menyeluruh lalu jalankan server (lihat pilihan di atas) |
-| `python manage.py runserver 0.0.0.0:8000` | Server pengembangan `http://` saja, tanpa pemeriksaan |
-| `python manage.py sigap_https_dev 0.0.0.0:8000` | Server HTTPS laptop tanpa pemeriksaan (yang dipakai `jalankan.bat`); sertifikat buatan sendiri dibuat otomatis |
-| `.venv\Scripts\waitress-serve.exe --listen=0.0.0.0:8000 --threads=48 sigap.wsgi:application` | Waitress seperti di server produksi |
+| `python manage.py runserver 0.0.0.0:8585` | Server pengembangan `http://` saja, tanpa pemeriksaan |
+| `python manage.py sigap_https_dev` | Server HTTPS laptop tanpa pemeriksaan (yang dipakai `jalankan.bat`) di port `SIGAP_PORT`; sertifikat buatan sendiri dibuat otomatis |
+| `.venv\Scripts\waitress-serve.exe --listen=127.0.0.1:8585 --threads=48 sigap.wsgi:application` | Waitress saja (tanpa Caddy), untuk mencari masalah |
 
 ### Database dan data awal
 
@@ -132,7 +133,7 @@ Memulihkan cadangan: ikuti `docs/21-DEPLOY-WINDOWS.md` bagian 10.
 | `pytest tests/test_absensi.py -q` | Tes satu file saja |
 | `ruff check .` | Periksa kerapian dan kesalahan kode |
 | `ruff format .` | Rapikan format kode |
-| `python manage.py sigap_uji_beban --url https://127.0.0.1:8000 --ya` | Uji beban absensi: 30 HP x 15 titik memindai bersamaan ke server yang sedang berjalan, lalu periksa tidak ada data dobel. Data uji dihapus otomatis. **Jangan dijalankan saat acara berlangsung** |
+| `python manage.py sigap_uji_beban --ya` | Uji beban absensi: 30 HP x 15 titik memindai bersamaan ke server yang sedang berjalan (otomatis `127.0.0.1:SIGAP_PORT`, atau `--url ...`), lalu periksa tidak ada data dobel. Data uji dihapus otomatis. **Jangan dijalankan saat acara berlangsung** |
 
 Pilihan `sigap_uji_beban`: `--perangkat 30`, `--titik 15`, `--pindaian 40`, `--jeda 0.5` (detik), `--dobel 0.10`, `--ulang 0.05`, `--simpan-data` (data uji tidak dihapus), `--ya` (wajib bila `DJANGO_DEBUG=False`). Hasil yang benar: "Uji beban LULUS" dengan 0 pasangan ganda.
 
@@ -144,17 +145,16 @@ Pilihan `sigap_uji_beban`: `--perangkat 30`, `--titik 15`, `--pindaian 40`, `--j
 | `tools\tailwindcss.exe -c tailwind\tailwind.config.js -i tailwind\input.css -o static\css\app.css --watch` | Bangun CSS otomatis setiap template diubah (pengembangan) |
 | `powershell -ExecutionPolicy Bypass -File scripts\windows\bangun-css.ps1` | Sama dengan `--minify` di atas. Tambah `-Pantau` untuk mode otomatis |
 | `python manage.py collectstatic --noinput` | Kumpulkan file statis ke `staticfiles` (wajib bila `DJANGO_DEBUG=False`) |
-| `powershell -ExecutionPolicy Bypass -File scripts\windows\unduh-alat.ps1` | Unduh Tailwind CLI dan WinSW ke `web\tools` (tidak ikut di-commit) |
+| `powershell -ExecutionPolicy Bypass -File scripts\windows\unduh-alat.ps1` | Unduh Tailwind CLI dan Caddy 2.8.4 (sidik SHA-512 diperiksa) ke `web\tools` (tidak ikut di-commit). Dijalankan otomatis oleh `jalankan.bat -Produksi` bila Caddy belum ada |
 
-### Server produksi (Windows + XAMPP)
+### Server produksi (Windows, tanpa XAMPP)
 
 Urutan lengkap ada di `docs/21-DEPLOY-WINDOWS.md`.
 
 | Perintah | Fungsi |
 |---|---|
-| `powershell -ExecutionPolicy Bypass -File scripts\windows\pasang-service.ps1` **(Admin)** | Pasang Waitress sebagai Windows Service (WinSW). Pilihan: `-Threads 48`, `-Port 8000`, `-Hapus` (copot service) |
-| `powershell -ExecutionPolicy Bypass -File scripts\windows\perbarui.ps1` **(Admin)** | Perbarui aplikasi setelah ada perubahan kode (paket, migrasi, tabel cache, file statis, lalu restart service). Hindari jam sibuk |
-| `scripts\windows\apache-sigap.conf` | Contoh konfigurasi Apache XAMPP sebagai reverse proxy (bukan perintah, disalin ke konfigurasi Apache) |
+| `jalankan.bat -Produksi` (dari folder proyek) | Jalankan produksi: Caddy HTTPS + Waitress. Hentikan dengan Ctrl+C (Caddy ikut berhenti) |
+| `powershell -ExecutionPolicy Bypass -File scripts\windows\perbarui.ps1` | Perbarui aplikasi setelah ada perubahan kode: cadangan database, `git pull` (bila repositori git), lalu minta Anda menjalankan ulang `jalankan.bat -Produksi` (yang memasang paket, migrasi, dan file statis). Hindari jam sibuk |
 
 ### Sengaja tidak dijalankan Claude Code
 

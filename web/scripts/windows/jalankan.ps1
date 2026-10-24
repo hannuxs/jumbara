@@ -241,7 +241,7 @@ if ($Produksi) {
     foreach ($pt in @(80, 443)) {
         if (Port-Menyala "127.0.0.1" $pt) {
             if ($CekSaja) { Info "Port $pt sedang dipakai (Caddy SIGAP mungkin sudah berjalan)." }
-            else { Masalah "Port $pt sudah dipakai program lain (Apache XAMPP, IIS, atau jendela SIGAP lain)." "Matikan program itu (Apache di XAMPP Control Panel: Stop) lalu jalankan lagi"; Berhenti }
+            else { Masalah "Port $pt sudah dipakai program lain (Apache XAMPP, IIS, atau jendela SIGAP lain)." "Matikan program itu lalu jalankan lagi"; Berhenti }
         }
     }
     New-Item -ItemType Directory -Force -Path $folderLog | Out-Null

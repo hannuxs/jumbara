@@ -1,15 +1,19 @@
-# 21. Pemasangan di Server Windows + XAMPP (Python/Django)
+# 21. Pemasangan di Server Windows (Python/Django, tanpa XAMPP)
 
-Panduan untuk Farhan memasang SIGAP JUMBARA di PC server Windows. Ditulis dan diuji oleh Claude Code pada 18 Oktober 2026 di laptop pengembangan (Windows 10 Pro, XAMPP dengan MariaDB 10.4, Python 3.12.10). Bagian yang **butuh hak Administrator** (memasang service, Task Scheduler, MSI MariaDB) sudah diperiksa sintaksnya tetapi belum dijalankan oleh Claude karena hak admin diblokir; ditandai **(belum diuji, jalankan sendiri)**.
+Panduan untuk Farhan memasang SIGAP JUMBARA di PC server Windows. Ditulis dan diuji oleh Claude Code di laptop pengembangan (Windows 10 Pro, MariaDB 10.11, Python 3.12.10). Bagian yang **butuh hak Administrator** (Task Scheduler, MSI MariaDB) sudah diperiksa sintaksnya tetapi belum dijalankan oleh Claude karena hak admin diblokir; ditandai **(belum diuji, jalankan sendiri)**.
+
+**Keputusan Farhan (24 Okt 2026):** produksi **tidak memakai XAMPP** (Apache tidak dipakai) dan **tidak memakai Windows Service** untuk aplikasi. Produksi dijalankan dari terminal dengan **`jalankan.bat -Produksi`**; pengembangan cukup **`jalankan.bat`**. Port aplikasi diatur hanya di `web\.env` (`SIGAP_PORT`, bawaan **8585**).
 
 Susunan di server:
 
 ```
-HP/laptop -> HTTPS (Cloudflare Tunnel) -> Apache XAMPP :80
-          -> /static/  disajikan langsung oleh Apache dari web\staticfiles\
-          -> selain itu diteruskan ke Waitress 127.0.0.1:8000 (Django, Windows Service "SIGAP Jumbara")
+HP/laptop -> https://sigapjumbara.my.id  (port 443; http:// port 80 dialihkan ke https)
+          -> Caddy (web\tools\caddy.exe, sertifikat Let's Encrypt otomatis)
+          -> Waitress 127.0.0.1:SIGAP_PORT (Django; /static/ disajikan WhiteNoise)
           -> MariaDB 10.11 (Windows Service "MariaDB1011")
 ```
+
+Caddy dan Waitress berjalan di satu jendela terminal yang dibuka `jalankan.bat -Produksi`. Menutup jendela atau menekan Ctrl+C menghentikan keduanya.
 
 Semua perintah di bawah dijalankan di **PowerShell**. Yang bertanda **(Admin)** harus di PowerShell "Run as Administrator".
 
@@ -19,13 +23,12 @@ Semua perintah di bawah dijalankan di **PowerShell**. Yang bertanda **(Admin)** 
 
 | Program | Cara pasang | Cek |
 |---|---|---|
-| XAMPP (Apache) | Sudah ada di `C:\xampp`. PHP tidak dipakai | Apache jalan di XAMPP Control Panel |
 | Python 3.12 | `winget install --id Python.Python.3.12 --scope user` (atau installer python.org, centang "Add to PATH" dan "py launcher") | `py --list` menampilkan `-V:3.12` |
 | Git for Windows | `winget install --id Git.Git` | `git --version` |
 | MariaDB 10.11 LTS | Lihat bagian 2 | `mysql --version` atau `mariadb --version` |
-| cloudflared (HTTPS) | `winget install --id Cloudflare.cloudflared` | `cloudflared --version` |
+| Caddy 2.8.4 | Diunduh otomatis oleh `unduh-alat.ps1` (dipanggil `jalankan.bat -Produksi` bila belum ada), sidik SHA-512 diperiksa | `web\tools\caddy.exe version` |
 
-Node.js **tidak** diperlukan. Tailwind CLI dan WinSW diunduh oleh skrip (bagian 3).
+Node.js, XAMPP, Apache, cloudflared, WinSW **tidak** diperlukan. **Port 80 dan 443 harus bebas**: hentikan/copot Apache XAMPP, IIS (`World Wide Web Publishing Service`), Skype lama, atau program lain yang memakainya. Cek: `netstat -ano | findstr ":80 :443"`.
 
 ## 2. Database MariaDB 10.11
 
@@ -75,7 +78,7 @@ cd C:\sigap-jumbara\web
 py -3.12 -m venv .venv
 .venv\Scripts\python -m pip install --upgrade pip
 .venv\Scripts\pip install -r requirements.txt
-powershell -ExecutionPolicy Bypass -File scripts\windows\unduh-alat.ps1     # tailwindcss.exe + WinSW
+powershell -ExecutionPolicy Bypass -File scripts\windows\unduh-alat.ps1     # tailwindcss.exe + caddy.exe
 copy .env.example .env
 notepad .env                                   # isi, lihat 3.1
 .venv\Scripts\python manage.py migrate
@@ -89,18 +92,23 @@ powershell -ExecutionPolicy Bypass -File scripts\windows\bangun-css.ps1
 
 `sigap_seed` aman dijalankan berulang (tidak membuat data ganda, tidak mengubah sandi akun yang sudah ada, tidak menimpa kuota yang sudah diubah manual).
 
-`check --deploy` normal menyisakan 2 peringatan: `security.W004` (HSTS, aktifkan setelah domain final) dan `security.W008` (pengalihan HTTPS dilakukan Cloudflare).
+`check --deploy` normal menyisakan 2 peringatan: `security.W004` (HSTS, aktifkan setelah domain final) dan `security.W008` (pengalihan http ke https dilakukan Caddy, bukan Django).
+
+Langkah migrasi, `collectstatic`, CSS, dan pemeriksaan di atas juga dijalankan otomatis oleh `jalankan.bat -Produksi` setiap kali dijalankan.
 
 ### 3.1 Isi `web\.env` di server
 
 | Kunci | Nilai produksi |
 |---|---|
-| `DJANGO_DEBUG` | `False` |
+| `DJANGO_DEBUG` | `False` (wajib; `True` menampilkan kode, isi pengaturan, dan jejak galat ke publik saat ada galat) |
 | `DJANGO_SECRET_KEY` | acak: `.venv\Scripts\python -c "import secrets; print(secrets.token_urlsafe(64))"` |
-| `DJANGO_ALLOWED_HOSTS` | `sigapjumbara.<tld>,localhost,127.0.0.1` |
-| `CSRF_TRUSTED_ORIGINS` | `https://sigapjumbara.<tld>` |
-| `SIGAP_URL` | `https://sigapjumbara.<tld>` |
-| `SIGAP_HTTPS` | `True` |
+| `DJANGO_ALLOWED_HOSTS` | `sigapjumbara.my.id,localhost,127.0.0.1` |
+| `CSRF_TRUSTED_ORIGINS` | `https://sigapjumbara.my.id` |
+| `SIGAP_URL` | `https://sigapjumbara.my.id` (dipakai di QR form, tautan WhatsApp, kartu) |
+| `SIGAP_HTTPS` | `True` (wajib; cookie sesi dan CSRF hanya dikirim lewat https) |
+| `SIGAP_DOMAIN` | `sigapjumbara.my.id` (domain untuk sertifikat Caddy; wajib untuk `-Produksi`) |
+| `SIGAP_EMAIL_ACME` | email Farhan (opsional; pemberitahuan Let's Encrypt bila sertifikat bermasalah) |
+| `SIGAP_PORT` | `8585` (port Waitress di 127.0.0.1; tidak perlu dibuka di router) |
 | `DB_PORT` | `3307` (atau `3306`) |
 | `DB_PASSWORD` | sandi user `sigap` |
 | `SIGAP_KUNCI_NIK` | `.venv\Scripts\python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"` |
@@ -112,54 +120,49 @@ powershell -ExecutionPolicy Bypass -File scripts\windows\bangun-css.ps1
 
 **Penting:** `SIGAP_KUNCI_NIK` dan `SIGAP_KUNCI_HASH_NIK` wajib dicatat di tempat aman (pengelola sandi + flashdisk). Tanpa kunci ini, NIK di database dan di cadangan tidak bisa dibaca lagi. Jangan pernah mengganti `SIGAP_KUNCI_HASH_NIK` setelah ada data.
 
-## 4. Waitress sebagai Windows Service (Admin) (belum diuji, jalankan sendiri)
+## 4. Domain, router, dan firewall (sekali saja)
 
-```powershell
-cd C:\sigap-jumbara\web
-powershell -ExecutionPolicy Bypass -File scripts\windows\pasang-service.ps1
+1. **DNS domain** `sigapjumbara.my.id`: record `A` mengarah ke IP publik internet server (cek IP di https://ifconfig.me dari server). Bila IP publik berubah-ubah (IP dinamis), perbarui record ini atau pakai layanan DDNS. Cek: `nslookup sigapjumbara.my.id` harus menghasilkan IP publik itu.
+2. **Router/modem**: teruskan (port forwarding/virtual server) **port 80 → IP lokal server port 80** dan **port 443 → IP lokal server port 443**, protokol TCP. Jangan meneruskan ke 8585: port itu hanya untuk Waitress di dalam server. Beri server IP lokal tetap (DHCP reservation) agar penerusan tidak putus.
+3. **Windows Firewall (Admin)**:
+   ```powershell
+   New-NetFirewallRule -DisplayName "SIGAP HTTP" -Direction Inbound -Protocol TCP -LocalPort 80 -Action Allow
+   New-NetFirewallRule -DisplayName "SIGAP HTTPS" -Direction Inbound -Protocol TCP -LocalPort 443 -Action Allow
+   ```
+   Saat Caddy pertama kali jalan, Windows mungkin bertanya izin jaringan: pilih **Allow**.
+4. Bila ISP memblokir port 80 masuk, Let's Encrypt tetap bisa memakai port 443 (TLS-ALPN). Bila 443 juga diblokir, HTTPS asli tidak bisa didapat dari server ini; hubungi ISP atau pakai jaringan lain.
+
+## 5. Menjalankan produksi
+
+Dari folder proyek (`C:\sigap-jumbara`):
+
+```
+jalankan.bat -Produksi
 ```
 
-Skrip membuat service **"SIGAP Jumbara"** (id `SIGAPJumbara`) lewat WinSW yang menjalankan:
-`.venv\Scripts\waitress-serve.exe --listen=127.0.0.1:8000 --threads=48 --channel-timeout=120 --connection-limit=1000 sigap.wsgi:application`
-— start otomatis (tertunda), restart otomatis bila mati, bergantung pada service `MariaDB1011`, log di `web\logs\`. Di akhir skrip mencoba membuka `http://127.0.0.1:8000/`.
+Yang dilakukan:
+1. Pemeriksaan biasa (Python, paket `requirements.txt`, `.env`, MariaDB, migrasi, CSS, `collectstatic`, `sigap_cek_lingkungan`).
+2. Pemeriksaan khusus produksi, menolak jalan bila salah: `SIGAP_DOMAIN` terisi, `DJANGO_DEBUG=False`, `SIGAP_HTTPS` tidak `False`, domain ada di `DJANGO_ALLOWED_HOSTS`, `https://domain` ada di `CSRF_TRUSTED_ORIGINS`, `caddy.exe` ada (diunduh bila belum), port 80 dan 443 bebas. Peringatan bila `SIGAP_URL` bukan `https://domain`.
+3. Menulis `web\tools\Caddyfile` dari `.env` (jangan diubah manual) lalu `caddy validate`.
+4. Menyalakan **Caddy** (log `web\logs\caddy.log`, akses `web\logs\caddy-akses.log`) dan **Waitress** di `127.0.0.1:SIGAP_PORT` (48 thread, bisa diubah `WAITRESS_THREADS`).
 
-Yang sudah diuji Claude: perintah Waitress di atas (mode produksi, `DJANGO_DEBUG=False`) menjawab 200 untuk `/`, `/daftar/`, `/masuk/`, 404 ramah untuk halaman tidak ada, header keamanan lengkap; dan file XML WinSW yang dibuat skrip terbaca benar (`status` → `NonExistent`).
+Pertama kali, Caddy meminta sertifikat ke Let's Encrypt (beberapa detik sampai 1 menit); sertifikat disimpan di `%AppData%\Caddy` dan **diperbarui otomatis**. Setelah itu buka `https://sigapjumbara.my.id` dari HP memakai data seluler (bukan Wi-Fi server) dan pastikan gembok tampil tanpa peringatan.
 
-Perintah sehari-hari: `Restart-Service SIGAPJumbara`, `Get-Service SIGAPJumbara`. Mencopot: `pasang-service.ps1 -Hapus`.
+Caddy membuang header `CF-Connecting-IP` dari luar dan mengisi `X-Forwarded-For`/`X-Forwarded-Proto` sendiri, sehingga IP pengirim di log dan pembatas laju tidak bisa dipalsukan (sudah diuji).
 
-## 5. Apache XAMPP sebagai reverse proxy
+**Biarkan jendela terminal terbuka** selama acara. Agar hidup lagi setelah PC restart, buat pintasan `jalankan.bat -Produksi` di folder Startup (`Win+R` → `shell:startup`) atau login otomatis lalu jalankan manual. Hentikan dengan **Ctrl+C** (Caddy ikut berhenti).
 
-1. Buka `C:\xampp\apache\conf\httpd.conf`, pastikan baris `LoadModule` untuk `proxy`, `proxy_http`, `headers`, `rewrite`, `deflate`, `expires` tidak diberi `#`.
-2. Salin isi `web\scripts\windows\apache-sigap.conf` ke akhir `C:\xampp\apache\conf\extra\httpd-vhosts.conf`. Ganti `ServerName` dengan domain final dan path jika folder proyek bukan `C:\sigap-jumbara`.
-3. `C:\xampp\apache\conf\extra\httpd-mpm.conf` bagian `mpm_winnt_module`: `ThreadsPerChild 250`.
-4. Cek: `C:\xampp\apache\bin\httpd.exe -t` harus `Syntax OK`, lalu restart Apache (XAMPP Control Panel atau `Restart-Service Apache2.4`).
-5. Pastikan Apache dan MariaDB berjalan sebagai **service** (XAMPP Control Panel, kolom "Service").
-
-Apache hanya menyajikan `web\staticfiles\`. Folder `web\privat\` (foto, cadangan) dan `web\.env` tidak berada di bawah Alias mana pun. Selain itu, aplikasi juga memakai WhiteNoise sehingga `/static/` tetap tersaji jika diakses langsung lewat Waitress.
+Cek kesiapan tanpa menyalakan server: `jalankan.bat -Produksi -CekSaja`.
 
 ## 6. HTTPS
 
-**Keputusan Farhan (22 Okt 2026): Cloudflare Tunnel tidak dipakai.** HTTPS tetap wajib untuk kamera HP (pemindai Tahap 3, Anjangsana). Cara HTTPS ditentukan saat pemasangan; pilihan yang tersedia adalah opsi B (win-acme + Apache) di bawah. Uraian Cloudflare Tunnel dibiarkan sebagai referensi saja.
+- **Produksi:** Caddy dengan sertifikat asli Let's Encrypt (bagian 4-5). Keputusan Farhan 24 Okt 2026, menggantikan rencana Apache/win-acme. Cloudflare Tunnel tidak dipakai (keputusan 22 Okt 2026).
+- **Laptop (pengembangan dan uji coba):** `jalankan.bat` selalu HTTPS (`python manage.py sigap_https_dev`) di `https://IP-laptop:8585` dengan sertifikat buatan sendiri untuk localhost dan IP laptop; `http://` di port yang sama dialihkan ke `https://`. Di HP (Wi-Fi sama) buka alamat itu dan terima peringatan sertifikat: Chrome Android > Lanjutan > Lanjutkan; Safari iPhone > Tampilkan Detail > kunjungi situs web ini. IP laptop harus ada di `DJANGO_ALLOWED_HOSTS`; izinkan port 8585 di Windows Firewall bila diminta. Server produksi **tidak** memakai ini: bila browser menampilkan "Not secure" dengan sertifikat "SIGAP JUMBARA (uji lokal)", berarti server dijalankan dengan `jalankan.bat` biasa, bukan `-Produksi`.
+- Setelah stabil dan domain final: `SECURE_HSTS_SECONDS=31536000` di `.env`.
 
-### (Referensi, tidak dipakai) Cloudflare Tunnel
-
-Kamera HP hanya bisa dipakai lewat HTTPS. Syarat: domain `sigapjumbara.<tld>` memakai nameserver Cloudflare (akun Cloudflare gratis).
-
-1. Cloudflare dashboard > **Zero Trust** > Networks > Tunnels > **Create a tunnel** (Cloudflared), nama `sigap-jumbara`.
-2. Pilih Windows, salin perintah yang berisi token, jalankan di PowerShell **(Admin)**:
-   `cloudflared.exe service install <TOKEN>` — cloudflared menjadi Windows service dan hidup otomatis.
-3. Tab **Public Hostname**: hostname `sigapjumbara.<tld>` (dan `www` jika perlu), service `HTTP` → `localhost:80` (Apache).
-4. SSL/TLS > Edge Certificates: aktifkan **Always Use HTTPS**.
-5. Isi `.env`: `SIGAP_URL`, `DJANGO_ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS` (bagian 3.1), `SIGAP_HTTPS=True`, `SECURE_SSL_REDIRECT=False`. `Restart-Service SIGAPJumbara`.
-6. Setelah stabil dan domain final: `SECURE_HSTS_SECONDS=31536000`.
-
-Opsi B (win-acme + Apache :443) hanya jika server punya IP publik tetap dan port 80/443 diteruskan router; tidak disarankan untuk tenggat ini.
-
-**Laptop (pengembangan dan uji coba, tanpa Cloudflare):** `jalankan.bat` selalu HTTPS (`python manage.py sigap_https_dev`) di `https://IP-laptop:8000` dengan sertifikat buatan sendiri untuk localhost dan IP laptop; `http://` dialihkan ke `https://`. Di HP (Wi-Fi sama) buka alamat itu dan terima peringatan sertifikat: Chrome Android > Lanjutan > Lanjutkan; Safari iPhone > Tampilkan Detail > kunjungi situs web ini. IP laptop harus ada di `DJANGO_ALLOWED_HOSTS`; izinkan port 8000 di Windows Firewall bila diminta. Server produksi tidak memakai ini (HTTPS lewat Apache).
-
-**Uji beban di server (sebelum acara, `22-PENGUJIAN.md`):** dengan service berjalan, dari folder `web`:
-`python manage.py sigap_uji_beban --url http://127.0.0.1:8000 --perangkat 30 --titik 15 --pindaian 40 --ya`
-Hasil harus "Uji beban LULUS" dengan 0 pasangan ganda dan p95 di bawah 1 detik. Data uji (kontingen tersembunyi UJI-BEBAN, titik UB-...) dihapus otomatis. Jangan dijalankan setelah acara dimulai.
+**Uji beban di server (sebelum acara, `22-PENGUJIAN.md`):** dengan `jalankan.bat -Produksi` berjalan, dari folder `web` di terminal lain:
+`.venv\Scripts\python manage.py sigap_uji_beban --perangkat 30 --titik 15 --pindaian 40 --ya`
+(alamat otomatis `127.0.0.1:SIGAP_PORT`). Hasil harus "Uji beban LULUS" dengan 0 pasangan ganda dan p95 di bawah 1 detik. Data uji (kontingen tersembunyi UJI-BEBAN, titik UB-...) dihapus otomatis. Jangan dijalankan setelah acara dimulai.
 
 ## 7. Task Scheduler (Admin) (belum diuji, jalankan sendiri)
 
@@ -179,20 +182,20 @@ Perintah `sigap_jadwal` sendiri sudah diuji: `python manage.py sigap_jadwal --pa
 
 - Matikan sleep/hibernate: `powercfg /change standby-timeout-ac 0` dan `powercfg /change hibernate-timeout-ac 0`.
 - Windows Update: tunda pembaruan (Settings > Windows Update > Pause updates) sampai 16 November, atur "Active hours".
-- Firewall: tidak perlu membuka port masuk (Cloudflare Tunnel keluar sendiri). Waitress hanya mendengar `127.0.0.1`.
+- Firewall: hanya port masuk 80 dan 443 (Caddy). Waitress hanya mendengar `127.0.0.1`, MariaDB `bind-address=127.0.0.1`.
 - UPS bila ada. Salin cadangan berkala ke disk lain/penyimpanan awan milik panitia.
 
 ## 9. Pembaruan aplikasi
 
-**(Admin)** dari `C:\sigap-jumbara\web`:
+Dari `C:\sigap-jumbara\web`:
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\windows\perbarui.ps1
 ```
-Urutannya: cadangan dulu → `git pull` → `pip install` → `migrate` → `collectstatic` → restart service → `sigap_cek_lingkungan`. Hindari jam sibuk. Untuk perbaikan yang lama, nyalakan **Mode perawatan** di Superadmin > Pengaturan form (semua halaman menampilkan "Sedang perbaikan sebentar", kecuali untuk superadmin).
+Urutannya: cadangan database dulu → `git pull` (bila folder adalah repositori git; bila tidak, salin file baru secara manual) → pesan untuk menghentikan `jalankan.bat -Produksi` (Ctrl+C) lalu menjalankannya lagi. Saat dijalankan ulang, `jalankan.bat -Produksi` memasang paket, migrasi, CSS, dan `collectstatic`. Hindari jam sibuk. Untuk perbaikan yang lama, nyalakan **Mode perawatan** di Superadmin > Pengaturan form (semua halaman menampilkan "Sedang perbaikan sebentar", kecuali untuk superadmin).
 
 ## 10. Memulihkan cadangan (sudah diuji ke database terpisah)
 
-1. Hentikan aplikasi: `Stop-Service SIGAPJumbara`.
+1. Hentikan aplikasi: Ctrl+C di jendela `jalankan.bat -Produksi`.
 2. Ekstrak ZIP cadangan ke folder baru, misalnya `D:\pulih\` (isi: `database.sql`, `foto\`, `BACA-SAYA.txt`).
 3. Pulihkan database (sebaiknya ke database baru dulu untuk diperiksa):
    ```powershell
@@ -203,15 +206,16 @@ Urutannya: cadangan dulu → `git pull` → `pip install` → `migrate` → `col
    Periksa isinya, misalnya `SELECT COUNT(*) FROM sigap_pulih.biodata_peserta;`. Jika benar, ubah `DB_NAME=sigap_pulih` di `.env` (atau impor ke `sigap_jumbara` setelah database lama diganti nama/dicadangkan).
 4. Salin isi `D:\pulih\foto\` ke `SIGAP_FOLDER_PRIVAT\foto\` (timpa).
 5. `.env` harus memakai **kunci NIK yang sama** dengan saat cadangan dibuat.
-6. `Start-Service SIGAPJumbara`, lalu `python manage.py sigap_cek_lingkungan`.
+6. Jalankan lagi `jalankan.bat -Produksi` (sudah termasuk `sigap_cek_lingkungan`).
 
 Hasil uji 18 Okt 2026: cadangan dipulihkan ke database `sigap_uji_pulih`; jumlah biodata dan kontingen sama dengan aslinya, foto ada.
 
 ## 11. Daftar periksa sebelum 25 Oktober
 
 - [ ] MariaDB 10.11 berjalan sebagai service `MariaDB1011` dan hidup otomatis setelah restart PC.
-- [ ] Service `SIGAPJumbara` hidup otomatis setelah restart PC.
-- [ ] HTTPS aktif dengan domain final (cara ditentukan saat pemasangan; Cloudflare Tunnel tidak dipakai).
+- [ ] `jalankan.bat -Produksi` berjalan tanpa tanda X; gembok HTTPS tampil di `https://sigapjumbara.my.id` dari HP dengan data seluler.
+- [ ] Router meneruskan 80 dan 443 ke server; Windows Firewall mengizinkan 80/443; tidak ada Apache/IIS di 80/443.
+- [ ] Pintasan `jalankan.bat -Produksi` di Startup (atau petugas tahu cara menjalankannya lagi setelah restart).
 - [ ] `python manage.py check --deploy` hanya menyisakan W004/W008; `DJANGO_DEBUG=False`.
 - [ ] `python manage.py sigap_cek_lingkungan` tanpa tanda X.
 - [ ] Form biodata diuji dari Android murah, Android baru, iPhone (Safari) lewat HTTPS.
@@ -236,7 +240,10 @@ Hasil uji 18 Okt 2026: cadangan dipulihkan ke database `sigap_uji_pulih`; jumlah
 | `DisallowedHost` | Domain belum ada di `DJANGO_ALLOWED_HOSTS` |
 | Kamera tidak bisa dibuka di HP | Akses bukan lewat HTTPS |
 | Cadangan gagal "mysqldump tidak ditemukan" | Perbaiki `SIGAP_MYSQLDUMP_PATH` |
-| Foto 413/terlalu besar di Apache | `LimitRequestBody` di vhost (bawaan contoh: 12 MB) |
+| "Not secure" / sertifikat "SIGAP JUMBARA (uji lokal)" di domain | Server dijalankan dengan `jalankan.bat` (mode laptop). Pakai `jalankan.bat -Produksi` |
+| `-Produksi` berhenti: "Port 80 (atau 443) sudah dipakai program lain" | Apache XAMPP/IIS masih jalan. Hentikan: XAMPP Control Panel > Stop Apache (hapus centang Service), atau `Stop-Service W3SVC` lalu `Set-Service W3SVC -StartupType Disabled` (Admin) |
+| Caddy log: `challenge failed`, `timeout during connect` | Domain belum mengarah ke IP publik, atau router belum meneruskan 80/443, atau firewall memblokir. Periksa bagian 4 |
+| Caddy log: `too many certificates` / `rateLimited` | Terlalu sering meminta sertifikat (batas Let's Encrypt). Tunggu sesuai pesan; jangan menghapus `%AppData%\Caddy` |
 
 ## 13. Catatan laptop pengembangan Farhan
 
@@ -254,6 +261,6 @@ Hasil uji 18 Okt 2026: cadangan dipulihkan ke database `sigap_uji_pulih`; jumlah
     Service bernama `MariaDB1011dev`, start otomatis.
 - Sandi root MariaDB laptop dibuat acak; sandi user `sigap` ada di `web\.env` (`DB_PASSWORD`). Sandi root perlu diganti/ditanyakan bila butuh (lihat catatan sesi di `PROGRES.md`).
 - MariaDB XAMPP 10.4 di port 3306 tidak diubah.
-- Menjalankan server pengembangan: **`jalankan.bat`** dari folder proyek (memeriksa semuanya, menyalakan MariaDB bila mati, lalu `runserver 0.0.0.0:8000`). Cara manual: `.venv\Scripts\python manage.py runserver 0.0.0.0:8000`.
-- `jalankan.bat -CekSaja -Produksi` juga berguna di server produksi untuk memeriksa kesiapan (tanpa menyalakan server, karena di server dipakai service `SIGAPJumbara`).
+- Menjalankan server pengembangan: **`jalankan.bat`** dari folder proyek (memeriksa semuanya, menyalakan MariaDB bila mati, lalu HTTPS di port `SIGAP_PORT`, bawaan 8585). Cara manual: `.venv\Scripts\python manage.py sigap_https_dev`.
+- `jalankan.bat -Produksi -CekSaja` memeriksa kesiapan server produksi tanpa menyalakan server.
 - Tes: `.venv\Scripts\pytest` (database `sigap_jumbara_test` dibuat otomatis).

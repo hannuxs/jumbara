@@ -6,7 +6,8 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 
 - Tahap aktif: **Tahap 5 selesai di laptop (23 Okt). Semua tahap fitur selesai; berikutnya uji coba bersama panitia dan pemasangan di server produksi bersama Farhan.** Tahap 4 selesai 23 Okt. Tahap 2 selesai 22 Okt. Tahap 1 selesai di laptop; pemasangan di server produksi + HTTPS + uji 3 HP dikerjakan paling akhir bersama Farhan (keputusan Farhan 22 Okt; lihat "Yang harus dikerjakan Farhan").
 - Revisi R1-R5 dari Farhan (tingkat dulu + cari sekolah, foto wajib dan dicetak di kartu, nama kapital, tanpa pencocokan NIK, pemotong foto responsif) **selesai** 18 Okt; lihat `docs/REVISI.md`.
-- Terakhir diperbarui: 23 Oktober 2026
+- Revisi R10 (pilihan kegiatan di biodata) dan R11 (produksi tanpa XAMPP: Caddy HTTPS, port 8585) selesai 24 Okt.
+- Terakhir diperbarui: 24 Oktober 2026
 - Tenggat terdekat: **25 Oktober 2026** (form biodata siap), dibuka 26 Oktober 00.00 WITA
 
 ## Tahap 0: Fondasi
@@ -76,10 +77,10 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 
 ## Yang harus dikerjakan Farhan
 
-1. **Server produksi** (PC lain): ikuti `docs/21-DEPLOY-WINDOWS.md` bagian 1-7. Langkah yang butuh Admin dan belum bisa diuji Claude: memasang MSI MariaDB 10.11 sebagai service, `pasang-service.ps1`, `daftar-task-scheduler.ps1`, konfigurasi Apache vhost, Cloudflare Tunnel.
+1. **Server produksi** (PC lain): ikuti `docs/21-DEPLOY-WINDOWS.md`. Jalankan dengan **`jalankan.bat -Produksi`** (Caddy + Waitress, tanpa XAMPP). Yang harus Farhan lakukan sendiri: router meneruskan port **80 dan 443** ke server (bukan 8585), Windows Firewall mengizinkan 80/443, Apache/IIS dimatikan, MSI MariaDB 10.11 sebagai service, `daftar-task-scheduler.ps1`.
 2. **Isi `web\.env` server** (bagian 3.1): `DJANGO_DEBUG=False`, kunci rahasia baru, domain di `DJANGO_ALLOWED_HOSTS`/`CSRF_TRUSTED_ORIGINS`/`SIGAP_URL`, `DB_PASSWORD`, **kunci NIK baru** (jangan pakai kunci laptop), folder cadangan di disk lain, path `mariadb-dump.exe`, sandi awal 3 akun.
 3. **Catat kunci NIK** (`SIGAP_KUNCI_NIK`, `SIGAP_KUNCI_HASH_NIK`) di tempat aman. Tanpa kunci, NIK tidak bisa dibaca dari database maupun cadangan.
-4. **Tentukan domain final** dan aktifkan HTTPS (Cloudflare Tunnel disarankan).
+4. **Domain `sigapjumbara.my.id`**: record A ke IP publik server; isi `.env` server: `SIGAP_DOMAIN=sigapjumbara.my.id`, `DJANGO_DEBUG=False`, `SIGAP_HTTPS=True`, `DJANGO_ALLOWED_HOSTS=sigapjumbara.my.id,localhost,127.0.0.1`, `CSRF_TRUSTED_ORIGINS=https://sigapjumbara.my.id`, `SIGAP_URL=https://sigapjumbara.my.id`.
 5. **Ganti kata sandi tiga akun** dari menu Superadmin > Akun setelah login pertama.
 6. **Isi nomor WhatsApp dan nama superadmin** di Superadmin > Pengaturan form; pastikan status **Otomatis** dan jadwal 26 Okt 00.00 - 2 Nov 23.59 WITA.
 7. **Uji dari 3 HP** (Android murah, Android baru, iPhone Safari) lewat HTTPS sebelum 25 Okt: isi form lengkap dengan foto dari kamera dan galeri. Untuk uji sebelum 26 Okt pakai "Paksa buka", lalu kembalikan ke "Otomatis" dan hapus biodata uji.
@@ -87,11 +88,20 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 9. Laptop: MariaDB 10.11 pengembangan belum menjadi service (lihat bagian 13 dokumen deploy) dan perlu dinyalakan ulang setelah laptop restart. Sandi root-nya ada sebagai komentar di `web\.env` laptop.
 10. Konfirmasi panitia: kuota SD Negeri 006 Tanjung Palas Utara (25 peserta inti, batas Mula 20).
 11. **Sandi ketiga akun di laptop disetel ulang (22 Okt, 22.0x)** ke nilai `SIGAP_SANDI_AWAL_*` di `web\.env` laptop yang baru Farhan ubah, dengan `sigap_atur_sandi --semua --dari-env`. Sandi itu pendek (4-7 karakter): ganti dengan sandi kuat dari Superadmin > Akun dan kata sandi (aplikasi belum memaksa ganti sandi saat masuk). Sandi di `.env` hanya dipakai saat akun dibuat, jadi mengubah `.env` saja tidak mengubah sandi.
-12. **Laptop sudah selalu HTTPS:** `jalankan.bat` lalu buka `https://IP-laptop:8000` di HP (Wi-Fi sama), terima peringatan sertifikat sekali per HP. Bila HP tidak bisa membuka, izinkan port 8000 di Windows Firewall.
+12. **Laptop sudah selalu HTTPS:** `jalankan.bat` lalu buka `https://IP-laptop:8585` di HP (Wi-Fi sama), terima peringatan sertifikat sekali per HP. Bila HP tidak bisa membuka, izinkan port 8585 di Windows Firewall. Port diubah hanya lewat `SIGAP_PORT` di `.env`.
+15. **`CLAUDE.md` (file Farhan) masih menyebut XAMPP, Waitress sebagai Windows Service, port 8000, dan cloudflared.** Claude tidak mengubahnya; mohon disesuaikan dengan keputusan 24 Okt (atau minta Claude mengubahnya).
 13. **Panitia kirim kuota final per kegiatan** paling lambat 31 Okt, lalu isi di Superadmin > Kegiatan dan kuota.
 14. Di laptop, status form biodata masih **Paksa buka** (untuk uji). Kembalikan ke **Otomatis** sebelum 26 Okt (`sigap_cek_lingkungan` mengingatkan).
 
 ## Catatan sesi
+
+### 24 Oktober 2026 (Claude Code): R10 pilihan kegiatan, R11 produksi Caddy
+
+- **R10:** pilihan kegiatan di form biodata (boleh lebih dari satu, tidak boleh bentrok jadwal, boleh kosong). Jadwal dicek ulang dengan referensi: tidak ada perbedaan baru. Migrasi baru yang aman: `absensi.0002_kegiatan_bisa_dipilih` (menandai Daftar Ulang dan Anjangsana bukan pilihan) dan `biodata.0004_peserta_kegiatan` (tabel M2M baru). Tidak menyentuh data biodata yang ada. **Form biodata belum dibuka (dibuka 26 Okt), jadi perubahan isian ini masih aman.**
+- **R11:** "Not secure" di `sigapjumbara.my.id` karena server dijalankan dengan mode laptop. Produksi kini `jalankan.bat -Produksi` = Caddy (Let's Encrypt) + Waitress; port bawaan 8585 dari `.env`; `-Port`, `pasang-service.ps1`, `apache-sigap.conf` dihapus.
+- **Langkah berikutnya:** di server: `git pull`/salin kode, isi `.env` produksi, buka port 80/443 di router dan firewall, `jalankan.bat -Produksi`, cek gembok dari HP data seluler, uji form dari 3 HP, kembalikan status form ke Otomatis.
+- **Kendala:** sertifikat Let's Encrypt asli belum bisa diuji dari laptop (butuh domain mengarah ke server dan port 80/443 terbuka).
+
 
 ### 23 Oktober 2026 (Claude Code): Tahap 5 (piagam)
 

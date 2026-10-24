@@ -17,8 +17,8 @@ Sumber: Brief Proyek versi 2.1 (14 Oktober 2026), hasil rapat panitia 12 Oktober
 | Pengembang | Ahmad Farhan, HANS PROJECT |
 | Klien | Panitia Pelaksana Jumbara PMR Kab. Bulungan V 2026 (narahubung kontrak: Samir Muslimin) |
 | Domain | Belum final. Dasarnya `sigapjumbara` dengan TLD (.com/.id/.org) ditentukan Farhan nanti. Selalu baca dari `web\.env` (`SIGAP_URL`, `DJANGO_ALLOWED_HOSTS`), jangan ditulis mati di kode |
-| Server produksi | **Windows + XAMPP** milik Farhan (Apache sebagai reverse proxy, MariaDB 10.5+ sebagai database) |
-| Bahasa dan framework | **Python** (keputusan Farhan 18 Okt 2026): Python 3.12 + Django 5.2 LTS, dijalankan Waitress sebagai Windows Service |
+| Server produksi | **Windows** milik Farhan, **tanpa XAMPP** (keputusan Farhan 24 Okt 2026): Caddy sebagai HTTPS (Let's Encrypt otomatis) dan reverse proxy, MariaDB 10.5+ sebagai database |
+| Bahasa dan framework | **Python** (keputusan Farhan 18 Okt 2026): Python 3.12 + Django 5.2 LTS, dijalankan Waitress dari terminal lewat `jalankan.bat -Produksi` (bukan Windows Service, keputusan Farhan 24 Okt 2026). Pengembangan: `jalankan.bat`. Port aplikasi hanya diatur di `web\.env` (`SIGAP_PORT`, bawaan **8585**) |
 
 ## Logo
 
@@ -72,6 +72,7 @@ Uji coba bersama panitia 7 sampai 8 November. Pelatihan panitia dan juri 10 Nove
 - **Isi NIK tidak dicocokkan** dengan tanggal lahir atau jenis kelamin: tidak ada peringatan di form dan tidak ada tanda untuk superadmin. NIK hanya diperiksa 16 angka, bukan angka yang sama semua, dan tidak dobel (REVISI R4, 18 Okt 2026).
 - Foto JPG atau PNG, maksimal 5 MB, otomatis dikecilkan dan dipotong rasio 3x4. **Foto dicetak di kartu peserta** dan disimpan sebagai arsip panitia. **Foto wajib mutlak** (tidak bisa dimatikan), juga untuk biodata yang ditambah superadmin (REVISI R2, 18 Okt 2026).
 - Superadmin bisa melihat, mencari, memperbaiki, dan mengunduh seluruh biodata dalam Excel.
+- **Pilihan kegiatan** (permintaan Farhan 24 Okt 2026, REVISI R10): setiap orang boleh memilih **lebih dari satu kegiatan asal jadwalnya tidak bertabrakan**; **boleh dikosongkan** untuk semua peran. Pilihan hanya kegiatan yang punya titik absen di tingkat orang itu (Daftar Ulang dan Anjangsana bukan pilihan; superadmin mengatur lewat kolom "Di form biodata" di Kegiatan dan kuota). Jadwal dan bentrok dihitung dari titik absen; jadwal "08.00-selesai" dianggap sampai 12.00 (pengaturan `kegiatan.selesai_bawaan`). Server menolak pilihan yang bentrok, juga untuk superadmin. Pilihan ini tidak mengubah absensi (absensi tetap memindai kartu siapa pun yang hadir).
 
 ## Kartu dan QR
 
@@ -129,7 +130,8 @@ Gembira: Pentas Seni Drama Kepalangmerahan, Jumbara Got Talent, Anjangsana, Waha
 ## Urutan kerja dan pemasangan (keputusan Farhan, 22 Okt 2026)
 
 - Panitia ingin uji coba keseluruhan secepatnya, jadi tahap berikutnya (Tahap 2 dan seterusnya) dikerjakan lebih dulu; **pendampingan pemasangan di server produksi dikerjakan paling akhir**.
-- **Cloudflare Tunnel tidak dipakai.** HTTPS tetap wajib agar kamera HP bisa dipakai pemindai (Tahap 3) dan Anjangsana; caranya ditentukan saat pemasangan (misalnya win-acme + Apache, `21-DEPLOY-WINDOWS.md` opsi B).
+- **Cloudflare Tunnel tidak dipakai.** HTTPS tetap wajib agar kamera HP bisa dipakai pemindai (Tahap 3) dan Anjangsana.
+- **HTTPS produksi = Caddy** (keputusan Farhan 24 Okt 2026) untuk domain `sigapjumbara.my.id`: router meneruskan port 80 dan 443 ke server, `jalankan.bat -Produksi` menyalakan Caddy + Waitress. Rincian `21-DEPLOY-WINDOWS.md`.
 
 ## Keamanan dan data pribadi
 

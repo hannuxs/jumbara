@@ -151,3 +151,9 @@ Semua hal yang **tidak diminta secara eksplisit** oleh panitia/Farhan tetapi dit
 | 23 Okt 2026 | 5 | Piagam juara ditolak bila ada nilai seri di 1-N kecuali dicentang "tetap terbitkan" | Mencegah piagam juara salah sebelum pemecah seri diisi | - |
 | 23 Okt 2026 | 5 | Placeholder tambahan `{kegiatan_tingkat}`, `{juara_romawi}`, `{acara_panjang}`; huruf Poppins/Inter (TTF dari woff2, OFL) dan Times | Teks piagam rapi untuk lomba tanpa tingkat (Got Talent) | - |
 | 23 Okt 2026 | 5 | Isian angka mm menerima koma atau titik (`AngkaMm`) | Pengguna Indonesia mengetik koma | - |
+| 24 Okt 2026 | 1 | Bentrok jadwal kegiatan dihitung dari titik absen (bukan daftar tetap); "08.00-selesai" dianggap sampai 12.00 lewat pengaturan `kegiatan.selesai_bawaan` | Jadwal panitia bisa berubah; cukup ubah titik absen | Ubah pengaturan `kegiatan.selesai_bawaan` |
+| 24 Okt 2026 | 1 | Kolom "Di form biodata" (`Kegiatan.bisa_dipilih`) dan jumlah pendaftar per kegiatan di Kegiatan dan kuota | Superadmin bisa menyembunyikan kegiatan dari form tanpa mengubah kode | Hapus centang kolom itu |
+| 24 Okt 2026 | 1 | Saringan "Kegiatan" (termasuk "Belum memilih") di daftar biodata, kolom Kegiatan di Excel, kegiatan di bukti dan detail | Panitia perlu daftar pendaftar per kegiatan | - |
+| 24 Okt 2026 | 1 | `jalankan.bat -Produksi` menolak jalan bila `DJANGO_DEBUG=True`, `SIGAP_HTTPS=False`, domain tidak ada di `ALLOWED_HOSTS`/`CSRF_TRUSTED_ORIGINS`, atau port 80/443 dipakai; Caddyfile ditulis ulang dari `.env` setiap kali | Mencegah server publik berjalan dengan pengaturan berbahaya | - |
+| 24 Okt 2026 | 1 | Caddy membuang header `CF-Connecting-IP` dari luar | IP pengirim di log dan pembatas laju tidak bisa dipalsukan | `header_up -CF-Connecting-IP` di `jalankan.ps1` |
+| 24 Okt 2026 | 1 | `sigap_uji_beban` tanpa `--url` otomatis mencoba `https://` lalu `http://` di `127.0.0.1:SIGAP_PORT` | Mengikuti port dari `.env` | `--url ...` |

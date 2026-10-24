@@ -296,3 +296,37 @@ Latar kartu Wira diganti dari kuning gelap (#CA8A04 -> #FACC15) menjadi **kuning
 **Penyebab:** hiasan berwarna putih transparan; di atas kuning muda tidak kelihatan.
 
 **Perbaikan:** warna hiasan menyesuaikan latar: putih transparan untuk Mula dan Madya (tetap), **kuning keemasan (#F59E0B) transparan** dengan opasitas lebih tinggi untuk Wira (lingkaran dan garis gelombang). QR 4/4 terbaca pada render uji; tes kartu lulus.
+
+---
+
+## R10. Pilihan kegiatan di form biodata (permintaan Farhan, 24 Okt 2026)
+
+**Permintaan:** tambahkan pilihan kegiatan di biodata; boleh lebih dari satu asal tidak bertabrakan dengan jadwal kegiatan lain; cek ulang jadwal pada referensi. Jawaban Farhan atas pertanyaan Claude: **semua peran boleh mengosongkan**.
+
+**Cek jadwal referensi** (`docs/referensi/` Jadwal Kegiatan, sama dengan `data/titik_absen.csv` dan `docs/JADWAL-ACARA.md`, tidak ditemukan perbedaan baru). Hasil bentrok untuk Madya (Mula/Wira serupa sesuai titik per tingkat):
+- Pagi 13 dan 14 Nov 08.00-selesai: Traveling, Jurnalistik, Kewirausahaan, Ranking 1 (13 Nov), Sarasehan Medsos (13 Nov 08.00-11.30), Bakti Masyarakat (14 Nov 08.00-11.00) saling bentrok. Jurnalistik dan Kewirausahaan juga 12 Nov 13.00-15.00.
+- Sore: Ngobrol Bareng 13 Nov 14.00-17.00 dan Sarasehan Pergaulan 14 Nov 13.30-17.00 bentrok dengan Got Talent dan Wahana (16.00-18.00); Bakti pembekalan 13 Nov 17.00-18.00 juga bentrok dengan Got Talent dan Wahana.
+- Drama (malam 20.00-23.00) tidak bentrok dengan apa pun.
+- Bukan pilihan: Daftar Ulang dan Anjangsana (semua kontingen ikut).
+
+**Aturan:** dua kegiatan bentrok bila ada sesi pada tanggal sama yang jamnya bertumpuk (bersentuhan, misalnya 08.00-10.00 dan 10.00-12.00, tidak bentrok). Titik tanpa jam selesai dianggap selesai 12.00 (pengaturan `kegiatan.selesai_bawaan`) atau 2 jam setelah mulai bila mulai sesudah itu. Jadwal diambil dari halaman Titik absen, jadi perubahan jadwal panitia cukup diubah di sana.
+
+**Tampilan:** di bagian 1 Kontingen setelah Peran. Kotak centang hanya muncul setelah tingkat dipilih, berisi jadwal tiap kegiatan; kegiatan yang bentrok dengan yang sudah dicentang menjadi abu-abu dengan tulisan merah "Bentrok dengan ...". Ganti tingkat melepas kegiatan yang tidak ada di tingkat baru. Ikut tersimpan di draf HP dan tampil di ringkasan sebelum kirim, bukti pendaftaran, detail superadmin, Excel (kolom Kegiatan), saringan "Kegiatan" di daftar biodata (termasuk "Belum memilih kegiatan"), dan jumlah pendaftar di Kegiatan dan kuota.
+
+**Pengujian:** `tests/test_kegiatan_biodata.py` (10 tes: bentrok dari titik absen, jam selesai bawaan, bersentuhan, simpan beberapa, kosong, bentrok ditolak, tingkat lain/bukan pilihan ditolak, superadmin ubah + saring, atur "Di form biodata"); seluruh tes lulus. Browser Chrome 360 px: daftar sesuai tingkat, kunci bentrok, lepas saat ganti tingkat, draf dipulihkan, tanpa geser mendatar.
+
+---
+
+## R11. Produksi tanpa XAMPP, HTTPS asli lewat Caddy, port 8585 (laporan dan keputusan Farhan, 24 Okt 2026)
+
+**Laporan:** `https://sigapjumbara.my.id` tampil "Not secure". **Penyebab:** server dijalankan dengan `jalankan.bat` mode laptop, sehingga memakai sertifikat buatan sendiri "SIGAP JUMBARA (uji lokal)".
+
+**Keputusan Farhan:** produksi tidak memakai XAMPP; dijalankan dari terminal lewat `jalankan.bat -Produksi`, pengembangan `jalankan.bat`; port bawaan semua **8585**, diubah hanya lewat `.env`; opsi `-Port` dihapus. HTTPS: **Caddy otomatis** (pilihan Farhan).
+
+**Perubahan:** `jalankan.bat -Produksi` = Caddy 2.8.4 (Let's Encrypt otomatis untuk `SIGAP_DOMAIN`, port 80/443, http dialihkan ke https) + Waitress di `127.0.0.1:SIGAP_PORT`, dengan pemeriksaan isian `.env` produksi. `pasang-service.ps1` dan `apache-sigap.conf` dihapus; `perbarui.ps1` disederhanakan; `unduh-alat.ps1` mengunduh Caddy (sidik SHA-512 diperiksa). Dokumen `21-DEPLOY-WINDOWS.md` bagian 1, 4-6, 8-12 ditulis ulang.
+
+**Arti dua isian `.env` yang ditanyakan:**
+- `DJANGO_DEBUG=True` = mode pengembangan: saat ada galat, halaman menampilkan potongan kode, isi pengaturan, dan jalur file ke siapa pun yang membuka. **Wajib `False` di server.**
+- `SIGAP_HTTPS=False` = cookie sesi dan CSRF boleh dikirim lewat `http://` (tidak aman). **Wajib `True` di server** (di belakang Caddy).
+
+**Pengujian:** Caddy dengan Caddyfile hasil skrip diuji sebagai proxy di laptop (200, CSRF login berhasil, header IP palsu `X-Forwarded-For`/`CF-Connecting-IP` diabaikan); `-Port` lama memberi peringatan; seluruh tes lulus. Sertifikat Let's Encrypt asli hanya bisa diuji di server dengan domain dan port 80/443 terbuka.
