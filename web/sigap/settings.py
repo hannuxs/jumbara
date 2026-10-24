@@ -19,7 +19,9 @@ DEBUG = env.bool("DJANGO_DEBUG", default=False)
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
-SIGAP_URL = env("SIGAP_URL", default="http://localhost:8000").rstrip("/")
+SIGAP_URL = env("SIGAP_URL", default="https://localhost:8585").rstrip("/")
+# Port jalankan.bat (pengembangan HTTPS / Waitress produksi di belakang Caddy).
+SIGAP_PORT = env.int("SIGAP_PORT", default=8585)
 
 # Mode tes (pytest) mematikan hal yang tidak perlu saat tes, misalnya manifest statis.
 SEDANG_TES = env.bool("SIGAP_SEDANG_TES", default=False) or "pytest" in sys.modules

@@ -1,8 +1,8 @@
 """Uji beban absensi: banyak HP memindai bersamaan ke server yang sedang berjalan (docs/14-ABSENSI.md).
 
 Contoh (server dev di port 8010):
-    python manage.py sigap_uji_beban --url https://127.0.0.1:8000           (laptop, jalankan.bat)
-    python manage.py sigap_uji_beban --url http://127.0.0.1:8000 --perangkat 30 --titik 15 --pindaian 40
+    python manage.py sigap_uji_beban --ya                                   (server di port SIGAP_PORT, bawaan 8585)
+    python manage.py sigap_uji_beban --url https://127.0.0.1:8585 --perangkat 30 --titik 15 --pindaian 40
 
 Yang dilakukan:
 1. Membuat data uji yang tidak terlihat di form publik/rekap: satu kontingen tersembunyi (status terhapus)
@@ -107,7 +107,9 @@ class Command(BaseCommand):
     help = "Uji beban absensi: banyak HP memindai bersamaan ke server yang berjalan, lalu periksa tidak ada data dobel."
 
     def add_arguments(self, parser):
-        parser.add_argument("--url", default="http://127.0.0.1:8000", help="Alamat server yang sedang berjalan.")
+        parser.add_argument(
+            "--url", default="", help="Alamat server (bawaan: https lalu http di 127.0.0.1:SIGAP_PORT)."
+        )
         parser.add_argument("--perangkat", type=int, default=30, help="Jumlah HP pemindai bersamaan (bawaan 30).")
         parser.add_argument("--titik", type=int, default=15, help="Jumlah titik absen bersamaan (bawaan 15).")
         parser.add_argument("--pindaian", type=int, default=40, help="Pindaian per HP (bawaan 40).")
@@ -122,7 +124,7 @@ class Command(BaseCommand):
             raise CommandError("DEBUG=False (produksi). Tambahkan --ya bila yakin; data uji dihapus lagi setelahnya.")
         if o["perangkat"] < 1 or o["titik"] < 1 or o["pindaian"] < 1:
             raise CommandError("Angka --perangkat, --titik, dan --pindaian minimal 1.")
-        url = o["url"].rstrip("/")
+        url = o["url"].rstrip("/") or self._url_bawaan()
         if not url.startswith(("http://", "https://")):
             raise CommandError("--url harus diawali http:// atau https://")
         try:
@@ -142,6 +144,17 @@ class Command(BaseCommand):
         if not ok:
             raise CommandError("Uji beban GAGAL. Lihat catatan di atas.")
         self.stdout.write(self.style.SUCCESS("Uji beban LULUS."))
+
+    def _url_bawaan(self) -> str:
+        """Laptop (jalankan.bat) melayani https; produksi (Waitress di balik Caddy) http di 127.0.0.1."""
+        port = settings.SIGAP_PORT
+        for skema in ("https", "http"):
+            try:
+                urllib.request.urlopen(f"{skema}://127.0.0.1:{port}/", timeout=5, context=KONTEKS_TLS).read(1)  # noqa: S310
+                return f"{skema}://127.0.0.1:{port}"
+            except OSError:
+                continue
+        return f"http://127.0.0.1:{port}"
 
     # --- Persiapan dan pembersihan ----------------------------------------------------------------------
 

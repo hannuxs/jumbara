@@ -5,10 +5,10 @@ Kamera browser (getUserMedia) hanya mau jalan di https:// atau localhost. Perint
 server pengembangan Django dengan TLS memakai sertifikat self-signed yang dibuat otomatis untuk
 localhost dan semua IP laptop. Tanpa Cloudflare, tanpa paket tambahan.
 
-    python manage.py sigap_https_dev            (https://<IP-laptop>:8443)
+    python manage.py sigap_https_dev            (https://<IP-laptop>:SIGAP_PORT, bawaan 8585)
     python manage.py sigap_https_dev 0.0.0.0:9443
 
-Di HP: buka https://<IP-laptop>:8443, akan muncul peringatan sertifikat (wajar, sertifikat buatan sendiri):
+Di HP: buka https://<IP-laptop>:8585, akan muncul peringatan sertifikat (wajar, sertifikat buatan sendiri):
 - Chrome Android: Lanjutan > Lanjutkan ke <IP> (tidak aman).
 - Safari iPhone: Tampilkan Detail > kunjungi situs web ini.
 Setelah itu kamera bisa dipakai. Produksi TIDAK memakai ini, melainkan Apache + sertifikat asli (docs/21).
@@ -172,7 +172,7 @@ class ServerHTTPS(WSGIServer):
 
 class Command(RunserverCommand):
     help = "Server laptop dengan HTTPS (sertifikat buatan sendiri) agar kamera HP bisa dipakai; dipakai jalankan.bat."
-    default_port = "8443"
+    default_port = str(settings.SIGAP_PORT)
     default_addr = "0.0.0.0"
     server_cls = ServerHTTPS
 

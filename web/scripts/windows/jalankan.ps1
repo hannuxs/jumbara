@@ -1,16 +1,18 @@
 # SIGAP JUMBARA: satu perintah untuk memeriksa kesiapan lalu menjalankan server.
 #
 # Cara pakai (dari folder proyek):
-#   jalankan.bat                    periksa semua, perbaiki yang aman, lalu jalankan server HTTPS (port 8000)
+#   jalankan.bat                    PENGEMBANGAN (laptop): periksa semua lalu jalankan server HTTPS
+#   jalankan.bat -Produksi          PRODUKSI (server): Caddy (HTTPS asli Let's Encrypt) + Waitress
 #   jalankan.bat -CekSaja           hanya periksa, tidak menjalankan server
-#   jalankan.bat -Port 8080         pakai port lain
-#   jalankan.bat -Produksi          jalankan dengan Waitress (seperti di belakang Apache), hanya http://
 #   jalankan.bat -Tes               jalankan juga tes otomatis (pytest) dan ruff sebelum server
-#   jalankan.bat -Http              tanpa HTTPS (http://), misalnya bila ada masalah sertifikat
+#   jalankan.bat -Http              pengembangan tanpa HTTPS (http://), misalnya bila ada masalah sertifikat
 #
-# Bawaan HTTPS di laptop memakai sertifikat buatan sendiri (python manage.py sigap_https_dev) karena kamera HP
-# (pemindai, Anjangsana) hanya jalan lewat https://. Di server produksi HTTPS diurus Apache + sertifikat asli
-# (docs/21-DEPLOY-WINDOWS.md); aplikasi di sana berjalan sebagai Windows Service, bukan lewat jalankan.bat.
+# Port diatur di web\.env (SIGAP_PORT, bawaan 8585), tidak lewat perintah.
+# Pengembangan: HTTPS dengan sertifikat buatan sendiri (sigap_https_dev) di port SIGAP_PORT, karena kamera HP
+#   hanya jalan lewat https://.
+# Produksi: Caddy (tools\caddy.exe) mendengar port 80 dan 443, otomatis meminta dan memperbarui sertifikat
+#   Let's Encrypt untuk SIGAP_DOMAIN, lalu meneruskan ke Waitress di 127.0.0.1:SIGAP_PORT. Router harus
+#   meneruskan port luar 80 dan 443 ke PC server port 80 dan 443 (docs/21-DEPLOY-WINDOWS.md).
 #
 # Yang diperiksa dan diperbaiki otomatis bila aman:
 #   Python 3.12, virtualenv web\.venv, paket requirements, file web\.env, kunci rahasia,
@@ -18,7 +20,6 @@
 #   Tailwind CLI, CSS, file statis (mode DEBUG=False), port bebas, alamat IP untuk HP.
 # Hanya memakai karakter ASCII agar aman di Windows PowerShell 5.1.
 param(
-    [int]$Port = 8000,
     [switch]$CekSaja,
     [switch]$Produksi,
     [switch]$Tes,
@@ -28,7 +29,7 @@ param(
 # "Continue": peringatan di stderr dari program luar (pip, tailwind) tidak boleh menghentikan skrip.
 # Keberhasilan setiap langkah dinilai dari $LASTEXITCODE.
 $ErrorActionPreference = "Continue"
-# HTTPS bawaan, kecuali -Http atau -Produksi (Waitress tidak melayani TLS).
+# Pengembangan: HTTPS bawaan kecuali -Http. Produksi: HTTPS oleh Caddy, Waitress hanya di 127.0.0.1.
 $pakaiHttps = -not ($Http -or $Produksi)
 $env:BROWSERSLIST_IGNORE_OLD_DATA = "1"
 $env:PYTHONUTF8 = "1"
@@ -70,6 +71,7 @@ function Port-Menyala([string]$alamat, [int]$p) {
 }
 
 Write-Host "SIGAP JUMBARA - pemeriksaan kesiapan" -ForegroundColor Cyan
+if ($args -contains "-Port") { Write-Host "  [!]  Opsi -Port sudah dihapus dan diabaikan. Ubah port lewat SIGAP_PORT di web\.env." -ForegroundColor Yellow }
 Write-Host "Folder aplikasi: $web"
 
 # --- 1. Python dan virtualenv ------------------------------------------------
@@ -89,7 +91,7 @@ $versi = (& $py -c "import sys; print('%d.%d.%d' % sys.version_info[:3])").Trim(
 if ($versi -like "3.12.*") { Ok "Python $versi (virtualenv web\.venv)" } else { Peringatan "Virtualenv memakai Python $versi, seharusnya 3.12" }
 
 # Pasang paket bila requirements berubah sejak pemasangan terakhir.
-$req = if (Test-Path "requirements-dev.txt") { "requirements-dev.txt" } else { "requirements.txt" }
+$req = if ((Test-Path "requirements-dev.txt") -and -not $Produksi) { "requirements-dev.txt" } else { "requirements.txt" }
 $tanda = Join-Path $web ".venv\.sigap-requirements"
 $sidikBaru = ((Get-FileHash $req).Hash + (Get-FileHash "requirements.txt").Hash)
 $sidikLama = if (Test-Path $tanda) { Get-Content $tanda -Raw } else { "" }
@@ -117,6 +119,11 @@ if ($kosong.Count) { Masalah ("Isian .env masih kosong: " + ($kosong -join ", ")
 Ok "Isian wajib .env terisi"
 $debug = ($envv["DJANGO_DEBUG"] -match '^(?i:true|1|yes|on)$')
 if ($debug) { Info "Mode pengembangan (DJANGO_DEBUG=True)" } else { Info "Mode produksi (DJANGO_DEBUG=False): file statis diambil dari staticfiles" }
+$Port = 8585
+$teksPort = if ($envv["SIGAP_PORT"]) { $envv["SIGAP_PORT"] } elseif ($envv["WAITRESS_PORT"]) { $envv["WAITRESS_PORT"] } else { "8585" }
+if ($teksPort -match '^\d+$' -and [int]$teksPort -ge 1024 -and [int]$teksPort -le 65535) { $Port = [int]$teksPort }
+else { Masalah "SIGAP_PORT di .env tidak valid ($teksPort)." "Isi angka 1024-65535, misalnya SIGAP_PORT=8585"; Berhenti }
+Info "Port aplikasi: $Port (SIGAP_PORT di .env)"
 $dbHost = if ($envv["DB_HOST"]) { $envv["DB_HOST"] } else { "127.0.0.1" }
 $dbPort = if ($envv["DB_PORT"]) { [int]$envv["DB_PORT"] } else { 3306 }
 
@@ -206,12 +213,70 @@ if ($Tes) {
     Ok "ruff dan pytest lulus"
 }
 
+
+# --- Produksi: Caddy + Waitress ------------------------------------------------
+$caddyExe = Join-Path $web "tools\caddy.exe"
+$caddyfile = Join-Path $web "tools\Caddyfile"
+$folderLog = Join-Path $web "logs"
+if ($Produksi) {
+    Judul "Produksi (HTTPS asli lewat Caddy)"
+    $domain = ($envv["SIGAP_DOMAIN"] + "").Trim().ToLower()
+    if (-not $domain -or $domain -notmatch '^[a-z0-9.-]+\.[a-z]{2,}$') {
+        Masalah "SIGAP_DOMAIN belum diisi atau tidak valid di .env." "Isi SIGAP_DOMAIN=sigapjumbara.my.id (tanpa https:// dan tanpa garis miring)"; Berhenti
+    }
+    Ok "Domain: $domain"
+    if ($debug) { Masalah "DJANGO_DEBUG=True di produksi berbahaya (pesan galat lengkap terlihat publik)." "Ubah DJANGO_DEBUG=False di web\.env"; Berhenti }
+    if ($envv["SIGAP_HTTPS"] -match '^(?i:false|0|no|off)$') { Masalah "SIGAP_HTTPS=False di produksi membuat cookie login tidak aman." "Ubah SIGAP_HTTPS=True (atau hapus barisnya)"; Berhenti }
+    $hostsCek = ($envv["DJANGO_ALLOWED_HOSTS"] -split ",") | ForEach-Object { $_.Trim().ToLower() }
+    if ($hostsCek -notcontains $domain) { Masalah "DJANGO_ALLOWED_HOSTS belum memuat $domain." "Tambahkan: DJANGO_ALLOWED_HOSTS=$domain,localhost,127.0.0.1"; Berhenti }
+    $csrfCek = ($envv["CSRF_TRUSTED_ORIGINS"] -split ",") | ForEach-Object { $_.Trim().ToLower() }
+    if ($csrfCek -notcontains "https://$domain") { Masalah "CSRF_TRUSTED_ORIGINS belum memuat https://$domain." "Isi: CSRF_TRUSTED_ORIGINS=https://$domain"; Berhenti }
+    if (($envv["SIGAP_URL"] + "").TrimEnd("/").ToLower() -ne "https://$domain") { Peringatan "SIGAP_URL sebaiknya https://$domain (dipakai di QR poster dan tautan)." }
+    else { Ok "Pengaturan .env produksi sesuai (DEBUG mati, HTTPS, host, CSRF)" }
+    if (-not (Test-Path $caddyExe)) {
+        Info "Caddy belum ada, mengunduh ..."
+        & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "unduh-alat.ps1") | Out-Host
+    }
+    if (-not (Test-Path $caddyExe)) { Masalah "tools\caddy.exe tidak ada." "Jalankan scripts\windows\unduh-alat.ps1 (butuh internet)"; Berhenti }
+    foreach ($pt in @(80, 443)) {
+        if (Port-Menyala "127.0.0.1" $pt) {
+            if ($CekSaja) { Info "Port $pt sedang dipakai (Caddy SIGAP mungkin sudah berjalan)." }
+            else { Masalah "Port $pt sudah dipakai program lain (Apache XAMPP, IIS, atau jendela SIGAP lain)." "Matikan program itu (Apache di XAMPP Control Panel: Stop) lalu jalankan lagi"; Berhenti }
+        }
+    }
+    New-Item -ItemType Directory -Force -Path $folderLog | Out-Null
+    $email = ($envv["SIGAP_EMAIL_ACME"] + "").Trim()
+    $baris = @("# Dibuat otomatis oleh jalankan.bat -Produksi. Jangan diubah manual; ubah web\.env lalu jalankan lagi.", "{")
+    if ($email) { $baris += "`temail $email" }
+    $baris += "`tadmin localhost:2019"
+    $baris += "}"
+    $baris += ""
+    $baris += "$domain {"
+    $baris += "`tencode zstd gzip"
+    $baris += "`treverse_proxy 127.0.0.1:$Port {"
+    $baris += "`t`t# Header ini hanya boleh dari Cloudflare; buang agar IP pengunjung tidak bisa dipalsukan."
+    $baris += "`t`theader_up -CF-Connecting-IP"
+    $baris += "`t}"
+    $baris += "`tlog {"
+    $baris += "`t`toutput file " + ($folderLog -replace '\\', '/') + "/caddy-akses.log {"
+    $baris += "`t`t`troll_size 10mb"
+    $baris += "`t`t`troll_keep 5"
+    $baris += "`t`t}"
+    $baris += "`t}"
+    $baris += "}"
+    Set-Content -Path $caddyfile -Value ($baris -join "`r`n") -Encoding ASCII
+    $cekCaddy = & $caddyExe validate --config $caddyfile --adapter caddyfile 2>&1
+    if ($LASTEXITCODE -ne 0) { Masalah "Konfigurasi Caddy tidak valid: $($cekCaddy | Select-Object -Last 1)" ""; Berhenti }
+    Ok "Caddy siap (tools\Caddyfile): https://$domain -> 127.0.0.1:$Port"
+    Info "Syarat: router meneruskan port luar 80 dan 443 ke PC ini port 80 dan 443; Windows Firewall mengizinkan keduanya."
+}
+
 # --- Alamat akses -----------------------------------------------------------------
 Judul "Alamat"
 if ((Port-Menyala "127.0.0.1" $Port) -and $CekSaja) {
     Info "Port $Port sedang dipakai (server SIGAP mungkin sudah berjalan)."
 } elseif (Port-Menyala "127.0.0.1" $Port) {
-    Masalah "Port $Port sudah dipakai program lain (mungkin server SIGAP sudah berjalan di jendela lain)." "Tutup server lama (Ctrl+C di jendelanya) atau pakai: jalankan.bat -Port 8080"
+    Masalah "Port $Port sudah dipakai program lain (mungkin server SIGAP sudah berjalan di jendela lain)." "Tutup server lama (Ctrl+C di jendelanya) atau ganti SIGAP_PORT di web\.env"
     Berhenti
 }
 $hosts = ($envv["DJANGO_ALLOWED_HOSTS"] -split ",") | ForEach-Object { $_.Trim() }
@@ -219,6 +284,7 @@ $ipLan = @(Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
     Where-Object { $_.IPAddress -notlike "127.*" -and $_.IPAddress -notlike "169.254.*" -and $_.PrefixOrigin -ne "WellKnown" } |
     Select-Object -ExpandProperty IPAddress)
 $skema = if ($pakaiHttps) { "https" } else { "http" }
+if ($Produksi) { Info "Alamat publik: https://$domain/  (superadmin: https://$domain/masuk/)" }
 Info "Laptop ini : $skema`://localhost:$Port/"
 foreach ($ip in $ipLan) {
     if ($hosts -contains $ip) { Info "HP (Wi-Fi sama): $skema`://$ip`:$Port/   (ketik $skema`://)" }
@@ -243,8 +309,23 @@ if ($pakaiHttps) {
     & $py manage.py sigap_https_dev "0.0.0.0:$Port"
 } elseif ($Produksi) {
     $threads = if ($envv["WAITRESS_THREADS"]) { $envv["WAITRESS_THREADS"] } else { "48" }
-    Write-Host "Menjalankan Waitress (mode produksi) di port $Port. Hentikan dengan Ctrl+C." -ForegroundColor Cyan
-    & (Join-Path $web ".venv\Scripts\waitress-serve.exe") "--listen=0.0.0.0:$Port" "--threads=$threads" "--channel-timeout=120" sigap.wsgi:application
+    $logCaddy = Join-Path $folderLog "caddy.log"
+    $caddy = Start-Process -FilePath $caddyExe -ArgumentList @("run", "--config", "`"$caddyfile`"", "--adapter", "caddyfile") `
+        -NoNewWindow -PassThru -RedirectStandardError $logCaddy -RedirectStandardOutput (Join-Path $folderLog "caddy-keluaran.log")
+    Start-Sleep -Seconds 3
+    if ($caddy.HasExited) {
+        Write-Host "Caddy berhenti. Isi log terakhir:" -ForegroundColor Red
+        Get-Content $logCaddy -Tail 15 | Out-Host
+        exit 1
+    }
+    Write-Host "Caddy berjalan (HTTPS https://$domain, log: logs\caddy.log). Sertifikat diminta otomatis saat pertama kali." -ForegroundColor Cyan
+    Write-Host "Menjalankan Waitress di 127.0.0.1:$Port. Hentikan keduanya dengan Ctrl+C." -ForegroundColor Cyan
+    try {
+        & (Join-Path $web ".venv\Scripts\waitress-serve.exe") "--listen=127.0.0.1:$Port" "--threads=$threads" "--channel-timeout=120" "--connection-limit=1000" sigap.wsgi:application
+    } finally {
+        if (-not $caddy.HasExited) { Stop-Process -Id $caddy.Id -Force -ErrorAction SilentlyContinue }
+        Write-Host "Caddy dan Waitress dihentikan."
+    }
 } else {
     Write-Host "Menjalankan server pengembangan di port $Port. Hentikan dengan Ctrl+C." -ForegroundColor Cyan
     & $py manage.py runserver "0.0.0.0:$Port"
