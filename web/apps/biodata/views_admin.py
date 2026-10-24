@@ -27,7 +27,7 @@ from apps.kontingen.models import URUTAN_TINGKAT, Kontingen
 from . import ekspor, kueri, services
 from . import foto as foto_mod
 from . import nik as nik_mod
-from .forms import BiodataForm
+from .forms import PENJELASAN_PERAN, BiodataForm
 from .models import JenisPenanda, PenandaPeserta, Peran, Peserta, Sumber
 
 TIPE_XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -176,7 +176,11 @@ def ubah(request, pk: int):
                 return redirect("biodata_admin:detail", pk=p.pk)
     else:
         form = BiodataForm(mode="superadmin", peserta=p, initial=_data_awal(p))
-    return render(request, "superadmin/biodata_form.html", {"menu_aktif": "biodata", "form": form, "p": p})
+    return render(
+        request,
+        "superadmin/biodata_form.html",
+        {"menu_aktif": "biodata", "form": form, "p": p, "penjelasan_peran": PENJELASAN_PERAN},
+    )
 
 
 @superadmin_wajib
@@ -193,7 +197,11 @@ def tambah(request):
                 return redirect("biodata_admin:detail", pk=p.pk)
     else:
         form = BiodataForm(mode="superadmin")
-    return render(request, "superadmin/biodata_form.html", {"menu_aktif": "tambah", "form": form, "p": None})
+    return render(
+        request,
+        "superadmin/biodata_form.html",
+        {"menu_aktif": "tambah", "form": form, "p": None, "penjelasan_peran": PENJELASAN_PERAN},
+    )
 
 
 @superadmin_wajib

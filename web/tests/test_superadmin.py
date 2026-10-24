@@ -132,6 +132,35 @@ def test_ubah_tanpa_foto_baru_memakai_foto_lama(klien_superadmin, peserta):
     assert peserta.nama_lengkap == "SITI AMINAH PUTRI" and peserta.foto_path
 
 
+def test_form_superadmin_sama_dengan_form_publik(klien_superadmin, client, kontingen_madya):
+    """Tambah manual memakai isian yang sama dengan /daftar/ (cari sekolah, penjelasan peran, pemotong foto)."""
+    publik = client.get("/daftar/").content.decode()
+    admin = klien_superadmin.get("/superadmin/biodata/tambah/").content.decode()
+    for teks in (
+        'data-isian="tingkat"', "Cari sekolah", "Guru/pembina yang memimpin kontingen", 'id="data-kegiatan"',
+        "data-wadah-potong", "Contoh: Jl. Sengkawit", "Untuk kontak darurat", 'name="foto_potong"', "input uppercase",
+    ):  # fmt: skip
+        assert teks in publik and teks in admin, teks
+    # Yang sengaja berbeda: persetujuan dan anti-bot hanya publik; superadmin boleh sekolah semua tingkat.
+    assert 'name="persetujuan"' not in admin and 'name="situs_web"' not in admin
+    assert "Tampilkan sekolah semua tingkat" in admin and "Tampilkan sekolah semua tingkat" not in publik
+
+
+def test_ubah_menampilkan_foto_lama_dan_foto_tidak_wajib(klien_superadmin, peserta):
+    isi = klien_superadmin.get(f"/superadmin/biodata/{peserta.pk}/ubah/").content.decode()
+    assert f"/superadmin/biodata/{peserta.pk}/foto/" in isi and "Sudah ada foto" in isi
+    baris = next(b for b in isi.splitlines() if 'name="foto"' in b)
+    assert " required" not in baris
+
+
+def test_tambah_manual_dengan_potongan_foto(klien_superadmin, kontingen_madya):
+    data = data_valid(kontingen_madya, foto_potong='{"x": 100, "y": 50, "w": 300, "h": 400, "r": 0}')
+    for k in ("token", "persetujuan", "situs_web"):
+        data.pop(k)
+    assert klien_superadmin.post("/superadmin/biodata/tambah/", data).status_code == 302
+    assert Peserta.objects.get().foto_path
+
+
 def test_hapus_pulihkan_dan_bentrok_nik(klien_superadmin, client, peserta, kontingen_madya):
     klien_superadmin.post(f"/superadmin/biodata/{peserta.pk}/hapus/")
     assert Peserta.objects.count() == 0 and Peserta.semua.count() == 1

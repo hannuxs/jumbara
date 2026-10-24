@@ -1,6 +1,7 @@
-/* Form biodata publik (Alpine.js). Server tetap memvalidasi semuanya; skrip ini hanya membantu:
- * cari sekolah, tingkat otomatis, peringatan lembut, draf di HP, pemotong foto 3:4,
- * ringkasan sebelum kirim, dan unggah dengan persen.
+/* Form biodata (Alpine.js), dipakai form publik dan tambah/ubah superadmin (data-mode="superadmin").
+ * Server tetap memvalidasi semuanya; skrip ini hanya membantu: cari sekolah, peringatan lembut,
+ * pemotong foto 3:4, kegiatan tanpa bentrok. Khusus publik: draf di HP, ringkasan sebelum kirim,
+ * dan unggah dengan persen. Superadmin mengirim form biasa (foto hasil potong dimasukkan ke isian file).
  */
 document.addEventListener("alpine:init", function () {
   "use strict";
@@ -17,6 +18,9 @@ document.addEventListener("alpine:init", function () {
   window.Alpine.data("formBiodata", function () {
     return {
       js: true,
+      mode: "publik",
+      semuaTingkat: false,
+      kontingenDipilih: "",
       cari: "",
       bukaCari: false,
       daftarSekolah: [],
@@ -41,9 +45,15 @@ document.addEventListener("alpine:init", function () {
       mulai: function () {
         var self = this;
         var pilih = this.$refs.kontingen;
+        this.mode = this.$root.dataset.mode || "publik";
         Array.prototype.forEach.call(pilih.options, function (o) {
           if (o.value) { self.daftarSekolah.push({ id: o.value, nama: o.textContent.trim(), tingkat: o.dataset.tingkat }); }
         });
+        // Superadmin: orang yang sudah berada di sekolah tingkat lain tetap tampil sekolahnya.
+        var terpilih = pilih.selectedOptions[0];
+        if (this.mode === "superadmin" && terpilih && terpilih.value && terpilih.dataset.tingkat !== this.nilai("tingkat")) {
+          this.semuaTingkat = true;
+        }
         // Daftar sekolah hanya berisi sekolah dari tingkat yang dipilih (REVISI R1).
         this.saringSekolah();
         var dataKegiatan = document.getElementById("data-kegiatan");
@@ -52,7 +62,7 @@ document.addEventListener("alpine:init", function () {
         }
         this.bacaKegiatan();
         var bound = this.$root.dataset.bound === "1";
-        if (!bound) {
+        if (!bound && this.mode === "publik") {
           var params = new URLSearchParams(location.search);
           var lanjutan = S() && S().json(KUNCI_LANJUTAN, null);
           if (params.get("lagi") && lanjutan) {
@@ -61,7 +71,7 @@ document.addEventListener("alpine:init", function () {
             var draf = S() && S().json(KUNCI_DRAF, null);
             if (draf && Object.keys(draf).length > 1) { this.adaDraf = true; }
           }
-        } else {
+        } else if (bound) {
           this.gulirKeGalat();
         }
         this.periksaSemua();
@@ -70,17 +80,26 @@ document.addEventListener("alpine:init", function () {
       // --- Sekolah dan tingkat ------------------------------------------------
       hasilCari: function () {
         // Kosong = tampilkan semua sekolah tingkat terpilih; diketik = saring per kata.
-        var kata = this.cari.toLowerCase().trim().split(/\s+/).filter(Boolean), tingkat = this.tingkatDipilih;
+        var kata = this.cari.toLowerCase().trim().split(/\s+/).filter(Boolean), self = this;
         return this.daftarSekolah.filter(function (k) {
-          if (k.tingkat !== tingkat) { return false; }
+          if (!self.sekolahCocok(k)) { return false; }
           var n = k.nama.toLowerCase();
           return kata.every(function (w) { return n.indexOf(w) !== -1; });
         });
       },
       labelTingkat: function () { return LABEL_TINGKAT[this.tingkatDipilih] || ""; },
+      labelTingkatDari: function (t) { return LABEL_TINGKAT[t] || ""; },
+      sekolahCocok: function (k) { return this.semuaTingkat || k.tingkat === this.tingkatDipilih; },
       jumlahSekolah: function () {
-        var t = this.tingkatDipilih;
-        return this.daftarSekolah.filter(function (k) { return k.tingkat === t; }).length;
+        var self = this;
+        return this.daftarSekolah.filter(function (k) { return self.sekolahCocok(k); }).length;
+      },
+      // Superadmin: label tingkat sekolah terpilih bila berbeda dengan tingkat yang dipilih.
+      tingkatBeda: function () {
+        if (this.mode !== "superadmin" || !this.tingkatDipilih) { return ""; }
+        var id = this.kontingenDipilih;
+        var k = this.daftarSekolah.find(function (x) { return x.id === id; });
+        return k && k.tingkat !== this.tingkatDipilih ? LABEL_TINGKAT[k.tingkat] : "";
       },
       pilihPertama: function () {
         var hasil = this.hasilCari();
@@ -96,7 +115,7 @@ document.addEventListener("alpine:init", function () {
       // Bangun ulang pilihan sekolah sesuai tingkat. Opsi dihapus/ditambah (bukan disembunyikan),
       // karena <option hidden> tidak berlaku di Safari iPhone.
       saringSekolah: function () {
-        var pilih = this.$refs.kontingen, lama = pilih.value, tingkat = this.nilai("tingkat");
+        var pilih = this.$refs.kontingen, lama = pilih.value, tingkat = this.nilai("tingkat"), self = this;
         this.tingkatDipilih = tingkat;
         while (pilih.firstChild) { pilih.removeChild(pilih.firstChild); }
         var kosong = document.createElement("option");
@@ -105,16 +124,17 @@ document.addEventListener("alpine:init", function () {
         pilih.appendChild(kosong);
         var masihAda = false;
         this.daftarSekolah.forEach(function (k) {
-          if (k.tingkat !== tingkat) { return; }
+          if (!self.sekolahCocok(k)) { return; }
           var o = document.createElement("option");
           o.value = k.id;
-          o.textContent = k.nama;
+          o.textContent = self.semuaTingkat ? k.nama + " (" + LABEL_TINGKAT[k.tingkat] + ")" : k.nama;
           o.dataset.tingkat = k.tingkat;
           if (k.id === lama) { o.selected = true; masihAda = true; }
           pilih.appendChild(o);
         });
         if (!masihAda) { pilih.value = ""; }
         pilih.disabled = !tingkat;
+        this.kontingenDipilih = pilih.value;
       },
       tingkatBerubah: function () {
         this.saringSekolah();
@@ -125,6 +145,7 @@ document.addEventListener("alpine:init", function () {
         this.periksaSemua();
       },
       sekolahBerubah: function () {
+        this.kontingenDipilih = this.$refs.kontingen.value;
         this.hapusGalat("kontingen");
         this.periksaSemua();
       },
@@ -268,7 +289,7 @@ document.addEventListener("alpine:init", function () {
         if (!this.tanggalLahir()) { galat.tanggal_lahir = "Pilih tanggal, bulan, dan tahun lahir."; }
         var foto = this.$refs.form.elements.foto;
         if (foto.required && !this.fotoBlob && !(foto.files && foto.files.length)) { galat.foto = "Foto wajib diunggah."; }
-        if (!this.nilai("persetujuan")) { galat.persetujuan = "Centang pernyataan ini untuk melanjutkan."; }
+        if (this.$refs.form.elements.persetujuan && !this.nilai("persetujuan")) { galat.persetujuan = "Centang pernyataan ini untuk melanjutkan."; }
         ["kontingen", "tingkat", "peran", "nama_lengkap", "nik", "jenis_kelamin", "tempat_lahir", "tanggal_lahir", "alamat", "golongan_darah", "telepon", "nama_orang_tua", "telepon_orang_tua", "foto", "persetujuan"].forEach(function (n) {
           self.tampilGalat(n, galat[n] || "");
         });
@@ -287,7 +308,7 @@ document.addEventListener("alpine:init", function () {
 
       // --- Draf di HP -----------------------------------------------------------
       simpanDraf: function () {
-        if (!S()) { return; }
+        if (!S() || this.mode !== "publik") { return; }
         var data = {}, f = this.$refs.form;
         Array.prototype.forEach.call(f.elements, function (el) {
           if (!el.name || TIDAK_DISIMPAN.indexOf(el.name) !== -1) { return; }
@@ -320,6 +341,7 @@ document.addEventListener("alpine:init", function () {
             el.value = data[nama];
           }
         });
+        this.kontingenDipilih = this.$refs.kontingen.value;
         this.periksaSemua();
       },
       pakaiDraf: function () {
@@ -444,6 +466,31 @@ document.addEventListener("alpine:init", function () {
         if (!this.cropper) { return ""; }
         var d = this.cropper.getData(true);
         return JSON.stringify({ x: d.x, y: d.y, w: d.width, h: d.height, r: d.rotate || 0 });
+      },
+
+      // --- Superadmin: kirim form biasa ------------------------------------------
+      kirimBiasa: function (e) {
+        if (this.mengirim) { e.preventDefault(); return; }
+        this.umum = [];
+        if (Object.keys(this.validasiSemua()).length) {
+          e.preventDefault();
+          this.umum = ["Ada isian yang perlu diperbaiki. Lihat tulisan merah."];
+          this.gulirKeGalat();
+          return;
+        }
+        // Foto hasil pemotong menggantikan file asli. Bila browser tidak bisa, file asli dikirim
+        // tanpa koordinat dan server memotong di tengah.
+        var f = this.$refs.form, potong = f.elements.foto_potong;
+        potong.value = "";
+        if (this.fotoBlob) {
+          try {
+            var dt = new DataTransfer();
+            dt.items.add(new File([this.fotoBlob], "foto.jpg", { type: "image/jpeg" }));
+            f.elements.foto.files = dt.files;
+            potong.value = this.dataPotong();
+          } catch (err) { potong.value = ""; }
+        }
+        this.mengirim = true;
       },
 
       // --- Ringkasan dan kirim --------------------------------------------------

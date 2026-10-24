@@ -218,16 +218,6 @@ class BiodataForm(forms.Form):
             return [int(v) for v in self.data.getlist("kegiatan") if str(v).isdigit()]
         return [getattr(k, "pk", k) for k in self.initial.get("kegiatan", [])]
 
-    def daftar_kegiatan(self) -> list[dict]:
-        """Untuk form superadmin (tanpa JavaScript): kegiatan + jadwal pada tingkat yang sedang dipilih."""
-        tingkat = (self.data.get("tingkat") if self.is_bound else self.initial.get("tingkat")) or ""
-        jadwal = {p["id"]: p["jadwal"] for p in self.data_kegiatan().get(tingkat, [])}
-        terpilih = self.kegiatan_terpilih()
-        return [
-            {"k": k, "jadwal": jadwal.get(k.pk, ""), "tersedia": k.pk in jadwal, "dipilih": k.pk in terpilih}
-            for k in self.fields["kegiatan"].queryset
-        ]
-
     def pilihan_kontingen_berkelompok(self) -> list[tuple[str, list[Kontingen]]]:
         urutan = [Tingkat.MULA, Tingkat.MADYA, Tingkat.WIRA]
         semua = list(self.fields["kontingen"].queryset)
