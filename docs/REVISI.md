@@ -330,3 +330,15 @@ Latar kartu Wira diganti dari kuning gelap (#CA8A04 -> #FACC15) menjadi **kuning
 - `SIGAP_HTTPS=False` = cookie sesi dan CSRF boleh dikirim lewat `http://` (tidak aman). **Wajib `True` di server** (di belakang Caddy).
 
 **Pengujian:** Caddy dengan Caddyfile hasil skrip diuji sebagai proxy di laptop (200, CSRF login berhasil, header IP palsu `X-Forwarded-For`/`CF-Connecting-IP` diabaikan); `-Port` lama memberi peringatan; seluruh tes lulus. Sertifikat Let's Encrypt asli hanya bisa diuji di server dengan domain dan port 80/443 terbuka.
+
+---
+
+## R12. Tambah/ubah biodata superadmin sama dengan form publik (permintaan Farhan, 24 Okt 2026)
+
+**Permintaan:** samakan halaman tambah manual (dan ubah) biodata superadmin dengan `/daftar/`, termasuk isian dan tampilannya.
+
+**Perubahan:** bagian 1-4 form publik dipindah ke `templates/biodata/_isian_biodata.html` dan dipakai kedua halaman, dengan komponen yang sama (`formBiodata`, mode `superadmin`). Superadmin kini mendapat: tingkat dulu lalu kotak cari sekolah yang disaring sesuai tingkat, penjelasan setiap peran, kegiatan yang berubah sesuai tingkat dan langsung terkunci bila bentrok, tanda wajib (*) HP dan orang tua/wali yang berubah sesuai peran, nama tampil kapital, teks bantuan yang sama, peringatan usia, pemeriksaan isian di browser sebelum dikirim, dan **pemotong foto** (geser, putar, perbesar).
+
+**Tetap berbeda (disengaja):** tanpa centang persetujuan, anti-bot, draf HP, dan ringkasan; superadmin bisa mencentang **"Tampilkan sekolah semua tingkat"** untuk memindahkan orang ke sekolah tingkat lain (muncul peringatan, biodata diberi tanda Tingkat beda). Saat mengubah biodata yang sudah di sekolah tingkat lain, pilihan itu otomatis aktif. Saat ubah, foto lama tampil dan tidak wajib diganti. Pengiriman tetap form biasa: foto hasil potong dimasukkan ke isian file; bila browser tidak mendukung, foto asli dikirim dan dipotong tengah oleh server.
+
+**Pengujian:** 3 tes baru di `tests/test_superadmin.py` (isian sama dengan publik, foto lama tidak wajib, potongan foto diterima); seluruh tes lulus. Chrome 360 px: saring sekolah per tingkat (17 Madya, 29 semua), peringatan tingkat beda, kunci bentrok kegiatan, tanda wajib per peran, galat di browser, simpan dengan foto terpotong, halaman ubah menampilkan foto lama dan kegiatan; tanpa geser mendatar dan tanpa galat JavaScript. Form publik diuji ulang (kegiatan, draf, cari sekolah).

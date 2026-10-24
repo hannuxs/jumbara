@@ -27,7 +27,9 @@ Web (bukan APK, bukan PWA yang dipasang) untuk:
 ## Lingkungan dan stack (tidak bisa ditawar)
 
 - **Bahasa: Python** (keputusan Farhan). **Python 3.12 + Django 5.2 LTS**, Django Templates + Alpine.js + Tailwind CSS (CLI standalone, tanpa Node), MariaDB InnoDB `utf8mb4`.
-- **Server produksi: Windows + XAMPP.** Apache XAMPP menjadi reverse proxy dan penyaji file statis; MariaDB sebagai database (wajib versi 10.5+, XAMPP lama membawa 10.4, cek di Tahap 0); PHP tidak dipakai. Django dijalankan oleh **Waitress** sebagai **Windows Service** (WinSW/NSSM) di `127.0.0.1:8000`.
+- **Server produksi: Windows, tanpa XAMPP** (keputusan Farhan 24 Okt 2026). Dijalankan dari terminal lewat **`jalankan.bat -Produksi`**: **Caddy** (`web\tools\caddy.exe`, HTTPS asli Let's Encrypt otomatis untuk `SIGAP_DOMAIN`, port 80/443) sebagai reverse proxy ke **Waitress** di `127.0.0.1:SIGAP_PORT`; file statis disajikan WhiteNoise. Bukan Windows Service; Apache, PHP, WinSW/NSSM, dan cloudflared tidak dipakai. MariaDB sebagai database (wajib 10.5+, dipakai 10.11).
+- **Pengembangan: `jalankan.bat`** (HTTPS sertifikat buatan sendiri, `http://` dialihkan ke `https://`, kamera HP bisa dipakai).
+- **Port** bawaan **8585** untuk semuanya, diubah **hanya** lewat `SIGAP_PORT` di `web\.env` (tidak ada opsi `-Port`). Domain produksi: `sigapjumbara.my.id`.
 - Aplikasi Django dibuat di folder **`web/`** dengan virtualenv `web\.venv`. Root repositori berisi dokumen dan data.
 - Semua perintah dan skrip harus jalan di Windows (PowerShell/Git Bash/`python manage.py`). **Tidak ada** cron, systemd, supervisor, gunicorn, Celery, Redis, Docker, atau skrip khusus Linux. Penjadwal = Windows Task Scheduler + `python manage.py sigap_jadwal`.
 - Semua aset (JS, CSS, font, pustaka pemindai QR, Cropper.js) **disimpan lokal** di `web/static/vendor` dan di-commit. Tidak ada CDN saat runtime.
@@ -69,11 +71,11 @@ Web (bukan APK, bukan PWA yang dipasang) untuk:
 
 ## Perintah yang sering dipakai (Windows, dari folder `web`)
 
-Paling mudah dari folder proyek: `jalankan.bat` (periksa kesiapan + MariaDB + migrasi + CSS, lalu jalankan server; `-CekSaja`, `-Port`, `-Produksi`, `-Tes`).
+Paling mudah dari folder proyek: `jalankan.bat` (pengembangan: periksa kesiapan + MariaDB + migrasi + CSS, lalu server HTTPS di `SIGAP_PORT`) dan `jalankan.bat -Produksi` (server: Caddy + Waitress). Pilihan lain: `-CekSaja`, `-Tes`, `-Http`.
 
 ```
 .venv\Scripts\activate
-python manage.py runserver 0.0.0.0:8000
+python manage.py sigap_https_dev            (HTTPS laptop di SIGAP_PORT, yang dipakai jalankan.bat)
 python manage.py makemigrations
 python manage.py migrate
 python manage.py sigap_seed
@@ -85,4 +87,4 @@ tools\tailwindcss.exe -c tailwind\tailwind.config.js -i tailwind\input.css -o st
 tools\tailwindcss.exe -c tailwind\tailwind.config.js -i tailwind\input.css -o static\css\app.css --minify   (produksi, commit hasilnya)
 ```
 
-Untuk uji kamera di HP saat pengembangan, butuh HTTPS: pakai `cloudflared tunnel --url http://localhost:8000` (lihat `docs/21-DEPLOY-WINDOWS.md`).
+Untuk uji kamera di HP saat pengembangan cukup `jalankan.bat` lalu buka `https://IP-laptop:8585` (terima peringatan sertifikat sekali per HP). Produksi: lihat `docs/21-DEPLOY-WINDOWS.md`.

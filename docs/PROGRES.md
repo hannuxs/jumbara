@@ -6,7 +6,7 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 
 - Tahap aktif: **Tahap 5 selesai di laptop (23 Okt). Semua tahap fitur selesai; berikutnya uji coba bersama panitia dan pemasangan di server produksi bersama Farhan.** Tahap 4 selesai 23 Okt. Tahap 2 selesai 22 Okt. Tahap 1 selesai di laptop; pemasangan di server produksi + HTTPS + uji 3 HP dikerjakan paling akhir bersama Farhan (keputusan Farhan 22 Okt; lihat "Yang harus dikerjakan Farhan").
 - Revisi R1-R5 dari Farhan (tingkat dulu + cari sekolah, foto wajib dan dicetak di kartu, nama kapital, tanpa pencocokan NIK, pemotong foto responsif) **selesai** 18 Okt; lihat `docs/REVISI.md`.
-- Revisi R10 (pilihan kegiatan di biodata) dan R11 (produksi tanpa XAMPP: Caddy HTTPS, port 8585) selesai 24 Okt.
+- Revisi R10 (pilihan kegiatan di biodata), R11 (produksi tanpa XAMPP: Caddy HTTPS, port 8585), dan R12 (form tambah/ubah superadmin sama dengan form publik) selesai 24 Okt. `CLAUDE.md` dan `02-ARSITEKTUR.md` sudah disesuaikan (atas permintaan Farhan).
 - Terakhir diperbarui: 24 Oktober 2026
 - Tenggat terdekat: **25 Oktober 2026** (form biodata siap), dibuka 26 Oktober 00.00 WITA
 
@@ -89,7 +89,6 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 10. Konfirmasi panitia: kuota SD Negeri 006 Tanjung Palas Utara (25 peserta inti, batas Mula 20).
 11. **Sandi ketiga akun di laptop disetel ulang (22 Okt, 22.0x)** ke nilai `SIGAP_SANDI_AWAL_*` di `web\.env` laptop yang baru Farhan ubah, dengan `sigap_atur_sandi --semua --dari-env`. Sandi itu pendek (4-7 karakter): ganti dengan sandi kuat dari Superadmin > Akun dan kata sandi (aplikasi belum memaksa ganti sandi saat masuk). Sandi di `.env` hanya dipakai saat akun dibuat, jadi mengubah `.env` saja tidak mengubah sandi.
 12. **Laptop sudah selalu HTTPS:** `jalankan.bat` lalu buka `https://IP-laptop:8585` di HP (Wi-Fi sama), terima peringatan sertifikat sekali per HP. Bila HP tidak bisa membuka, izinkan port 8585 di Windows Firewall. Port diubah hanya lewat `SIGAP_PORT` di `.env`.
-15. **`CLAUDE.md` (file Farhan) masih menyebut XAMPP, Waitress sebagai Windows Service, port 8000, dan cloudflared.** Claude tidak mengubahnya; mohon disesuaikan dengan keputusan 24 Okt (atau minta Claude mengubahnya).
 13. **Panitia kirim kuota final per kegiatan** paling lambat 31 Okt, lalu isi di Superadmin > Kegiatan dan kuota.
 14. Di laptop, status form biodata masih **Paksa buka** (untuk uji). Kembalikan ke **Otomatis** sebelum 26 Okt (`sigap_cek_lingkungan` mengingatkan).
 
@@ -100,6 +99,7 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 - **R10:** pilihan kegiatan di form biodata (boleh lebih dari satu, tidak boleh bentrok jadwal, boleh kosong). Jadwal dicek ulang dengan referensi: tidak ada perbedaan baru. Migrasi baru yang aman: `absensi.0002_kegiatan_bisa_dipilih` (menandai Daftar Ulang dan Anjangsana bukan pilihan) dan `biodata.0004_peserta_kegiatan` (tabel M2M baru). Tidak menyentuh data biodata yang ada. **Form biodata belum dibuka (dibuka 26 Okt), jadi perubahan isian ini masih aman.**
 - **R11:** "Not secure" di `sigapjumbara.my.id` karena server dijalankan dengan mode laptop. Produksi kini `jalankan.bat -Produksi` = Caddy (Let's Encrypt) + Waitress; port bawaan 8585 dari `.env`; `-Port`, `pasang-service.ps1`, `apache-sigap.conf` dihapus.
 - **Langkah berikutnya:** di server: `git pull`/salin kode, isi `.env` produksi, buka port 80/443 di router dan firewall, `jalankan.bat -Produksi`, cek gembok dari HP data seluler, uji form dari 3 HP, kembalikan status form ke Otomatis.
+- **R12:** tambah/ubah biodata superadmin memakai isian yang sama dengan `/daftar/` (`_isian_biodata.html`), termasuk pemotong foto dan kunci bentrok kegiatan. `CLAUDE.md` dan `02-ARSITEKTUR.md` disesuaikan dengan keputusan produksi hari ini.
 - **Kendala:** sertifikat Let's Encrypt asli belum bisa diuji dari laptop (butuh domain mengarah ke server dan port 80/443 terbuka).
 
 

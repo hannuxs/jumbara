@@ -1,12 +1,12 @@
 # 02. Arsitektur dan Stack (Python)
 
-Keputusan Farhan (18 Oktober 2026): **bahasa pemrograman Python**. Server produksi tetap **PC Windows dengan XAMPP**.
+Keputusan Farhan (18 Oktober 2026): **bahasa pemrograman Python**. Server produksi **PC Windows**; sejak **24 Oktober 2026 tanpa XAMPP** (Caddy + Waitress lewat `jalankan.bat -Produksi`).
 
 ## Lingkungan
 
-- **Produksi:** PC/server **Windows** milik Farhan dengan **XAMPP**. Dari XAMPP yang dipakai: **Apache** (reverse proxy + file statis + HTTPS jika opsi win-acme) dan **MariaDB/MySQL** (database). PHP di XAMPP tidak dipakai.
-- **Aplikasi Python** berjalan sebagai **Windows Service** (Waitress) di `127.0.0.1:8000`, Apache meneruskan permintaan ke sana.
-- **Pengembangan:** laptop Windows Farhan, VS Code + Claude Code, Python + MariaDB XAMPP.
+- **Produksi:** PC/server **Windows** milik Farhan, **tanpa XAMPP**. `jalankan.bat -Produksi` dari terminal menyalakan **Caddy** (HTTPS asli Let's Encrypt otomatis, port 80/443, reverse proxy) dan **Waitress** di `127.0.0.1:SIGAP_PORT` (bawaan 8585). Database **MariaDB 10.11** sebagai Windows Service. Bukan Windows Service untuk aplikasi (keputusan Farhan 24 Okt 2026).
+- **Pengembangan:** laptop Windows Farhan, VS Code + Claude Code, Python + MariaDB 10.11 (port 3307). `jalankan.bat` = server HTTPS sertifikat buatan sendiri di `SIGAP_PORT`.
+- **Port** hanya diatur lewat `SIGAP_PORT` di `web\.env`.
 - **Semua perintah dan skrip harus jalan di Windows** (PowerShell atau Git Bash). Jangan menulis skrip khusus Linux (`.sh`, cron, systemd, supervisor, gunicorn, uWSGI, Docker). Jika butuh skrip, buat `.ps1`/`.bat` atau perintah `python manage.py ...`.
 
 ## Stack yang dipakai
@@ -15,10 +15,9 @@ Keputusan Farhan (18 Oktober 2026): **bahasa pemrograman Python**. Server produk
 |---|---|---|
 | Bahasa | **Python 3.12** (installer resmi Windows, centang "Add to PATH") | Virtualenv di `web\.venv` |
 | Framework | **Django 5.2 LTS** | Auth, sesi, ORM, migrasi, form, CSRF, template, perintah manajemen. Cocok untuk tenggat yang sempit |
-| Server aplikasi | **Waitress** (WSGI murni Python, jalan di Windows) | `waitress-serve --threads=48 --listen=127.0.0.1:8000 sigap.wsgi:application`. gunicorn tidak jalan di Windows |
-| Layanan Windows | **WinSW** atau **NSSM** untuk menjalankan Waitress sebagai service yang hidup otomatis | Skrip pemasangan disediakan di `web\scripts\windows\` |
-| Web server depan | **Apache XAMPP** sebagai reverse proxy (`mod_proxy`, `mod_proxy_http`, `mod_headers`) dan penyaji `/static/` | Alternatif: WhiteNoise menyajikan statis dari Django |
-| Database | **MariaDB XAMPP**, InnoDB, `utf8mb4_unicode_ci` | Driver `mysqlclient` (ada wheel Windows). Lihat catatan versi di bawah |
+| Server aplikasi | **Waitress** (WSGI murni Python, jalan di Windows) | `waitress-serve --threads=48 --listen=127.0.0.1:8585 sigap.wsgi:application` (dijalankan `jalankan.bat -Produksi`). gunicorn tidak jalan di Windows |
+| Web server depan | **Caddy 2.8.4** (`web\tools\caddy.exe`, diunduh `unduh-alat.ps1` dengan sidik SHA-512) sebagai HTTPS dan reverse proxy; Caddyfile ditulis otomatis dari `.env` | `/static/` disajikan **WhiteNoise** dari Django |
+| Database | **MariaDB 10.11**, InnoDB, `utf8mb4_unicode_ci` | Driver `mysqlclient` (ada wheel Windows). Lihat catatan versi di bawah |
 | Template | **Django Templates + Alpine.js + Tailwind CSS** | Tanpa SPA berat; ringan untuk HP murah |
 | CSS | **Tailwind CSS standalone CLI** (`tailwindcss.exe`, tanpa Node) | Hasil build `static/css/app.css` di-commit |
 | Pustaka JS | `qr-scanner` (nimiq), `cropperjs`, `alpinejs`, `idb-keyval` (IndexedDB), ikon Lucide/Heroicons | **Diunduh sekali dan disimpan di `static/vendor/`** (di-commit, versi dicatat). Tidak ada CDN saat runtime. Node.js tidak wajib |
@@ -39,7 +38,7 @@ Keputusan Farhan (18 Oktober 2026): **bahasa pemrograman Python**. Server produk
 
 - Django 5.2 membutuhkan **MariaDB 10.5 atau lebih baru**. XAMPP 8.2.x bawaan membawa **MariaDB 10.4**.
 - Langkah Tahap 0: jalankan `mysql --version`. Jika masih 10.4, pilih salah satu dan catat di `docs/IMPROVISASI.md`:
-  - **A (disarankan):** pasang **MariaDB 10.11 LTS** resmi untuk Windows sebagai service (port 3306), lalu matikan MySQL bawaan XAMPP. Apache XAMPP tetap dipakai.
+  - **A (disarankan, dipakai):** pasang **MariaDB 10.11 LTS** resmi untuk Windows sebagai service (laptop: port 3307), lalu matikan MySQL bawaan XAMPP bila ada.
   - **B:** ganti binari MariaDB di dalam folder XAMPP ke 10.11 (lebih rawan; buat cadangan dulu).
   - **C:** MySQL 8.0/8.4 untuk Windows (juga didukung Django).
 - Jangan turun ke versi Django lama yang sudah tidak menerima pembaruan keamanan.
@@ -82,7 +81,7 @@ web/
 └── tests/
 ```
 
-File privat (foto, unggahan form, cadangan) disimpan di folder di luar `static` dan di luar DocumentRoot Apache, misalnya `web\privat\` (path dari `.env`), dan hanya dilayani lewat view Django yang memeriksa login.
+File privat (foto, unggahan form, cadangan) disimpan di folder di luar `static`, misalnya `web\privat\` (path dari `.env`), dan hanya dilayani lewat view Django yang memeriksa login.
 
 ## Pola kode
 
@@ -115,11 +114,8 @@ Tidak ada cron dan tidak ada Celery. Pakai **Windows Task Scheduler**:
 
 ## HTTPS
 
-Kamera di browser HP **hanya bisa dipakai lewat HTTPS** (atau localhost). Jadi produksi wajib HTTPS. Dua opsi didokumentasikan di `21-DEPLOY-WINDOWS.md`:
-
-- **A. Cloudflare Tunnel (`cloudflared` sebagai Windows service):** tidak perlu membuka port router, HTTPS otomatis. Tunnel diarahkan ke Apache (`http://localhost:80`) atau langsung ke Waitress. Disarankan bila server tidak punya IP publik tetap.
-- **B. Let's Encrypt lewat win-acme untuk Apache XAMPP:** butuh port 80/443 terbuka dan domain mengarah ke IP server.
+Kamera di browser HP **hanya bisa dipakai lewat HTTPS** (atau localhost). Jadi produksi wajib HTTPS. Keputusan Farhan 24 Okt 2026: **Caddy** dengan sertifikat Let's Encrypt otomatis untuk `sigapjumbara.my.id` (router meneruskan port 80 dan 443 ke server). Cloudflare Tunnel dan Apache/win-acme tidak dipakai. Rincian di `21-DEPLOY-WINDOWS.md`.
 
 Atur `SECURE_PROXY_SSL_HEADER`, `CSRF_TRUSTED_ORIGINS`, `ALLOWED_HOSTS`, `SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE` sesuai domain dari `.env`.
 
-Untuk uji kamera di HP saat pengembangan: `cloudflared tunnel --url http://localhost:8000`.
+Untuk uji kamera di HP saat pengembangan: `jalankan.bat` (HTTPS sertifikat buatan sendiri) lalu buka `https://IP-laptop:8585`.
