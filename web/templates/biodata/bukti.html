@@ -24,6 +24,7 @@
     <div class="grid grid-cols-[6.5rem_1fr] gap-2 py-2"><dt class="text-abu">Sekolah</dt><dd class="font-semibold text-navy">{{ peserta.kontingen.nama }}</dd></div>
     <div class="grid grid-cols-[6.5rem_1fr] gap-2 py-2"><dt class="text-abu">Tingkat</dt><dd><span class="badge-{{ peserta.tingkat }}">{{ peserta.get_tingkat_display }}</span></dd></div>
     <div class="grid grid-cols-[6.5rem_1fr] gap-2 py-2"><dt class="text-abu">Peran</dt><dd class="font-semibold text-navy">{{ peserta.get_peran_display }}</dd></div>
+    <div class="grid grid-cols-[6.5rem_1fr] gap-2 py-2"><dt class="text-abu">Kegiatan</dt><dd class="text-navy">{% for k in peserta.kegiatan.all %}{{ k.nama }}{% if not forloop.last %}, {% endif %}{% empty %}-{% endfor %}</dd></div>
     <div class="grid grid-cols-[6.5rem_1fr] gap-2 py-2"><dt class="text-abu">Dikirim</dt><dd class="text-navy">{{ peserta.dibuat_pada|tanggal }}, {{ peserta.dibuat_pada|jam }}</dd></div>
   </dl>
 

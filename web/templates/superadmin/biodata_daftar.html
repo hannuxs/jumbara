@@ -38,6 +38,13 @@
       </select>
     </div>
     <div>
+      <label class="label text-sm" for="f-kegiatan">Kegiatan</label>
+      <select id="f-kegiatan" name="kegiatan" class="input">
+        <option value="">Semua</option><option value="kosong" {% if s.kegiatan == 'kosong' %}selected{% endif %}>Belum memilih kegiatan</option>
+        {% for kg in pilihan_kegiatan %}<option value="{{ kg.pk }}" {% if s.kegiatan == kg.pk|stringformat:'s' %}selected{% endif %}>{{ kg.nama }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
       <label class="label text-sm" for="f-urut">Urutkan</label>
       <select id="f-urut" name="urut" class="input">
         <option value="baru" {% if s.urut == 'baru' %}selected{% endif %}>Terbaru masuk</option>

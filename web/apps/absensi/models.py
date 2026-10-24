@@ -49,6 +49,9 @@ class Kegiatan(ModelDasar):
     sistem_penilaian = models.CharField(max_length=100, blank=True)
     catatan = models.TextField(blank=True)
     urutan = models.PositiveSmallIntegerField(default=0)
+    bisa_dipilih = models.BooleanField(
+        default=True, help_text="Tampil sebagai pilihan kegiatan di form biodata (Daftar Ulang dan Anjangsana tidak)."
+    )
 
     class Meta:
         verbose_name = "kegiatan"

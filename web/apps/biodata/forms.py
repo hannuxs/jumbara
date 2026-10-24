@@ -10,6 +10,8 @@ from django import forms
 from django.core import signing
 from django.utils import timezone
 
+from apps.absensi import jadwal as jadwal_mod
+from apps.absensi.models import Kegiatan
 from apps.inti.models import Tingkat
 from apps.kontingen.models import Kontingen
 
@@ -107,6 +109,14 @@ class BiodataForm(forms.Form):
         label="Peran",
         error_messages={"required": "Pilih peran Anda."},
     )
+    kegiatan = forms.ModelMultipleChoiceField(
+        queryset=Kegiatan.objects.none(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Kegiatan yang diikuti",
+        help_text="Boleh lebih dari satu, asal jadwalnya tidak bertabrakan. Boleh dikosongkan.",
+        error_messages={"invalid_choice": "Pilihan kegiatan tidak dikenal. Muat ulang halaman."},
+    )
     nama_lengkap = forms.CharField(
         label="Nama lengkap",
         max_length=200,
@@ -189,6 +199,7 @@ class BiodataForm(forms.Form):
         self.hasil_foto: foto_mod.HasilFoto | None = None
         self.nik_dobel = False
         self.fields["kontingen"].queryset = Kontingen.objects.order_by("tingkat", "nama")
+        self.fields["kegiatan"].queryset = Kegiatan.objects.filter(bisa_dipilih=True).order_by("urutan", "nama")
         if mode != "publik":
             for nama in ("situs_web", "token", "persetujuan"):
                 del self.fields[nama]
@@ -196,6 +207,26 @@ class BiodataForm(forms.Form):
             w = field.widget
             if isinstance(w, forms.TextInput | forms.Textarea | forms.Select) and not isinstance(w, forms.RadioSelect):
                 w.attrs.setdefault("class", "input")
+
+    def data_kegiatan(self) -> dict[str, list[dict]]:
+        """Jadwal dan bentrok kegiatan per tingkat untuk JavaScript form (json_script)."""
+        return jadwal_mod.semua_tingkat()
+
+    def kegiatan_terpilih(self) -> list[int]:
+        """Id kegiatan yang tercentang (dari kiriman atau data awal) untuk menandai kotak centang."""
+        if self.is_bound:
+            return [int(v) for v in self.data.getlist("kegiatan") if str(v).isdigit()]
+        return [getattr(k, "pk", k) for k in self.initial.get("kegiatan", [])]
+
+    def daftar_kegiatan(self) -> list[dict]:
+        """Untuk form superadmin (tanpa JavaScript): kegiatan + jadwal pada tingkat yang sedang dipilih."""
+        tingkat = (self.data.get("tingkat") if self.is_bound else self.initial.get("tingkat")) or ""
+        jadwal = {p["id"]: p["jadwal"] for p in self.data_kegiatan().get(tingkat, [])}
+        terpilih = self.kegiatan_terpilih()
+        return [
+            {"k": k, "jadwal": jadwal.get(k.pk, ""), "tersedia": k.pk in jadwal, "dipilih": k.pk in terpilih}
+            for k in self.fields["kegiatan"].queryset
+        ]
 
     def pilihan_kontingen_berkelompok(self) -> list[tuple[str, list[Kontingen]]]:
         urutan = [Tingkat.MULA, Tingkat.MADYA, Tingkat.WIRA]
@@ -304,6 +335,11 @@ class BiodataForm(forms.Form):
                     self.add_error("nama_orang_tua", "Nama ayah/ibu/wali wajib diisi.")
                 if not data.get("telepon_orang_tua") and "telepon_orang_tua" not in self.errors:
                     self.add_error("telepon_orang_tua", "Nomor HP ayah/ibu/wali wajib diisi.")
+
+        kegiatan = list(data.get("kegiatan") or [])
+        if kegiatan and tingkat:
+            for pesan in jadwal_mod.periksa(tingkat, kegiatan):
+                self.add_error("kegiatan", pesan)
 
         berkas = data.get("foto")
         if berkas:

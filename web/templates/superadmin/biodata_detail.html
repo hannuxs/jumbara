@@ -29,6 +29,7 @@
       <div class="{{ kelas }}"><dt class="text-abu">Tempat, tanggal lahir</dt><dd>{{ p.tempat_lahir }}, {{ p.tanggal_lahir|tanggal:False }} <span class="text-abu">({{ umur }} th per 12 Nov 2026)</span></dd></div>
       <div class="{{ kelas }} sm:col-span-2"><dt class="text-abu">Alamat</dt><dd>{{ p.alamat }}</dd></div>
       <div class="{{ kelas }}"><dt class="text-abu">Golongan darah</dt><dd>{{ p.get_golongan_darah_display }}</dd></div>
+      <div class="{{ kelas }} sm:col-span-2"><dt class="text-abu">Kegiatan yang diikuti</dt><dd>{% for k in p.kegiatan.all %}<span class="badge-abu mb-1 mr-1">{{ k.nama }}</span>{% empty %}-{% endfor %}</dd></div>
       <div class="{{ kelas }}"><dt class="text-abu">Telepon</dt><dd>{% if p.telepon %}<a class="tautan" href="{{ p.telepon|wa }}" target="_blank" rel="noopener">+{{ p.telepon }}</a>{% else %}-{% endif %}</dd></div>
       <div class="{{ kelas }}"><dt class="text-abu">Orang tua/wali</dt><dd>{{ p.nama_orang_tua|default:"-" }}</dd></div>
       <div class="{{ kelas }}"><dt class="text-abu">Telepon orang tua/wali</dt><dd>{% if p.telepon_orang_tua %}<a class="tautan" href="{{ p.telepon_orang_tua|wa }}" target="_blank" rel="noopener">+{{ p.telepon_orang_tua }}</a>{% else %}-{% endif %}</dd></div>

@@ -49,6 +49,8 @@ BAWAAN: dict[str, Any] = {
     "absensi.menit_sesudah": 60,
     # Poin kehadiran: orang di atas kuota tidak menambah poin (docs/15-REKAP-POIN.md).
     "poin.batasi_ke_kuota": True,
+    # Pilihan kegiatan di biodata: sesi berjam "08.00-selesai" dianggap selesai pukul ini untuk cek bentrok.
+    "kegiatan.selesai_bawaan": "12:00",
     # Piagam (docs/18-PIAGAM.md). {urut} = nomor urut per jenis piagam.
     "piagam.format_nomor_peserta": "{urut}/PST/JUMBARA-V/PMI-BLG/XI/2026",
     "piagam.format_nomor_juara": "{urut}/JR/JUMBARA-V/PMI-BLG/XI/2026",

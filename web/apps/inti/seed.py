@@ -111,6 +111,9 @@ def seed_kontingen(folder: Path, laporan: list[str]) -> None:
     laporan.append(f"Kontingen: {baru} baru, {diperbarui} diperbarui, total aktif {Kontingen.objects.count()}")
 
 
+KEGIATAN_BUKAN_PILIHAN = ("daftar-ulang", "anjangsana")
+
+
 def seed_kegiatan(folder: Path, laporan: list[str]) -> None:
     baru = 0
     for urutan, b in enumerate(_baca_csv("kegiatan.csv", folder), start=1):
@@ -125,6 +128,8 @@ def seed_kegiatan(folder: Path, laporan: list[str]) -> None:
                 "sistem_penilaian": b["sistem_penilaian"][:100],
                 "catatan": b["catatan"],
                 "urutan": urutan,
+                # Daftar ulang dan Anjangsana diikuti semua orang, bukan pilihan di form biodata.
+                "bisa_dipilih": b["kode"] not in KEGIATAN_BUKAN_PILIHAN,
             },
         )
         baru += dibuat

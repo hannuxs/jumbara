@@ -1,0 +1,23 @@
+{# Pilihan kegiatan di form biodata publik. Daftar dan bentrok jadwal per tingkat dari apps.absensi.jadwal; server memeriksa ulang. #}
+{{ form.data_kegiatan|json_script:"data-kegiatan" }}
+<fieldset class="isian mb-0" data-isian="kegiatan">
+  <legend class="label">Kegiatan yang diikuti</legend>
+  <p class="bantuan mb-2 mt-0">Boleh lebih dari satu, asal jadwalnya tidak bertabrakan. Boleh dikosongkan jika belum tahu.</p>
+  <p x-show="!tingkatDipilih" x-cloak class="rounded-xl bg-krem p-3 text-sm text-abu">Pilih tingkat dulu untuk melihat kegiatan.</p>
+  {% with terpilih=form.kegiatan_terpilih %}
+  <div class="grid gap-2 sm:grid-cols-2">
+    {% for k in form.fields.kegiatan.queryset %}
+    <label class="pilihan" x-show="kegiatanTersedia('{{ k.pk }}')" :class="bentrokKegiatan('{{ k.pk }}') && 'cursor-not-allowed opacity-60'">
+      <input type="checkbox" name="kegiatan" value="{{ k.pk }}" {% if k.pk in terpilih %}checked{% endif %}
+             @change="kegiatanBerubah()" :disabled="!!bentrokKegiatan('{{ k.pk }}')">
+      <span class="min-w-0">
+        <span class="block font-semibold text-navy">{{ k.nama }}</span>
+        <span class="block text-sm text-abu" x-text="jadwalKegiatan('{{ k.pk }}')"></span>
+        <span class="block text-sm font-semibold text-merah" x-show="bentrokKegiatan('{{ k.pk }}')" x-cloak x-text="'Bentrok dengan ' + bentrokKegiatan('{{ k.pk }}')"></span>
+      </span>
+    </label>
+    {% endfor %}
+  </div>
+  {% endwith %}
+  <p class="galat" data-galat="kegiatan">{{ form.kegiatan.errors.0 }}</p>
+</fieldset>

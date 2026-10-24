@@ -340,7 +340,12 @@ def _angka_kuota(teks: str) -> int | None | str:
 
 @superadmin_wajib
 def kegiatan_daftar(request):
-    daftar = list(Kegiatan.objects.annotate(n_khusus=Count("kuota", filter=Q(kuota__kontingen__isnull=False))))
+    daftar = list(
+        Kegiatan.objects.annotate(
+            n_khusus=Count("kuota", filter=Q(kuota__kontingen__isnull=False), distinct=True),
+            n_pendaftar=Count("pendaftar", filter=Q(pendaftar__dihapus_pada__isnull=True), distinct=True),
+        )
+    )
     if request.method == "POST":
         berubah = []
         for kg in daftar:
@@ -348,26 +353,24 @@ def kegiatan_daftar(request):
             if nilai == "salah":
                 messages.error(request, f"Kuota {kg.nama} harus angka 0-500 atau kosong.")
                 return redirect("absensi_admin:kegiatan_daftar")
-            if nilai != kg.kuota_default:
-                berubah.append((kg, kg.kuota_default, nilai))
+            dipilih = request.POST.get(f"pilih_{kg.pk}") == "1"
+            if nilai != kg.kuota_default or dipilih != kg.bisa_dipilih:
+                berubah.append((kg, {"kuota_default": kg.kuota_default, "bisa_dipilih": kg.bisa_dipilih},
+                                {"kuota_default": nilai, "bisa_dipilih": dipilih}))  # fmt: skip
         batasi = request.POST.get("batasi") == "1"
         for kg, lama, baru in berubah:
-            kg.kuota_default = baru
-            kg.save(update_fields=["kuota_default", "diubah_pada"])
-            catat(
-                request,
-                "kegiatan.kuota_diubah",
-                kg,
-                keterangan=kg.nama,
-                lama={"kuota_default": lama},
-                baru={"kuota_default": baru},
-            )
+            kg.kuota_default = baru["kuota_default"]
+            kg.bisa_dipilih = baru["bisa_dipilih"]
+            kg.save(update_fields=["kuota_default", "bisa_dipilih", "diubah_pada"])
+            d_lama, d_baru = selisih(lama, baru)
+            aksi = "kegiatan.kuota_diubah" if "kuota_default" in d_baru else "kegiatan.diubah"
+            catat(request, aksi, kg, keterangan=kg.nama, lama=d_lama, baru=d_baru)
         if batasi != bool(pengaturan.ambil("poin.batasi_ke_kuota", True)):
             pengaturan.simpan("poin.batasi_ke_kuota", batasi, request.nama_pelaku or request.user.username)
             catat(
                 request, "pengaturan.diubah", keterangan="poin.batasi_ke_kuota", baru={"poin.batasi_ke_kuota": batasi}
             )
-        messages.success(request, f"Kuota disimpan ({len(berubah)} kegiatan berubah).")
+        messages.success(request, f"Disimpan ({len(berubah)} kegiatan berubah).")
         return redirect("absensi_admin:kegiatan_daftar")
     return render(
         request,

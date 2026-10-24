@@ -32,6 +32,7 @@ class Saringan:
     peran: str = ""
     jk: str = ""
     tanda: str = ""
+    kegiatan: str = ""
     urut: str = "baru"
     aktif: list[str] = field(default_factory=list)
 
@@ -44,9 +45,10 @@ class Saringan:
             peran=get.get("peran", ""),
             jk=get.get("jk", ""),
             tanda=get.get("tanda", ""),
+            kegiatan=get.get("kegiatan", ""),
             urut=get.get("urut", "baru") if get.get("urut") in URUTAN else "baru",
         )
-        s.aktif = [k for k in ("q", "kontingen", "tingkat", "peran", "jk", "tanda") if getattr(s, k)]
+        s.aktif = [k for k in ("q", "kontingen", "tingkat", "peran", "jk", "tanda", "kegiatan") if getattr(s, k)]
         return s
 
 
@@ -81,6 +83,10 @@ def saring(s: Saringan, qs: QuerySet | None = None) -> QuerySet:
         qs = qs.exclude(ada_tanda_aktif())
     elif s.tanda in JenisPenanda.values:
         qs = qs.filter(penanda__jenis=s.tanda, penanda__diabaikan_pada__isnull=True)
+    if s.kegiatan.isdigit():
+        qs = qs.filter(kegiatan__id=int(s.kegiatan))
+    elif s.kegiatan == "kosong":
+        qs = qs.filter(kegiatan__isnull=True)
     return qs.order_by(*URUTAN[s.urut]).distinct()
 
 

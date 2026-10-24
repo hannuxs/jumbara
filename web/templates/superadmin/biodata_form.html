@@ -12,6 +12,20 @@
     <p class="-mt-3 mb-4 text-xs text-abu">Mengganti kontingen = memindahkan orang ini ke kontingen lain.</p>
     {% include "komponen/isian.html" with f=form.tingkat %}
     {% include "komponen/isian.html" with f=form.peran %}
+    <fieldset class="isian mb-0" data-isian="kegiatan">
+      <legend class="label">Kegiatan yang diikuti</legend>
+      <div class="grid gap-2 sm:grid-cols-2">
+        {% for b in form.daftar_kegiatan %}
+        <label class="pilihan {% if not b.tersedia %}opacity-60{% endif %}">
+          <input type="checkbox" name="kegiatan" value="{{ b.k.pk }}" {% if b.dipilih %}checked{% endif %}>
+          <span class="min-w-0"><span class="block font-semibold text-navy">{{ b.k.nama }}</span>
+          <span class="block text-sm text-abu">{% if b.tersedia %}{{ b.jadwal }}{% else %}Tidak ada untuk tingkat ini{% endif %}</span></span>
+        </label>
+        {% endfor %}
+      </div>
+      {% for e in form.kegiatan.errors %}<p class="galat">{{ e }}</p>{% endfor %}
+      <p class="bantuan">Boleh lebih dari satu asal jadwal tidak bertabrakan; server memeriksa bentrok sesuai tingkat yang dipilih.</p>
+    </fieldset>
   </div>
   <div class="kartu mb-4">
     <h2 class="judul-bagian">Data diri</h2>

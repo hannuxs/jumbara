@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from apps.absensi.models import Kegiatan
 from apps.akun.decorators import superadmin_wajib
 from apps.inti import sampah as sampah_umum
 from apps.inti.log import catat
@@ -76,6 +77,7 @@ def _konteks_saringan(request):
         "pilihan_tingkat": Tingkat.choices,
         "pilihan_peran": Peran.choices,
         "pilihan_tanda": JenisPenanda.choices,
+        "pilihan_kegiatan": Kegiatan.objects.filter(bisa_dipilih=True),
     }
 
 
@@ -155,6 +157,7 @@ def _data_awal(p: Peserta) -> dict:
         "telepon": p.telepon,
         "nama_orang_tua": p.nama_orang_tua,
         "telepon_orang_tua": p.telepon_orang_tua,
+        "kegiatan": list(p.kegiatan.all()),
     }
 
 

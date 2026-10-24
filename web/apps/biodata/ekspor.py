@@ -23,6 +23,7 @@ KOLOM_UMUM = [
     ("Kode pendaftaran", 16), ("Nama lengkap", 30), ("Kode kontingen", 10), ("Kontingen", 34),
     ("Tingkat", 9), ("Peran", 20), ("Jenis kelamin", 12), ("Tempat lahir", 16), ("Tanggal lahir", 13),
     ("Umur per 12 Nov 2026", 10), ("NIK (disamarkan)", 19), ("No. induk anggota", 16), ("Gol. darah", 9),
+    ("Kegiatan", 32),
     ("Telepon", 16), ("Foto", 6), ("Tanda", 40), ("Masuk pada", 18), ("Sumber", 12),
 ]  # fmt: skip
 KOLOM_LENGKAP_TAMBAHAN = [("NIK", 19), ("Alamat", 45), ("Nama orang tua/wali", 26), ("Telepon orang tua/wali", 18)]
@@ -34,7 +35,7 @@ def _baris(p: Peserta, acuan, lengkap: bool) -> list:
         p.kode_pendaftaran, p.nama_lengkap, p.kontingen.kode, p.kontingen.nama, p.get_tingkat_display(),
         p.get_peran_display(), p.get_jenis_kelamin_display(), p.tempat_lahir, p.tanggal_lahir,
         usia_pada(p.tanggal_lahir, acuan), p.nik_samar, p.nomor_induk_anggota, p.get_golongan_darah_display(),
-        p.telepon, "ada" if p.foto_path else "tidak", tanda, timezone.localtime(p.dibuat_pada).replace(tzinfo=None),
+        ", ".join(k.nama for k in p.kegiatan.all()), p.telepon, "ada" if p.foto_path else "tidak", tanda, timezone.localtime(p.dibuat_pada).replace(tzinfo=None),
         p.get_sumber_display(),
     ]  # fmt: skip
     if lengkap:
@@ -62,7 +63,7 @@ def excel_biodata(qs, lengkap: bool, keterangan_saringan: str = "") -> bytes:
     f_teks = wb.add_format({"num_format": "@"})
     kolom = KOLOM_UMUM + (KOLOM_LENGKAP_TAMBAHAN if lengkap else [])
     acuan = tanggal_acuan_usia()
-    data = list(qs.prefetch_related("penanda"))
+    data = list(qs.prefetch_related("penanda", "kegiatan"))
     versi = "LENGKAP (RAHASIA)" if lengkap else "umum (NIK disamarkan)"
 
     def tulis_sheet(nama: str, isi: list[Peserta]):

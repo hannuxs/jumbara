@@ -100,7 +100,7 @@
       <p class="bantuan">Sekolah Anda tidak ada? {% if tautan_wa_sekolah %}<a href="{{ tautan_wa_sekolah }}" class="tautan" target="_blank" rel="noopener">Hubungi superadmin</a>{% else %}Hubungi superadmin.{% endif %}</p>
     </div>
 
-    <fieldset class="isian mb-0" data-isian="peran">
+    <fieldset class="isian" data-isian="peran">
       <legend class="label wajib">Peran</legend>
       <div class="grid gap-2 sm:grid-cols-2">
         {% for r in form.peran %}
@@ -113,6 +113,8 @@
       </div>
       <p class="galat" data-galat="peran">{{ form.peran.errors.0 }}</p>
     </fieldset>
+
+    {% include "biodata/_pilihan_kegiatan.html" %}
   </section>
 
   {# ---------------- Bagian 2: Data diri ---------------- #}

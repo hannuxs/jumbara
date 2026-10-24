@@ -3,10 +3,11 @@
 {% block judul_halaman %}Kegiatan dan kuota{% endblock %}
 {% block konten %}
 <p class="mb-3 text-sm text-abu">Kuota = jumlah orang per kontingen yang diharapkan hadir di setiap sesi kegiatan. Dipakai untuk poin kehadiran: hadir +1, setiap kekurangan dari kuota -1. Kosongkan bila belum ada angka (poin = jumlah hadir, ditandai "kuota belum diatur"). Panitia mengirim kuota final paling lambat 31 Oktober.</p>
+<p class="mb-3 text-sm text-abu">Kolom <b>Di form biodata</b>: kegiatan yang dicentang tampil sebagai pilihan kegiatan di form biodata (hanya untuk tingkat yang punya titik absen kegiatan itu). Jadwal dan bentrok dihitung dari halaman Titik absen. <b>Pendaftar</b> = jumlah orang yang memilih kegiatan itu.</p>
 <form method="post" class="kartu overflow-x-auto p-0 sm:p-0">
   {% csrf_token %}
   <table class="tabel">
-    <thead><tr><th>Kegiatan</th><th>Kelompok</th><th>Rincian dari pedoman</th><th class="w-28">Kuota bawaan</th><th>Kuota khusus</th></tr></thead>
+    <thead><tr><th>Kegiatan</th><th>Kelompok</th><th>Rincian dari pedoman</th><th class="w-28">Kuota bawaan</th><th>Kuota khusus</th><th>Di form biodata</th><th>Pendaftar</th></tr></thead>
     <tbody>
     {% for kg in daftar %}
       <tr>
@@ -15,6 +16,8 @@
         <td class="text-xs text-abu">{{ kg.rincian_kuota }}</td>
         <td><input name="kuota_{{ kg.pk }}" value="{{ kg.kuota_default|default_if_none:'' }}" inputmode="numeric" class="input min-h-[36px] w-24 py-1 text-right" aria-label="Kuota {{ kg.nama }}"></td>
         <td class="whitespace-nowrap text-xs"><a href="{% url 'absensi_admin:kegiatan_kuota' kg.pk %}" class="tautan">Atur per kontingen</a>{% if kg.n_khusus %} ({{ kg.n_khusus }}){% endif %}</td>
+        <td class="text-center"><input type="checkbox" name="pilih_{{ kg.pk }}" value="1" {% if kg.bisa_dipilih %}checked{% endif %} class="h-5 w-5 accent-oranye" aria-label="{{ kg.nama }} tampil di form biodata"></td>
+        <td class="text-right">{% if kg.bisa_dipilih or kg.n_pendaftar %}<a class="tautan" href="{% url 'biodata_admin:daftar' %}?kegiatan={{ kg.pk }}">{{ kg.n_pendaftar }}</a>{% else %}-{% endif %}</td>
       </tr>
     {% endfor %}
     </tbody>
@@ -22,7 +25,7 @@
   <div class="flex flex-wrap items-center gap-3 p-4">
     <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="batasi" value="1" {% if batasi %}checked{% endif %} class="h-5 w-5 accent-oranye"> Orang di atas kuota tidak menambah poin</label>
     <span class="flex-1"></span>
-    <button class="btn-utama" type="submit">Simpan kuota</button>
+    <button class="btn-utama" type="submit">Simpan</button>
   </div>
 </form>
 {% endblock %}

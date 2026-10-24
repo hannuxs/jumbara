@@ -35,6 +35,8 @@ document.addEventListener("alpine:init", function () {
       fotoBlob: null,
       pratinjauFoto: "",
       cropper: null,
+      kegiatanData: {},
+      kegiatanDipilih: [],
 
       mulai: function () {
         var self = this;
@@ -44,6 +46,11 @@ document.addEventListener("alpine:init", function () {
         });
         // Daftar sekolah hanya berisi sekolah dari tingkat yang dipilih (REVISI R1).
         this.saringSekolah();
+        var dataKegiatan = document.getElementById("data-kegiatan");
+        if (dataKegiatan) {
+          try { this.kegiatanData = JSON.parse(dataKegiatan.textContent) || {}; } catch (e) { this.kegiatanData = {}; }
+        }
+        this.bacaKegiatan();
         var bound = this.$root.dataset.bound === "1";
         if (!bound) {
           var params = new URLSearchParams(location.search);
@@ -111,6 +118,7 @@ document.addEventListener("alpine:init", function () {
       },
       tingkatBerubah: function () {
         this.saringSekolah();
+        this.saringKegiatan();
         this.cari = "";
         this.bukaCari = false;
         this.hapusGalat("tingkat");
@@ -119,6 +127,47 @@ document.addEventListener("alpine:init", function () {
       sekolahBerubah: function () {
         this.hapusGalat("kontingen");
         this.periksaSemua();
+      },
+
+      // --- Pilihan kegiatan (boleh lebih dari satu, tidak boleh bentrok jadwal) ----
+      kotakKegiatan: function () {
+        return Array.prototype.slice.call(this.$refs.form.querySelectorAll("input[name=kegiatan]"));
+      },
+      infoKegiatan: function (id) {
+        var daftar = this.kegiatanData[this.tingkatDipilih] || [];
+        for (var i = 0; i < daftar.length; i++) { if (String(daftar[i].id) === String(id)) { return daftar[i]; } }
+        return null;
+      },
+      bacaKegiatan: function () {
+        this.kegiatanDipilih = this.kotakKegiatan().filter(function (el) { return el.checked; }).map(function (el) { return el.value; });
+      },
+      saringKegiatan: function () {
+        // Kegiatan yang tidak ada untuk tingkat baru dilepas centangnya.
+        var self = this;
+        this.kotakKegiatan().forEach(function (el) { if (el.checked && !self.infoKegiatan(el.value)) { el.checked = false; } });
+        this.bacaKegiatan();
+        this.hapusGalat("kegiatan");
+      },
+      kegiatanBerubah: function () {
+        this.bacaKegiatan();
+        this.hapusGalat("kegiatan");
+      },
+      kegiatanTersedia: function (id) { return !!this.infoKegiatan(id); },
+      jadwalKegiatan: function (id) {
+        var info = this.infoKegiatan(id);
+        return info ? info.jadwal : "";
+      },
+      bentrokKegiatan: function (id) {
+        // Nama kegiatan tercentang yang jadwalnya bertabrakan dengan kegiatan ini.
+        var info = this.infoKegiatan(id), self = this;
+        if (!info || this.kegiatanDipilih.indexOf(String(id)) !== -1) { return ""; }
+        return info.bentrok.filter(function (b) { return self.kegiatanDipilih.indexOf(String(b)) !== -1; })
+          .map(function (b) { var x = self.infoKegiatan(b); return x ? x.nama : ""; }).join(", ");
+      },
+      teksKegiatan: function () {
+        var self = this;
+        return this.kegiatanDipilih.map(function (id) { var x = self.infoKegiatan(id); return x ? x.nama : ""; })
+          .filter(Boolean).join(", ");
       },
 
       nilai: function (nama) {
@@ -243,6 +292,7 @@ document.addEventListener("alpine:init", function () {
         Array.prototype.forEach.call(f.elements, function (el) {
           if (!el.name || TIDAK_DISIMPAN.indexOf(el.name) !== -1) { return; }
           if ((el.type === "radio" || el.type === "checkbox") && !el.checked) { return; }
+          if (el.name === "kegiatan") { (data.kegiatan = data.kegiatan || []).push(el.value); return; }
           data[el.name] = el.type === "checkbox" ? "on" : el.value;
         });
         data._disimpan = Date.now();
@@ -255,8 +305,11 @@ document.addEventListener("alpine:init", function () {
           Array.prototype.forEach.call(f.elements.tingkat, function (r) { r.checked = r.value === data.tingkat; });
           this.saringSekolah();
         }
+        var kegiatan = Array.isArray(data.kegiatan) ? data.kegiatan.map(String) : [];
+        this.kotakKegiatan().forEach(function (el) { el.checked = kegiatan.indexOf(el.value) !== -1; });
+        this.saringKegiatan();
         Object.keys(data).forEach(function (nama) {
-          if (nama.charAt(0) === "_" || nama === "tingkat") { return; }
+          if (nama.charAt(0) === "_" || nama === "tingkat" || nama === "kegiatan") { return; }
           var el = f.elements[nama];
           if (!el) { return; }
           if (el instanceof RadioNodeList) {
@@ -424,6 +477,7 @@ document.addEventListener("alpine:init", function () {
           { label: "Sekolah", nilai: this.teksPilihan("kontingen") },
           { label: "Tingkat", nilai: this.teksPilihan("tingkat") },
           { label: "Peran", nilai: this.teksPilihan("peran") },
+          { label: "Kegiatan", nilai: this.teksKegiatan() || "-" },
           { label: "Nama lengkap", nilai: this.nilai("nama_lengkap").toUpperCase() },
           { label: "NIK", nilai: nik.slice(0, 4) + "********" + nik.slice(-4) },
           { label: "No. anggota", nilai: this.nilai("nomor_induk_anggota") || "-" },

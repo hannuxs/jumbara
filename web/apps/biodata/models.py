@@ -71,6 +71,8 @@ class Peserta(ModelHapusLunak):
     kartu_aktif = models.BooleanField(default=True)
     perlu_cetak_ulang = models.BooleanField(default=False)
     # Tahap 5 (piagam).
+    # Kegiatan yang diikuti (dipilih di form biodata, tidak boleh bentrok jadwal; lihat absensi/jadwal.py).
+    kegiatan = models.ManyToManyField("absensi.Kegiatan", blank=True, related_name="pendaftar")
     tidak_berhak_piagam = models.BooleanField(default=False)
     alasan_tidak_berhak_piagam = models.CharField(max_length=255, blank=True)
 

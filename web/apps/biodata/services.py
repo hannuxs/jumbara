@@ -269,6 +269,7 @@ def ringkasan_log(peserta: Peserta) -> dict:
         "nama_orang_tua": peserta.nama_orang_tua,
         "telepon_orang_tua": peserta.telepon_orang_tua[:-4] + "****" if peserta.telepon_orang_tua else "",
         "foto": "ada" if peserta.foto_path else "tidak ada",
+        "kegiatan": ", ".join(k.nama for k in peserta.kegiatan.order_by("urutan", "nama")) if peserta.pk else "",
     }
 
 
@@ -293,6 +294,7 @@ def buat_peserta(request, data: dict, hasil_foto: foto_mod.HasilFoto | None, sum
     try:
         with transaction.atomic():
             peserta.save()
+            peserta.kegiatan.set(data.get("kegiatan") or [])
             tanda = hitung_tanda(peserta)
             terapkan_tanda(peserta, tanda)
             _tandai_pasangan(peserta, tanda)
@@ -327,6 +329,7 @@ def ubah_peserta(request, peserta: Peserta, data: dict, hasil_foto: foto_mod.Has
     try:
         with transaction.atomic():
             peserta.save()
+            peserta.kegiatan.set(data.get("kegiatan") or [])
             tanda = hitung_tanda(peserta)
             terapkan_tanda(peserta, tanda)
             _tandai_pasangan(peserta, tanda)
