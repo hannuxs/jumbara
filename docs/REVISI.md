@@ -342,3 +342,16 @@ Latar kartu Wira diganti dari kuning gelap (#CA8A04 -> #FACC15) menjadi **kuning
 **Tetap berbeda (disengaja):** tanpa centang persetujuan, anti-bot, draf HP, dan ringkasan; superadmin bisa mencentang **"Tampilkan sekolah semua tingkat"** untuk memindahkan orang ke sekolah tingkat lain (muncul peringatan, biodata diberi tanda Tingkat beda). Saat mengubah biodata yang sudah di sekolah tingkat lain, pilihan itu otomatis aktif. Saat ubah, foto lama tampil dan tidak wajib diganti. Pengiriman tetap form biasa: foto hasil potong dimasukkan ke isian file; bila browser tidak mendukung, foto asli dikirim dan dipotong tengah oleh server.
 
 **Pengujian:** 3 tes baru di `tests/test_superadmin.py` (isian sama dengan publik, foto lama tidak wajib, potongan foto diterima); seluruh tes lulus. Chrome 360 px: saring sekolah per tingkat (17 Madya, 29 semua), peringatan tingkat beda, kunci bentrok kegiatan, tanda wajib per peran, galat di browser, simpan dengan foto terpotong, halaman ubah menampilkan foto lama dan kegiatan; tanpa geser mendatar dan tanpa galat JavaScript. Form publik diuji ulang (kegiatan, draf, cari sekolah).
+
+---
+
+## R13. Ganti logo PMI (permintaan Farhan, 25 Okt 2026)
+
+**Permintaan:** ganti semua logo PMI dengan logo yang dikirim (lambang + tulisan "Palang Merah Indonesia" mendatar), **jangan hapus latar belakang, sudut tetap tajam**; sesuaikan di semua halaman; logo Jumbara tetap.
+
+**Perubahan:**
+- File: asli disimpan utuh (`assets/brand/pmi-logo-2026-asli.png`). Versi pakai `pmi-logo-2026.png` hanya dipangkas ruang putih yang berlebihan (isi logo semula hanya sekitar 45% tinggi gambar); latar putih tetap, dengan ruang bebas setinggi baris "Palang" di setiap sisi (sesuai aturan ruang kosong logo PMI). Turunan: `static/img/pmi-logo-720.webp`/`.png` (web) dan `pmi-logo-cetak.png` (PDF). Logo lama `pmi-logo.svg` dan `pmi-logo-160.png` dihapus dari `static`.
+- Web: header semua halaman, beranda, login, form biodata, bukti. Ukuran disesuaikan karena logo kini mendatar (header 32 px di HP, 40 px di laptop). Pita putih logo di header kini **bersudut tajam**; judul header di HP sedikit dikecilkan agar tetap satu baris.
+- PDF: kartu peserta (kotak logo putih kini **bersudut tajam**), bukti pendaftaran A6, lembar QR kontingen F4, poster Anjangsana, piagam (tempel logo). Di bukti dan kepala F4, tinggi logo PMI menyesuaikan otomatis agar tidak menabrak judul di tengah.
+
+**Pengujian:** semua PDF dirender dan diperiksa (logo tidak menabrak teks, QR kartu tetap hitam putih); halaman web di 360 px dan 1280 px tanpa geser mendatar; tes baru `test_logo_pmi_2026_dipakai_di_web_dan_pdf`; seluruh tes lulus.

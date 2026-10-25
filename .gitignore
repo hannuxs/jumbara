@@ -12,6 +12,7 @@ web/privat/
 web/media/
 web/logs/
 web/tools/*.exe
+web/tools/Caddyfile
 *.sqlite3
 
 # Cadangan dan data pribadi

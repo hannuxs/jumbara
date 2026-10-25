@@ -22,7 +22,7 @@ Sumber: Brief Proyek versi 2.1 (14 Oktober 2026), hasil rapat panitia 12 Oktober
 
 ## Logo
 
-- **Logo PMI wajib ada** (permintaan panitia, 18 Oktober 2026), berdampingan dengan logo Jumbara V, di header web, form biodata, login, kartu, QR kontingen, dan bukti pendaftaran.
+- **Logo PMI wajib ada** (permintaan panitia, 18 Oktober 2026; sejak 25 Okt 2026 memakai logo mendatar "Palang Merah Indonesia" berlatar putih bersudut tajam, REVISI R13), berdampingan dengan logo Jumbara V, di header web, form biodata, login, kartu, QR kontingen, dan bukti pendaftaran.
 - File dan aturan pemakaian: `assets/brand/README.md`. Logo PMI tidak boleh diubah bentuk/warnanya.
 - Logo HANS PROJECT hanya di kaki halaman web.
 

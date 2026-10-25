@@ -20,6 +20,8 @@ from .models import Orientasi, TemplatePiagam, UkuranKertas
 
 FOLDER_FONT = Path(__file__).resolve().parent / "fonts"
 FOLDER_IMG = Path(settings.BASE_DIR) / "static" / "img"
+# Logo PMI mendatar berlatar putih (R13, 25 Okt 2026). Jangan diubah bentuk/warnanya.
+LOGO_PMI = "pmi-logo-cetak.png"
 
 # Pilihan huruf: kode -> (label, nama font ReportLab, file TTF atau None untuk font bawaan PDF).
 HURUF = {
@@ -104,7 +106,7 @@ def desain_bawaan(c: canvas.Canvas, w: float, h: float) -> None:
 
 def tempel_logo(c: canvas.Canvas, t: TemplatePiagam, w: float, h: float) -> None:
     tinggi = max(8.0, min(60.0, t.logo_tinggi)) * mm
-    gambar = [str(FOLDER_IMG / "pmi-logo-160.png"), str(FOLDER_IMG / "jumbara-v-400.jpg")]
+    gambar = [str(FOLDER_IMG / LOGO_PMI), str(FOLDER_IMG / "jumbara-v-400.jpg")]
     lebar = [tinggi * ImageReader(g).getSize()[0] / ImageReader(g).getSize()[1] for g in gambar]
     jarak = 6 * mm
     total = sum(lebar) + jarak

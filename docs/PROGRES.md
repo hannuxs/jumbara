@@ -7,7 +7,8 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 - Tahap aktif: **Tahap 5 selesai di laptop (23 Okt). Semua tahap fitur selesai; berikutnya uji coba bersama panitia dan pemasangan di server produksi bersama Farhan.** Tahap 4 selesai 23 Okt. Tahap 2 selesai 22 Okt. Tahap 1 selesai di laptop; pemasangan di server produksi + HTTPS + uji 3 HP dikerjakan paling akhir bersama Farhan (keputusan Farhan 22 Okt; lihat "Yang harus dikerjakan Farhan").
 - Revisi R1-R5 dari Farhan (tingkat dulu + cari sekolah, foto wajib dan dicetak di kartu, nama kapital, tanpa pencocokan NIK, pemotong foto responsif) **selesai** 18 Okt; lihat `docs/REVISI.md`.
 - Revisi R10 (pilihan kegiatan di biodata), R11 (produksi tanpa XAMPP: Caddy HTTPS, port 8585), dan R12 (form tambah/ubah superadmin sama dengan form publik) selesai 24 Okt. `CLAUDE.md` dan `02-ARSITEKTUR.md` sudah disesuaikan (atas permintaan Farhan).
-- Terakhir diperbarui: 24 Oktober 2026
+- Revisi R13 (logo PMI baru di semua halaman dan PDF) selesai 25 Okt.
+- Terakhir diperbarui: 25 Oktober 2026
 - Tenggat terdekat: **25 Oktober 2026** (form biodata siap), dibuka 26 Oktober 00.00 WITA
 
 ## Tahap 0: Fondasi
@@ -93,6 +94,11 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 14. Di laptop, status form biodata masih **Paksa buka** (untuk uji). Kembalikan ke **Otomatis** sebelum 26 Okt (`sigap_cek_lingkungan` mengingatkan).
 
 ## Catatan sesi
+
+### 25 Oktober 2026 (Claude Code): R13 logo PMI baru
+
+Semua logo PMI (web, kartu, bukti, QR kontingen, poster Anjangsana, piagam) diganti logo mendatar "Palang Merah Indonesia" berlatar putih bersudut tajam. Logo Jumbara tidak diubah. Server produksi cukup `git pull` lalu jalankan ulang `jalankan.bat -Produksi` (collectstatic otomatis). Kartu yang sudah dicetak sebelum hari ini masih memakai logo lama.
+
 
 ### 24 Oktober 2026 (Claude Code): R10 pilihan kegiatan, R11 produksi Caddy
 

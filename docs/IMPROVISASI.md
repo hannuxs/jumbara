@@ -160,3 +160,6 @@ Semua hal yang **tidak diminta secara eksplisit** oleh panitia/Farhan tetapi dit
 | 24 Okt 2026 | 1 | Superadmin: centang "Tampilkan sekolah semua tingkat" (otomatis aktif bila orang sudah di sekolah tingkat lain) + peringatan tanda Tingkat beda | Form disamakan dengan publik tanpa menghilangkan hak superadmin memindahkan orang lintas tingkat (R1) | - |
 | 24 Okt 2026 | 1 | Superadmin: foto hasil pemotong dimasukkan ke isian file lewat `DataTransfer`; bila tidak didukung, foto asli dikirim tanpa koordinat (potong tengah) | Pemotong foto bisa dipakai tanpa mengubah view superadmin menjadi AJAX | - |
 | 24 Okt 2026 | 1 | Halaman ubah menampilkan foto saat ini | Superadmin tahu foto lama sebelum memutuskan mengganti | - |
+| 25 Okt 2026 | 1 | Logo PMI baru dipangkas dari ruang putih berlebih (latar putih tetap, ruang bebas setinggi baris "Palang"); file asli disimpan utuh | Tanpa pemangkasan, logo di header HP hanya setinggi sekitar 17 px | Pakai `assets/brand/pmi-logo-2026-asli.png` untuk membuat ulang turunan |
+| 25 Okt 2026 | 1-3 | Tinggi logo PMI di bukti A6 dan kepala lembar F4 dihitung dari ruang di kiri judul | Logo mendatar lebih lebar; mencegah menabrak judul | `lebar_maks` di `_logo` |
+| 25 Okt 2026 | 1 | Judul header di HP dibuat satu baris dan sedikit lebih kecil | Logo mendatar memakan ruang header | `base.html` |

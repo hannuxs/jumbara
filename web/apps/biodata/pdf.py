@@ -11,6 +11,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A6
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader, simpleSplit
+from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfgen import canvas
 
 from apps.inti.utils import jam_id, tanggal_id
@@ -18,17 +19,26 @@ from apps.inti.utils import jam_id, tanggal_id
 from .models import Peserta
 
 FOLDER_IMG = Path(settings.BASE_DIR) / "static" / "img"
+# Logo PMI mendatar berlatar putih (R13, 25 Okt 2026). Jangan diubah bentuk/warnanya.
+LOGO_PMI = "pmi-logo-cetak.png"
 ORANYE = colors.HexColor("#F26B1D")
 NAVY = colors.HexColor("#1F2937")
 ABU = colors.HexColor("#6B7280")
 KREM = colors.HexColor("#FFF3E4")
 
 
-def _logo(c: canvas.Canvas, nama: str, x: float, y: float, tinggi: float, kanan: bool = False) -> None:
+def _logo(
+    c: canvas.Canvas, nama: str, x: float, y: float, tinggi: float, kanan: bool = False, lebar_maks: float | None = None
+) -> None:
+    """Logo setinggi `tinggi`; bila lebih lebar dari `lebar_maks`, dikecilkan dan ditengahkan tegak."""
     img = ImageReader(str(FOLDER_IMG / nama))
     lebar_asli, tinggi_asli = img.getSize()
-    lebar = tinggi * lebar_asli / tinggi_asli
-    c.drawImage(img, x - lebar if kanan else x, y, width=lebar, height=tinggi, mask="auto")
+    tinggi_pakai = tinggi
+    if lebar_maks:
+        tinggi_pakai = min(tinggi, lebar_maks * tinggi_asli / lebar_asli)
+    lebar = tinggi_pakai * lebar_asli / tinggi_asli
+    y += (tinggi - tinggi_pakai) / 2
+    c.drawImage(img, x - lebar if kanan else x, y, width=lebar, height=tinggi_pakai, mask="auto")
 
 
 def bukti_pendaftaran(peserta: Peserta) -> bytes:
@@ -41,7 +51,9 @@ def bukti_pendaftaran(peserta: Peserta) -> bytes:
     # Kepala putih: logo PMI kiri, logo Jumbara V kanan.
     tepi = 7 * mm
     atas = tinggi - tepi
-    _logo(c, "pmi-logo-160.png", tepi, atas - 14 * mm, 14 * mm)
+    # Logo PMI mendatar: lebarnya dibatasi agar tidak menabrak judul di tengah.
+    ruang_kiri = lebar / 2 - stringWidth("KABUPATEN BULUNGAN V 2026", "Helvetica-Bold", 8) / 2 - tepi - 2 * mm
+    _logo(c, LOGO_PMI, tepi, atas - 14 * mm, 14 * mm, lebar_maks=ruang_kiri)
     _logo(c, "jumbara-v-400.jpg", lebar - tepi, atas - 14 * mm, 14 * mm, kanan=True)
     c.setFillColor(NAVY)
     c.setFont("Helvetica-Bold", 8)

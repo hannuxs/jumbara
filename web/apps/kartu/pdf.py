@@ -32,6 +32,8 @@ from .services import urutkan_untuk_cetak
 
 F4 = (215 * mm, 330 * mm)
 FOLDER_IMG = Path(settings.BASE_DIR) / "static" / "img"
+# Logo PMI mendatar berlatar putih (R13, 25 Okt 2026). Jangan diubah bentuk/warnanya.
+LOGO_PMI = "pmi-logo-cetak.png"
 NAVY = colors.HexColor("#1F2937")
 ABU = colors.HexColor("#6B7280")
 GARIS = colors.HexColor("#D1D5DB")
@@ -71,11 +73,16 @@ def ukuran_kartu() -> UkuranKartu:
 # --- Gambar dasar --------------------------------------------------------------
 
 
-def _logo(c: canvas.Canvas, nama: str, x: float, y: float, tinggi: float, kanan: bool = False) -> float:
+def _logo(
+    c: canvas.Canvas, nama: str, x: float, y: float, tinggi: float, kanan: bool = False, lebar_maks: float | None = None
+) -> float:
+    """Logo setinggi `tinggi`; bila lebih lebar dari `lebar_maks`, dikecilkan dan ditengahkan tegak."""
     img = ImageReader(str(FOLDER_IMG / nama))
     lb, tg = img.getSize()
-    lebar = tinggi * lb / tg
-    c.drawImage(img, x - lebar if kanan else x, y, width=lebar, height=tinggi, mask="auto")
+    tinggi_pakai = min(tinggi, lebar_maks * tg / lb) if lebar_maks else tinggi
+    lebar = tinggi_pakai * lb / tg
+    c.drawImage(img, x - lebar if kanan else x, y + (tinggi - tinggi_pakai) / 2, width=lebar, height=tinggi_pakai,
+                mask="auto")  # fmt: skip
     return lebar
 
 
@@ -230,25 +237,25 @@ def gambar_kartu(c: canvas.Canvas, p: Peserta, x: float, y: float, uk: UkuranKar
     c.drawPath(gel, stroke=1, fill=0)
     c.setStrokeAlpha(1)
 
-    # 2. Kapsul putih berisi logo PMI dan Jumbara V (logo PMI di latar terang, tidak diubah).
+    # 2. Kotak putih bersudut tajam berisi logo PMI dan Jumbara V (logo PMI berlatar putih, tidak diubah).
     tinggi_logo = 8 * mm
-    img_pmi = ImageReader(str(FOLDER_IMG / "pmi-logo-160.png"))
+    img_pmi = ImageReader(str(FOLDER_IMG / LOGO_PMI))
     img_jv = ImageReader(str(FOLDER_IMG / "jumbara-v-400.jpg"))
     lb_pmi = tinggi_logo * img_pmi.getSize()[0] / img_pmi.getSize()[1]
     lb_jv = tinggi_logo * img_jv.getSize()[0] / img_jv.getSize()[1]
     jarak = 2.4 * mm
-    lebar_kapsul = lb_pmi + lb_jv + jarak + 6 * mm
+    lebar_kapsul = lb_pmi + lb_jv + jarak + 4 * mm
     tinggi_kapsul = tinggi_logo + 2.2 * mm
     xk = x + (w - lebar_kapsul) / 2
     yk = t(3) - tinggi_kapsul
     c.setFillColor(colors.white)
-    c.roundRect(xk, yk, lebar_kapsul, tinggi_kapsul, tinggi_kapsul / 2, stroke=0, fill=1)
-    c.drawImage(img_pmi, xk + 3 * mm, yk + 1.1 * mm, width=lb_pmi, height=tinggi_logo, mask="auto")
+    c.rect(xk, yk, lebar_kapsul, tinggi_kapsul, stroke=0, fill=1)
+    c.drawImage(img_pmi, xk + 2 * mm, yk + 1.1 * mm, width=lb_pmi, height=tinggi_logo, mask="auto")
     c.setStrokeColor(GARIS)
     c.setLineWidth(0.4)
-    x_sekat = xk + 3 * mm + lb_pmi + jarak / 2
+    x_sekat = xk + 2 * mm + lb_pmi + jarak / 2
     c.line(x_sekat, yk + 1.8 * mm, x_sekat, yk + tinggi_kapsul - 1.8 * mm)
-    c.drawImage(img_jv, xk + 3 * mm + lb_pmi + jarak, yk + 1.1 * mm, width=lb_jv, height=tinggi_logo, mask="auto")
+    c.drawImage(img_jv, xk + 2 * mm + lb_pmi + jarak, yk + 1.1 * mm, width=lb_jv, height=tinggi_logo, mask="auto")
 
     # 3. Judul acara.
     c.setFillColor(teks)
@@ -404,11 +411,13 @@ def _kaki_lembar(c: canvas.Canvas, teks: str) -> None:
 def _kepala_halaman(c: canvas.Canvas, y_atas: float, tinggi_logo: float) -> float:
     """Logo PMI kiri dan Jumbara V kanan di bagian atas halaman F4. Mengembalikan y bawah kepala."""
     y_logo = y_atas - tinggi_logo
-    _logo(c, "pmi-logo-160.png", 15 * mm, y_logo, tinggi_logo)
+    judul = "JUMBARA PMR TINGKAT KABUPATEN BULUNGAN V 2026"
+    ruang_kiri = F4[0] / 2 - stringWidth(judul, "Helvetica-Bold", 11) / 2 - 15 * mm - 3 * mm
+    _logo(c, LOGO_PMI, 15 * mm, y_logo, tinggi_logo, lebar_maks=ruang_kiri)
     _logo(c, "jumbara-v-400.jpg", F4[0] - 15 * mm, y_logo, tinggi_logo, kanan=True)
     c.setFillColor(NAVY)
     c.setFont("Helvetica-Bold", 11)
-    c.drawCentredString(F4[0] / 2, y_atas - tinggi_logo * 0.38, "JUMBARA PMR TINGKAT KABUPATEN BULUNGAN V 2026")
+    c.drawCentredString(F4[0] / 2, y_atas - tinggi_logo * 0.38, judul)
     c.setFillColor(ABU)
     c.setFont("Helvetica-Oblique", 8.5)
     c.drawCentredString(F4[0] / 2, y_atas - tinggi_logo * 0.38 - 5 * mm, "Unggul - Responsif - Berkarakter")
