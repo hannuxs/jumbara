@@ -14,6 +14,9 @@
   </span>
   <a href="{% url 'inti_admin:pengaturan' %}" class="tautan ml-auto">Atur jadwal</a>
 </div>
+{% if jumlah_kegiatan_bentrok %}
+<div class="pesan-peringatan" role="alert"><div><strong>{{ jumlah_kegiatan_bentrok }} biodata memilih kegiatan yang jadwalnya bentrok</strong> (misalnya memilih sebelum aturan bentrok diperbarui). Hubungi orangnya, lalu hapus salah satu kegiatan lewat Ubah biodata. <a class="tautan" href="{% url 'biodata_admin:daftar' %}?kegiatan=bentrok">Lihat daftarnya</a></div></div>
+{% endif %}
 
 <div class="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
   <div class="kartu"><div class="text-xs text-abu">Total biodata</div><div class="font-judul text-3xl font-bold text-oranye-tua">{{ stat.total|angka }}</div></div>

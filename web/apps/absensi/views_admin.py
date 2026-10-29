@@ -341,7 +341,7 @@ def _angka_kuota(teks: str) -> int | None | str:
 @superadmin_wajib
 def kegiatan_daftar(request):
     daftar = list(
-        Kegiatan.objects.annotate(
+        Kegiatan.objects.prefetch_related("bentrok_dengan").annotate(
             n_khusus=Count("kuota", filter=Q(kuota__kontingen__isnull=False), distinct=True),
             n_pendaftar=Count("pendaftar", filter=Q(pendaftar__dihapus_pada__isnull=True), distinct=True),
         )
@@ -376,6 +376,31 @@ def kegiatan_daftar(request):
         request,
         "superadmin/kegiatan_daftar.html",
         {"menu_aktif": "kegiatan_kuota", "daftar": daftar, "batasi": pengaturan.ambil("poin.batasi_ke_kuota", True)},
+    )
+
+
+@superadmin_wajib
+def kegiatan_bentrok(request, pk: int):
+    """Kegiatan yang tidak boleh dipilih bersamaan dengan kegiatan ini walau jam titik absennya tidak bertumpuk."""
+    kg = get_object_or_404(Kegiatan, pk=pk)
+    lain = list(Kegiatan.objects.filter(bisa_dipilih=True).exclude(pk=kg.pk).order_by("urutan", "nama"))
+    if request.method == "POST":
+        pilih = {int(v) for v in request.POST.getlist("bentrok") if v.isdigit()}
+        baru = [k for k in lain if k.pk in pilih]
+        lama_nama = sorted(kg.bentrok_dengan.values_list("nama", flat=True))
+        kg.bentrok_dengan.set(baru)
+        baru_nama = sorted(k.nama for k in baru)
+        if lama_nama != baru_nama:
+            catat(request, "kegiatan.bentrok_diubah", kg, keterangan=kg.nama,
+                  lama={"bentrok_dengan": ", ".join(lama_nama) or "-"},
+                  baru={"bentrok_dengan": ", ".join(baru_nama) or "-"})  # fmt: skip
+        messages.success(request, f"Kegiatan yang bentrok dengan {kg.nama} disimpan.")
+        return redirect("absensi_admin:kegiatan_daftar")
+    terpilih = set(kg.bentrok_dengan.values_list("pk", flat=True))
+    return render(
+        request,
+        "superadmin/kegiatan_bentrok.html",
+        {"menu_aktif": "kegiatan_kuota", "kg": kg, "baris": [{"k": k, "dipilih": k.pk in terpilih} for k in lain]},
     )
 
 

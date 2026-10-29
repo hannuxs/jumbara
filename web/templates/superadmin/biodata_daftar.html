@@ -40,7 +40,7 @@
     <div>
       <label class="label text-sm" for="f-kegiatan">Kegiatan</label>
       <select id="f-kegiatan" name="kegiatan" class="input">
-        <option value="">Semua</option><option value="kosong" {% if s.kegiatan == 'kosong' %}selected{% endif %}>Belum memilih kegiatan</option>
+        <option value="">Semua</option><option value="kosong" {% if s.kegiatan == 'kosong' %}selected{% endif %}>Belum memilih kegiatan</option><option value="bentrok" {% if s.kegiatan == 'bentrok' %}selected{% endif %}>Memilih kegiatan yang bentrok</option>
         {% for kg in pilihan_kegiatan %}<option value="{{ kg.pk }}" {% if s.kegiatan == kg.pk|stringformat:'s' %}selected{% endif %}>{{ kg.nama }}</option>{% endfor %}
       </select>
     </div>

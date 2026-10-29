@@ -3,7 +3,8 @@
 Sumber jadwal = titik absen (tanggal, mulai, selesai) yang terhubung ke kegiatan, sehingga mengubah jadwal
 cukup dari halaman Titik absen. Titik tanpa jam selesai ("08.00-selesai" di jadwal panitia) dianggap selesai
 pada pengaturan `kegiatan.selesai_bawaan` (bawaan 12.00) atau 2 jam setelah mulai bila mulai sesudahnya.
-Dua kegiatan bentrok bila ada sesi pada tanggal yang sama yang jamnya bertumpuk (bersentuhan tidak bentrok).
+Dua kegiatan bentrok bila ada sesi pada tanggal yang sama yang jamnya bertumpuk (bersentuhan tidak bentrok),
+atau bila superadmin menandainya bentrok (`Kegiatan.bentrok_dengan`, misalnya Traveling dan Got Talent, R14).
 """
 
 from __future__ import annotations
@@ -87,6 +88,14 @@ def pilihan(tingkat: str) -> list[PilihanKegiatan]:
         for b in daftar:
             if a is not b and any(x.bertumpuk(y) for x in a.sesi for y in b.sesi):
                 a.bentrok.add(b.kegiatan.pk)
+    # Bentrok yang ditetapkan panitia (dua arah walau hanya satu baris tersimpan).
+    peta = {p.kegiatan.pk: p for p in daftar}
+    for x, y in Kegiatan.bentrok_dengan.through.objects.filter(
+        from_kegiatan_id__in=peta, to_kegiatan_id__in=peta
+    ).values_list("from_kegiatan_id", "to_kegiatan_id"):
+        if x != y:
+            peta[x].bentrok.add(y)
+            peta[y].bentrok.add(x)
     return daftar
 
 
@@ -113,6 +122,26 @@ def periksa(tingkat: str, kegiatan: list[Kegiatan]) -> list[str]:
         for b in dipilih[i + 1 :]:
             if b.kegiatan.pk in a.bentrok:
                 sama = next((x for x in a.sesi for y in b.sesi if x.bertumpuk(y)), None)
-                waktu = f" ({sama.teks()})" if sama else ""
+                waktu = f" ({sama.teks()})" if sama else " (kegiatannya berlangsung bersamaan)"
                 pesan.append(f"{a.kegiatan.nama} bentrok dengan {b.kegiatan.nama}{waktu}. Pilih salah satu.")
     return pesan
+
+
+def peserta_bentrok() -> dict[int, str]:
+    """Biodata aktif yang kegiatannya bentrok (misalnya memilih sebelum aturan bentrok ditambah): {pk: pesan}."""
+    from apps.biodata.models import Peserta
+
+    hasil: dict[int, str] = {}
+    for tingkat in Tingkat.values:
+        tersedia = {p.kegiatan.pk: p for p in pilihan(tingkat)}
+        for orang in Peserta.objects.filter(tingkat=tingkat).prefetch_related("kegiatan"):
+            dipilih = [tersedia[k.pk] for k in orang.kegiatan.all() if k.pk in tersedia]
+            pasangan = [
+                f"{a.kegiatan.nama} dan {b.kegiatan.nama}"
+                for i, a in enumerate(dipilih)
+                for b in dipilih[i + 1 :]
+                if b.kegiatan.pk in a.bentrok
+            ]
+            if pasangan:
+                hasil[orang.pk] = "; ".join(pasangan)
+    return hasil

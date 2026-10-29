@@ -355,3 +355,19 @@ Latar kartu Wira diganti dari kuning gelap (#CA8A04 -> #FACC15) menjadi **kuning
 - PDF: kartu peserta (kotak logo putih kini **bersudut tajam**), bukti pendaftaran A6, lembar QR kontingen F4, poster Anjangsana, piagam (tempel logo). Di bukti dan kepala F4, tinggi logo PMI menyesuaikan otomatis agar tidak menabrak judul di tengah.
 
 **Pengujian:** semua PDF dirender dan diperiksa (logo tidak menabrak teks, QR kartu tetap hitam putih); halaman web di 360 px dan 1280 px tanpa geser mendatar; tes baru `test_logo_pmi_2026_dipakai_di_web_dan_pdf`; seluruh tes lulus.
+
+---
+
+## R14. Traveling dan Jumbara Got Talent tidak boleh dipilih bersamaan (permintaan Farhan, 29 Okt 2026)
+
+**Laporan:** Traveling dan Got Talent bisa dicentang bersamaan di form biodata, padahal bertabrakan. Hanya pasangan ini yang diperbaiki; bentrok kegiatan lain dikonfirmasi aman.
+
+**Penyebab:** jadwal Traveling di data panitia "08.00-selesai" tanpa jam selesai, sehingga dianggap selesai 12.00 (pengaturan `kegiatan.selesai_bawaan`) dan tidak bertumpuk dengan Got Talent 16.00-18.00. Memperpanjang jam Traveling akan ikut membuatnya bentrok dengan Ngobrol Bareng, Sarasehan Pergaulan, Bakti, dan Wahana, padahal itu tidak diminta.
+
+**Perbaikan:** bentrok khusus yang ditetapkan panitia, `Kegiatan.bentrok_dengan` (dua arah, disimpan di database). Migrasi `absensi.0003` memasang pasangan Traveling ↔ Got Talent; `sigap_seed` memasangnya hanya pada instalasi baru (tidak mengembalikan bila superadmin melepasnya). Form publik dan form superadmin langsung mengunci yang satu bila yang lain dicentang ("Bentrok dengan ..."), dan server menolak kiriman yang memilih keduanya dengan pesan "... bentrok dengan ... (kegiatannya berlangsung bersamaan). Pilih salah satu."
+
+**Tambahan (improvisasi):**
+- Superadmin > Kegiatan dan kuota: kolom **Tidak boleh bersamaan** + halaman **Atur** per kegiatan (tercatat di log `kegiatan.bentrok_diubah`).
+- Biodata yang terlanjur memilih kedua kegiatan sebelum aturan ini (form sudah dibuka 26 Okt) **tidak diubah otomatis**: Dasbor menampilkan peringatan jumlahnya, Daftar biodata punya saringan **Kegiatan: Memilih kegiatan yang bentrok**, dan halaman detail menampilkan pesan merah. Superadmin menghubungi orangnya lalu menghapus salah satu lewat Ubah (form ubah menolak simpan selama keduanya masih dicentang).
+
+**Pengujian:** 4 tes baru di `tests/test_kegiatan_biodata.py` (bentrok dua arah dan data HP, tolak di publik dan superadmin, peringatan biodata lama, halaman atur + log, seed hanya saat dibuat); seluruh tes lulus. Chrome 360 px: di Mula, Madya, dan Wira, mencentang Traveling mengunci Got Talent dan sebaliknya; form superadmin sama; halaman Kegiatan dan kuota dan halaman Atur tanpa geser mendatar.

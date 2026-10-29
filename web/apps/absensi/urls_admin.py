@@ -16,6 +16,7 @@ urlpatterns = [
     path("kehadiran/<int:pk>/batal/", v.kehadiran_batal, name="kehadiran_batal"),
     path("kegiatan/", v.kegiatan_daftar, name="kegiatan_daftar"),
     path("kegiatan/<int:pk>/kuota/", v.kegiatan_kuota, name="kegiatan_kuota"),
+    path("kegiatan/<int:pk>/bentrok/", v.kegiatan_bentrok, name="kegiatan_bentrok"),
     path("pantauan/", v.pantauan, name="pantauan"),
     path("pantauan/data/", v.pantauan_json, name="pantauan_json"),
 ]

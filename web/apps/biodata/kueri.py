@@ -87,6 +87,10 @@ def saring(s: Saringan, qs: QuerySet | None = None) -> QuerySet:
         qs = qs.filter(kegiatan__id=int(s.kegiatan))
     elif s.kegiatan == "kosong":
         qs = qs.filter(kegiatan__isnull=True)
+    elif s.kegiatan == "bentrok":
+        from apps.absensi.jadwal import peserta_bentrok
+
+        qs = qs.filter(pk__in=list(peserta_bentrok()))
     return qs.order_by(*URUTAN[s.urut]).distinct()
 
 

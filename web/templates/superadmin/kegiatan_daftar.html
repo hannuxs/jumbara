@@ -3,11 +3,11 @@
 {% block judul_halaman %}Kegiatan dan kuota{% endblock %}
 {% block konten %}
 <p class="mb-3 text-sm text-abu">Kuota = jumlah orang per kontingen yang diharapkan hadir di setiap sesi kegiatan. Dipakai untuk poin kehadiran: hadir +1, setiap kekurangan dari kuota -1. Kosongkan bila belum ada angka (poin = jumlah hadir, ditandai "kuota belum diatur"). Panitia mengirim kuota final paling lambat 31 Oktober.</p>
-<p class="mb-3 text-sm text-abu">Kolom <b>Di form biodata</b>: kegiatan yang dicentang tampil sebagai pilihan kegiatan di form biodata (hanya untuk tingkat yang punya titik absen kegiatan itu). Jadwal dan bentrok dihitung dari halaman Titik absen. <b>Pendaftar</b> = jumlah orang yang memilih kegiatan itu.</p>
+<p class="mb-3 text-sm text-abu">Kolom <b>Di form biodata</b>: kegiatan yang dicentang tampil sebagai pilihan kegiatan di form biodata (hanya untuk tingkat yang punya titik absen kegiatan itu). Jadwal dan bentrok dihitung dari halaman Titik absen. <b>Pendaftar</b> = jumlah orang yang memilih kegiatan itu. <b>Tidak boleh bersamaan</b> = bentrok tambahan yang ditetapkan panitia walau jam di titik absen tidak bertumpuk (misalnya Traveling yang "08.00-selesai" dengan Got Talent).</p>
 <form method="post" class="kartu overflow-x-auto p-0 sm:p-0">
   {% csrf_token %}
   <table class="tabel">
-    <thead><tr><th>Kegiatan</th><th>Kelompok</th><th>Rincian dari pedoman</th><th class="w-28">Kuota bawaan</th><th>Kuota khusus</th><th>Di form biodata</th><th>Pendaftar</th></tr></thead>
+    <thead><tr><th>Kegiatan</th><th>Kelompok</th><th>Rincian dari pedoman</th><th class="w-28">Kuota bawaan</th><th>Kuota khusus</th><th>Di form biodata</th><th>Pendaftar</th><th>Tidak boleh bersamaan</th></tr></thead>
     <tbody>
     {% for kg in daftar %}
       <tr>
@@ -18,6 +18,7 @@
         <td class="whitespace-nowrap text-xs"><a href="{% url 'absensi_admin:kegiatan_kuota' kg.pk %}" class="tautan">Atur per kontingen</a>{% if kg.n_khusus %} ({{ kg.n_khusus }}){% endif %}</td>
         <td class="text-center"><input type="checkbox" name="pilih_{{ kg.pk }}" value="1" {% if kg.bisa_dipilih %}checked{% endif %} class="h-5 w-5 accent-oranye" aria-label="{{ kg.nama }} tampil di form biodata"></td>
         <td class="text-right">{% if kg.bisa_dipilih or kg.n_pendaftar %}<a class="tautan" href="{% url 'biodata_admin:daftar' %}?kegiatan={{ kg.pk }}">{{ kg.n_pendaftar }}</a>{% else %}-{% endif %}</td>
+        <td class="min-w-[10rem] text-xs">{% if kg.bisa_dipilih %}{% for b in kg.bentrok_dengan.all %}{{ b.nama }}{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-abu">-</span>{% endfor %} <a href="{% url 'absensi_admin:kegiatan_bentrok' kg.pk %}" class="tautan whitespace-nowrap">Atur</a>{% else %}<span class="text-abu">-</span>{% endif %}</td>
       </tr>
     {% endfor %}
     </tbody>

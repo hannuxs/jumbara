@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+import re
 from datetime import date, time
 
 import pytest
@@ -149,3 +151,78 @@ def test_superadmin_atur_kegiatan_bisa_dipilih(klien_superadmin, jadwal_uji):
     assert drama.bisa_dipilih is False
     assert LogAktivitas.objects.filter(aksi="kegiatan.diubah").exists()
     assert "drama" not in {p.kegiatan.kode for p in jadwal.pilihan("MADYA")}
+
+
+# --- R14: bentrok yang ditetapkan panitia (Traveling dan Got Talent) ---------------------------------
+
+
+def test_traveling_dan_got_talent_bentrok_setelah_ditandai(client, klien_superadmin, kontingen_madya, jadwal_uji):
+    t, g = jadwal_uji["traveling"], jadwal_uji["got-talent"]
+    # Jam titik absen tidak bertumpuk (08.00-selesai dianggap sampai 12.00), jadi belum bentrok.
+    assert jadwal.periksa("MADYA", [t, g]) == []
+    t.bentrok_dengan.add(g)
+    pilihan = {p.kegiatan.kode: p for p in jadwal.pilihan("MADYA")}
+    assert g.pk in pilihan["traveling"].bentrok and t.pk in pilihan["got-talent"].bentrok  # dua arah
+    # Bentrok lain tidak berubah.
+    assert jadwal_uji["ngobrol"].pk not in pilihan["traveling"].bentrok
+    # Data untuk HP ikut memuat bentrok baru, sehingga kotak centang terkunci.
+    isi = client.get(URL).content.decode()
+    data_hp = json.loads(
+        re.search(r'<script id="data-kegiatan" type="application/json">(.*?)</script>', isi, re.S).group(1)
+    )
+    travel_hp = next(x for x in data_hp["MADYA"] if x["id"] == t.pk)
+    assert g.pk in travel_hp["bentrok"]
+    # Form publik menolak.
+    r = kirim(client, data_valid(kontingen_madya, kegiatan=[str(t.pk), str(g.pk)]))
+    assert r.status_code == 400
+    assert "berlangsung bersamaan" in r.context["form"].errors["kegiatan"][0]
+    assert not Peserta.objects.exists()
+    # Form superadmin juga menolak.
+    data = data_valid(kontingen_madya, kegiatan=[str(t.pk), str(g.pk)])
+    for nama in ("persetujuan", "situs_web", "token"):
+        data.pop(nama)
+    r = klien_superadmin.post("/superadmin/biodata/tambah/", data)
+    assert r.status_code == 200 and "kegiatan" in r.context["form"].errors
+    # Salah satu saja tetap boleh.
+    assert (
+        kirim(client, data_valid(kontingen_madya, kegiatan=[str(t.pk), str(jadwal_uji["drama"].pk)])).status_code == 302
+    )
+
+
+def test_biodata_lama_yang_bentrok_ditandai_untuk_superadmin(client, klien_superadmin, kontingen_madya, jadwal_uji):
+    t, g = jadwal_uji["traveling"], jadwal_uji["got-talent"]
+    kirim(client, data_valid(kontingen_madya, kegiatan=[str(t.pk), str(g.pk)]))  # sebelum aturan bentrok
+    p = Peserta.objects.get()
+    t.bentrok_dengan.add(g)
+    assert list(jadwal.peserta_bentrok()) == [p.pk]
+    assert "Lihat daftarnya" in klien_superadmin.get("/superadmin/").content.decode()
+    assert klien_superadmin.get("/superadmin/biodata/", {"kegiatan": "bentrok"}).context["jumlah"] == 1
+    assert "berlangsung bersamaan" in klien_superadmin.get(f"/superadmin/biodata/{p.pk}/").content.decode()
+    p.kegiatan.remove(g)
+    assert jadwal.peserta_bentrok() == {}
+    assert "Lihat daftarnya" not in klien_superadmin.get("/superadmin/").content.decode()
+
+
+def test_superadmin_atur_kegiatan_tidak_boleh_bersamaan(klien_superadmin, jadwal_uji):
+    t, g, d = jadwal_uji["traveling"], jadwal_uji["got-talent"], jadwal_uji["drama"]
+    assert klien_superadmin.get(f"/superadmin/absensi/kegiatan/{t.pk}/bentrok/").status_code == 200
+    r = klien_superadmin.post(f"/superadmin/absensi/kegiatan/{t.pk}/bentrok/", {"bentrok": [str(g.pk), str(d.pk)]})
+    assert r.status_code == 302
+    assert set(g.bentrok_dengan.all()) == {t} and set(d.bentrok_dengan.all()) == {t}
+    log = LogAktivitas.objects.get(aksi="kegiatan.bentrok_diubah")
+    assert "Got-Talent" in str(log.data_baru)
+    klien_superadmin.post(f"/superadmin/absensi/kegiatan/{t.pk}/bentrok/", {"bentrok": [str(g.pk)]})
+    assert not d.bentrok_dengan.exists() and g.bentrok_dengan.exists()
+
+
+def test_seed_memasang_bentrok_traveling_got_talent_hanya_saat_dibuat(db):
+    from apps.inti import seed
+
+    laporan: list[str] = []
+    seed.seed_kegiatan(seed.FOLDER_DATA, laporan)
+    t, g = Kegiatan.objects.get(kode="traveling"), Kegiatan.objects.get(kode="got-talent")
+    assert set(t.bentrok_dengan.all()) == {g} and set(g.bentrok_dengan.all()) == {t}
+    # Bila superadmin melepasnya, menjalankan seed lagi tidak memasangnya kembali.
+    t.bentrok_dengan.remove(g)
+    seed.seed_kegiatan(seed.FOLDER_DATA, laporan)
+    assert not t.bentrok_dengan.exists()

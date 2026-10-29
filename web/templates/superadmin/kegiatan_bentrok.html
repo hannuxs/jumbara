@@ -1,0 +1,16 @@
+{% extends "superadmin/base.html" %}
+{% block judul %}Bentrok {{ kg.nama }}{% endblock %}
+{% block judul_halaman %}Tidak boleh bersamaan · {{ kg.nama }}{% endblock %}
+{% block konten %}
+<p class="mb-3 text-sm text-abu">Centang kegiatan yang <strong>tidak boleh dipilih bersamaan</strong> dengan {{ kg.nama }} di form biodata, walau jam di titik absen tidak bertumpuk (misalnya kegiatan "08.00-selesai" yang sebenarnya berlangsung sampai sore). Berlaku dua arah. Bentrok karena jam yang bertumpuk sudah dihitung otomatis dari titik absen, tidak perlu dicentang di sini.</p>
+<form method="post" class="kartu">
+  {% csrf_token %}
+  <div class="grid gap-2 sm:grid-cols-2">
+    {% for b in baris %}
+    <label class="pilihan items-center"><input type="checkbox" name="bentrok" value="{{ b.k.pk }}" {% if b.dipilih %}checked{% endif %}><span class="font-semibold text-navy">{{ b.k.nama }}</span></label>
+    {% endfor %}
+  </div>
+  <p class="bantuan">Biodata yang sudah terlanjur memilih pasangan yang bentrok akan muncul di Dasbor dan saringan "Memilih kegiatan yang bentrok" pada Daftar biodata.</p>
+  <div class="mt-4 flex gap-2"><button class="btn-utama" type="submit">Simpan</button><a href="{% url 'absensi_admin:kegiatan_daftar' %}" class="btn-abu">Kembali</a></div>
+</form>
+{% endblock %}

@@ -52,6 +52,14 @@ class Kegiatan(ModelDasar):
     bisa_dipilih = models.BooleanField(
         default=True, help_text="Tampil sebagai pilihan kegiatan di form biodata (Daftar Ulang dan Anjangsana tidak)."
     )
+    # Bentrok yang ditetapkan panitia walau jam di titik absen tidak bertumpuk (misalnya Traveling yang
+    # "08.00-selesai" berlangsung sampai sore sehingga bentrok dengan Got Talent). Berlaku dua arah.
+    bentrok_dengan = models.ManyToManyField(
+        "self",
+        blank=True,
+        symmetrical=True,
+        help_text="Kegiatan yang tidak boleh dipilih bersamaan di form biodata walau jamnya tidak bertumpuk.",
+    )
 
     class Meta:
         verbose_name = "kegiatan"

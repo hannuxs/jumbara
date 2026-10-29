@@ -112,10 +112,13 @@ def seed_kontingen(folder: Path, laporan: list[str]) -> None:
 
 
 KEGIATAN_BUKAN_PILIHAN = ("daftar-ulang", "anjangsana")
+# Kegiatan yang tidak boleh dipilih bersamaan walau jam titik absennya tidak bertumpuk (REVISI R14).
+PASANGAN_BENTROK = [("traveling", "got-talent")]
 
 
 def seed_kegiatan(folder: Path, laporan: list[str]) -> None:
     baru = 0
+    kode_baru: set[str] = set()
     for urutan, b in enumerate(_baca_csv("kegiatan.csv", folder), start=1):
         _, dibuat = Kegiatan.objects.get_or_create(
             kode=b["kode"],
@@ -133,6 +136,15 @@ def seed_kegiatan(folder: Path, laporan: list[str]) -> None:
             },
         )
         baru += dibuat
+        if dibuat:
+            kode_baru.add(b["kode"])
+    # Pasangan bentrok tetap hanya dipasang saat kegiatannya baru dibuat (instalasi baru), agar perubahan
+    # superadmin tidak dikembalikan setiap kali sigap_seed dijalankan. Database lama diisi migrasi absensi 0003.
+    for a, b in PASANGAN_BENTROK:
+        if a in kode_baru or b in kode_baru:
+            ka, kb = Kegiatan.objects.filter(kode=a).first(), Kegiatan.objects.filter(kode=b).first()
+            if ka and kb:
+                ka.bentrok_dengan.add(kb)
     laporan.append(f"Kegiatan: {baru} baru, total {Kegiatan.objects.count()}")
 
 

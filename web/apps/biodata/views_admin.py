@@ -15,6 +15,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from apps.absensi import jadwal
+from apps.absensi.jadwal import peserta_bentrok
 from apps.absensi.models import Kegiatan
 from apps.akun.decorators import superadmin_wajib
 from apps.inti import sampah as sampah_umum
@@ -51,6 +53,7 @@ def dasbor(request):
             "kontingen": kueri.tabel_kontingen(),
             "status": status,
             "url_form": f"{request.build_absolute_uri('/daftar/')}",
+            "jumlah_kegiatan_bentrok": len(peserta_bentrok()),
         },
     )
 
@@ -116,6 +119,7 @@ def detail(request, pk: int):
             "riwayat_kartu": KartuRiwayat.objects.filter(peserta=p).order_by("-dibuat_pada"),
             "pilihan_alasan": AlasanKartu.choices,
             "terkunci": data_terkunci(),
+            "kegiatan_bentrok": jadwal.periksa(p.tingkat, list(p.kegiatan.all())) if p.kegiatan.exists() else [],
         },
     )
 
