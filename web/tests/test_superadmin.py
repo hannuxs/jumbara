@@ -275,10 +275,18 @@ def test_pengaturan_jadwal_dan_paksa(klien_superadmin, client):
         "pengumuman": "",
         "waktu_minimal_detik": "10",
         "tanggal_acuan_usia": "2026-11-12",
+        "du_batas_tepat": "10.30",
+        "du_toleransi": "90",
+        "du_poin_tepat": "1",
+        "du_poin_telat": "0,5",
+        "du_terbuka_malam": "on",
     }
     r = klien_superadmin.post("/superadmin/pengaturan/", data)
     assert r.status_code == 302
     assert pengaturan.ambil("kontak.superadmin_wa") == "6281234567890"
+    assert pengaturan.ambil("daftar_ulang.batas_tepat") == "10:30"
+    assert pengaturan.ambil("daftar_ulang.poin_telat") == 0.5
+    assert pengaturan.ambil("daftar_ulang.toleransi_antrean_menit") == 90
     assert pengaturan.ambil("biodata.buka_pada").startswith("2026-10-26T00:00:00+08:00")
     assert client.get("/daftar/").templates[0].name == "biodata/tutup.html"
     assert "wa.me/6281234567890" in client.get("/").content.decode()

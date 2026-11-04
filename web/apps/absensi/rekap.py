@@ -193,6 +193,37 @@ def poin_kehadiran(kegiatan_kode: str, kontingen: Kontingen) -> dict:
     return {"poin_kehadiran": b.total, "jumlah_hadir": b.total_hadir, "kuota": kuota}
 
 
+# --- Peringkat per tingkat (R15) ---------------------------------------------------------------
+
+
+def urutkan_poin(baris: list[BarisPoin]) -> list[BarisPoin]:
+    """Poin terbanyak di atas; seri diurutkan menurut nama sekolah."""
+    return sorted(baris, key=lambda b: (-b.total, b.kontingen.nama.lower()))
+
+
+def peringkat_tingkat(tingkat: str) -> tuple[list[Kegiatan], list[dict]]:
+    """Semua kontingen satu tingkat: poin kehadiran per kegiatan + total, urut poin terbanyak.
+
+    Peringkat kompetisi (1, 2, 2, 4) untuk total yang sama."""
+    titik_tingkat = [t for t in TitikAbsen.objects.filter(hitung_poin=True).exclude(kegiatan=None)
+                     if t.tingkat in (tingkat, TingkatTitik.SEMUA)]  # fmt: skip
+    ids = {t.kegiatan_id for t in titik_tingkat}
+    kegiatan = list(Kegiatan.objects.filter(pk__in=ids).order_by("urutan", "nama"))
+    per_k: dict[int, dict] = {
+        k.pk: {"k": k, "poin": {}, "total": 0.0} for k in Kontingen.objects.filter(tingkat=tingkat)
+    }
+    for kg in kegiatan:
+        _, baris = tabel_poin_kegiatan(kg, tingkat)
+        for b in baris:
+            per_k[b.kontingen.pk]["poin"][kg.pk] = b.total
+            per_k[b.kontingen.pk]["total"] += b.total
+    hasil = sorted(per_k.values(), key=lambda x: (-x["total"], x["k"].nama.lower()))
+    for i, x in enumerate(hasil):
+        x["peringkat"] = hasil[i - 1]["peringkat"] if i and x["total"] == hasil[i - 1]["total"] else i + 1
+        x["kolom"] = [x["poin"].get(kg.pk, 0) for kg in kegiatan]
+    return kegiatan, hasil
+
+
 # --- Rekap per tingkat --------------------------------------------------------------------
 
 

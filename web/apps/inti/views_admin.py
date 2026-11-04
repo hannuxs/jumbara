@@ -24,6 +24,20 @@ from .models import LogAktivitas
 from .pengaturan import StatusPaksa
 
 
+class AngkaDesimal(forms.FloatField):
+    """Angka yang menerima koma atau titik (0,5 atau 0.5)."""
+
+    def __init__(self, *a, **kw):
+        kw["widget"] = forms.TextInput(attrs={"inputmode": "decimal"})
+        super().__init__(*a, **kw)
+
+    def to_python(self, value):
+        return super().to_python(str(value).strip().replace(",", ".") if value not in (None, "") else value)
+
+    def prepare_value(self, value):
+        return f"{value:g}".replace(".", ",") if isinstance(value, float | int) else value
+
+
 class FormPengaturan(forms.Form):
     paksa_status = forms.ChoiceField(label="Status form biodata", choices=StatusPaksa.PILIHAN, widget=forms.RadioSelect)
     buka_pada = forms.DateTimeField(
@@ -60,6 +74,21 @@ class FormPengaturan(forms.Form):
     perawatan = forms.BooleanField(
         label="Mode perawatan (semua halaman ditutup kecuali untuk superadmin)", required=False
     )
+    # Daftar ulang (R15).
+    du_batas_tepat = forms.CharField(
+        label="Daftar ulang: batas tepat waktu (JJ.MM)", required=False, max_length=5,
+        help_text="Kosongkan untuk memakai jam selesai titik Daftar Ulang (12.00).",
+    )  # fmt: skip
+    du_toleransi = forms.IntegerField(
+        label="Daftar ulang: toleransi antrean (menit)", min_value=0, max_value=600,
+        help_text="Anggota yang dipindai setelah batas tetap tepat waktu bila kontingennya tiba sebelum batas dan ia "
+        "dipindai paling lambat sekian menit setelah batas.",
+    )  # fmt: skip
+    du_poin_tepat = AngkaDesimal(label="Daftar ulang: poin tepat waktu", min_value=0, max_value=10)
+    du_poin_telat = AngkaDesimal(label="Daftar ulang: poin telat", min_value=0, max_value=10)
+    du_terbuka_malam = forms.BooleanField(
+        label="Titik Daftar Ulang tetap terbuka sampai 23.59 (untuk yang telat)", required=False
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -75,6 +104,15 @@ class FormPengaturan(forms.Form):
         if nomor is None:
             raise forms.ValidationError("Nomor WhatsApp tidak valid. Contoh: 081234567890.")
         return nomor
+
+    def clean_du_batas_tepat(self) -> str:
+        teks = self.cleaned_data.get("du_batas_tepat", "").strip().replace(".", ":")
+        if not teks:
+            return ""
+        try:
+            return datetime.strptime(teks, "%H:%M").strftime("%H:%M")
+        except ValueError:
+            raise forms.ValidationError("Tulis jam seperti 10.00 atau kosongkan.") from None
 
     def clean(self):
         data = super().clean()
@@ -93,6 +131,11 @@ PETA = {
     "waktu_minimal_detik": "biodata.waktu_minimal_detik",
     "tanggal_acuan_usia": "acara.tanggal_acuan_usia",
     "perawatan": "sistem.perawatan",
+    "du_batas_tepat": "daftar_ulang.batas_tepat",
+    "du_toleransi": "daftar_ulang.toleransi_antrean_menit",
+    "du_poin_tepat": "daftar_ulang.poin_tepat",
+    "du_poin_telat": "daftar_ulang.poin_telat",
+    "du_terbuka_malam": "daftar_ulang.terbuka_sampai_malam",
 }
 
 
@@ -115,6 +158,8 @@ def pengaturan_form(request):
             v = timezone.localtime(v) if v else None
         elif isian == "tanggal_acuan_usia" and v:
             v = date.fromisoformat(v)
+        elif isian in ("du_poin_tepat", "du_poin_telat") and v is not None:
+            v = float(v)
         awal[isian] = v
     form = FormPengaturan(request.POST or None, initial=awal)
     if request.method == "POST" and form.is_valid():

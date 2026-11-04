@@ -7,6 +7,7 @@ app_name = "rekap"
 urlpatterns = [
     path("", v.beranda, name="tingkat"),
     path("titik/<int:pk>/", v.titik, name="titik"),
+    path("peringkat/", v.peringkat, name="peringkat"),
     path("kegiatan/", v.kegiatan_daftar, name="kegiatan_daftar"),
     path("kegiatan/<int:pk>/", v.kegiatan, name="kegiatan"),
     path("kontingen/", v.kontingen_daftar, name="kontingen_daftar"),

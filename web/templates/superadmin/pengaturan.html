@@ -30,6 +30,17 @@
     {% include "komponen/isian.html" with f=form.pengumuman %}
   </div>
   <div class="kartu mb-4">
+    <h2 class="judul-bagian">Daftar ulang (poin tepat waktu / telat)</h2>
+    <p class="mb-3 text-sm text-abu">Ketepatan waktu dinilai dari waktu tiba kontingen (QR kontingen dipindai di ujung antrean, atau kartu anggota pertama), sehingga anggota yang tertahan antrean tidak dirugikan.</p>
+    <div class="grid gap-x-4 sm:grid-cols-2">
+      {% include "komponen/isian.html" with f=form.du_batas_tepat %}
+      {% include "komponen/isian.html" with f=form.du_toleransi %}
+      {% include "komponen/isian.html" with f=form.du_poin_tepat %}
+      {% include "komponen/isian.html" with f=form.du_poin_telat %}
+    </div>
+    {% include "komponen/isian.html" with f=form.du_terbuka_malam %}
+  </div>
+  <div class="kartu mb-4">
     <h2 class="judul-bagian">Sistem</h2>
     {% include "komponen/isian.html" with f=form.perawatan %}
   </div>

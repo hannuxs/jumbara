@@ -116,9 +116,10 @@ def kegiatan(request, pk: int):
     kg = get_object_or_404(Kegiatan, pk=pk)
     tingkat = request.GET.get("tingkat") if request.GET.get("tingkat") in Tingkat.values else "MULA"
     titik_list, baris = rekap.tabel_poin_kegiatan(kg, tingkat)
+    baris = rekap.urutkan_poin(baris)
     if _unduh(request):
         kepala = (
-            ["Kode", "Kontingen"]
+            ["Kode", "Kontingen (sekolah)"]
             + [f"{t.kode} {t.tanggal:%d/%m} (hadir/kuota)" for t in titik_list]
             + [f"Poin {t.kode}" for t in titik_list]
             + ["Total hadir", "Poin kehadiran"]
@@ -142,6 +143,24 @@ def kegiatan(request, pk: int):
         {"tab": "kegiatan", "kg": kg, "tingkat": tingkat, "titik": titik_list, "baris": baris, "pilihan": Tingkat.choices,
          "batasi": rekap.batasi_ke_kuota(), "poin_tepat": du.poin_tepat(), "poin_telat": du.poin_telat()},
     )  # fmt: skip
+
+
+@boleh
+def peringkat(request):
+    """Peringkat poin kehadiran per tingkat: nama sekolah, urut poin terbanyak."""
+    tingkat = request.GET.get("tingkat") if request.GET.get("tingkat") in Tingkat.values else "MULA"
+    kegiatan, data = rekap.peringkat_tingkat(tingkat)
+    label = Tingkat(tingkat).label
+    if _unduh(request):
+        return excel(
+            request, f"Peringkat poin kehadiran tingkat {label}",
+            ["Peringkat", "Kontingen (sekolah)", "Kode"] + [kg.nama for kg in kegiatan] + ["Total poin"],
+            [[d["peringkat"], d["k"].nama, d["k"].kode] + d["kolom"] + [d["total"]] for d in data],
+            f"Peringkat_{label}", [10, 40, 8] + [14] * len(kegiatan) + [12],
+        )  # fmt: skip
+    return render(request, "rekap/peringkat.html", {
+        "tab": "peringkat", "tingkat": tingkat, "kegiatan": kegiatan, "data": data, "pilihan": Tingkat.choices,
+    })  # fmt: skip
 
 
 @boleh

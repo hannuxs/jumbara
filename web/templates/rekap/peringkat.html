@@ -1,0 +1,24 @@
+{% extends "rekap/base.html" %}
+{% block judul %}Peringkat {{ tingkat|title }}{% endblock %}
+{% block judul_rekap %}Peringkat poin kehadiran{% endblock %}
+{% block rekap %}
+<div class="mb-3 flex flex-wrap gap-2">
+  {% for v, l in pilihan %}<a href="?tingkat={{ v }}" class="btn-kecil btn {% if tingkat == v %}bg-{{ v|lower }} {% if v == 'WIRA' %}text-navy{% else %}text-white{% endif %}{% else %}btn-abu{% endif %}">{{ l }}</a>{% endfor %}
+</div>
+<p class="mb-3 text-xs text-abu">Jumlah poin kehadiran semua kegiatan (termasuk daftar ulang) untuk setiap sekolah pada tingkat ini, diurutkan dari poin terbanyak. Poin yang sama mendapat peringkat yang sama. Klik nama kegiatan untuk rinciannya.</p>
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <table class="tabel">
+    <thead><tr><th class="w-12 text-center">#</th><th>Kontingen (sekolah)</th>{% for kg in kegiatan %}<th class="text-right text-xs"><a class="hover:underline" href="{% url 'rekap:kegiatan' kg.pk %}?tingkat={{ tingkat }}">{{ kg.nama }}</a></th>{% endfor %}<th class="text-right">Total</th></tr></thead>
+    <tbody>
+    {% for d in data %}
+      <tr>
+        <td class="text-center font-judul text-lg font-bold {% if d.peringkat <= 3 %}text-oranye-tua{% else %}text-abu{% endif %}">{{ d.peringkat }}</td>
+        <td class="min-w-[14rem]"><a href="{% url 'rekap:kontingen' d.k.pk %}" class="font-semibold text-navy hover:underline">{{ d.k.nama }}</a> <span class="text-xs text-abu">{{ d.k.kode }}</span></td>
+        {% for n in d.kolom %}<td class="text-right {% if n < 0 %}text-merah{% endif %}">{{ n|floatformat:"-1" }}</td>{% endfor %}
+        <td class="text-right font-judul text-lg font-bold {% if d.total < 0 %}text-merah{% endif %}">{{ d.total|floatformat:"-1" }}</td>
+      </tr>
+    {% empty %}<tr><td colspan="3" class="text-center text-abu">Belum ada kontingen tingkat ini.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
