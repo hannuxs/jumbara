@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import contextlib
-from datetime import timedelta
+from datetime import datetime, timedelta
 from urllib.parse import urlencode
 
 from django import forms
@@ -19,9 +19,20 @@ from apps.akun.decorators import superadmin_wajib
 from apps.biodata.models import Peserta
 from apps.inti import pengaturan
 from apps.inti.log import catat, selisih
+from apps.kontingen.models import URUTAN_TINGKAT, Kontingen
 
+from . import daftar_ulang as du
 from . import services
-from .models import Kegiatan, Kehadiran, PindaianDitolak, StatusTitik, TingkatTitik, TitikAbsen
+from .models import (
+    KedatanganKontingen,
+    Kegiatan,
+    Kehadiran,
+    PindaianDitolak,
+    StatusTitik,
+    SumberKedatangan,
+    TingkatTitik,
+    TitikAbsen,
+)
 
 
 class FormTitik(forms.ModelForm):
@@ -266,6 +277,16 @@ def titik_detail(request, pk: int):
             p.tingkat_beda = t.tingkat != TingkatTitik.SEMUA and p.tingkat != t.tingkat
     ditolak = PindaianDitolak.objects.filter(titik_absen=t).select_related("peserta").order_by("-dibuat_pada")[:20]
     mulai, akhir = services.jendela_titik(t)
+    info_du = None
+    if du.adalah_daftar_ulang(t):
+        du.status_per_orang(t, hadir)
+        tiba = {x.kontingen_id: x for x in KedatanganKontingen.objects.filter(titik_absen=t)}
+        ringkas = du.ringkas_per_kontingen([t])
+        info_du = {
+            "batas": du.batas(t), "toleransi": int(du.toleransi().total_seconds() // 60),
+            "kontingen": [{"k": k, "tiba": tiba.get(k.pk), "r": ringkas.get(k.pk)}
+                          for k in Kontingen.objects.order_by(URUTAN_TINGKAT, "kode")],
+        }  # fmt: skip
     return render(
         request,
         "superadmin/titik_detail.html",
@@ -280,8 +301,70 @@ def titik_detail(request, pk: int):
             "kandidat": kandidat,
             "ditolak": ditolak,
             "pilihan_status": StatusTitik.choices,
+            "info_du": info_du,
         },
     )
+
+
+@superadmin_wajib
+@require_POST
+def kehadiran_waktu(request, pk: int):
+    """Koreksi status daftar ulang satu orang: TEPAT, TELAT, atau OTOMATIS (dihitung lagi)."""
+    k = get_object_or_404(Kehadiran.objects.select_related("peserta", "titik_absen"), pk=pk)
+    pilihan = {"TEPAT": True, "TELAT": False, "OTOMATIS": None}
+    status = request.POST.get("status", "")
+    alasan = " ".join(request.POST.get("alasan", "").split())[:255]
+    if status not in pilihan:
+        messages.error(request, "Pilihan tidak dikenal.")
+    elif status != "OTOMATIS" and not alasan:
+        messages.error(request, "Isi alasan koreksi (misalnya: tertahan antrean, sudah lapor ke sekretariat).")
+    else:
+        lama = {None: "otomatis", True: "tepat", False: "telat"}[k.tepat_waktu_manual]
+        k.tepat_waktu_manual = pilihan[status]
+        k.alasan_waktu = "" if status == "OTOMATIS" else alasan
+        k.save(update_fields=["tepat_waktu_manual", "alasan_waktu", "diubah_pada"])
+        catat(request, "kehadiran.waktu_dikoreksi", k.peserta,
+              keterangan=f"{k.titik_absen.kode} {k.peserta.nama_lengkap}: {lama} -> {status.lower()} {alasan}"[:255])  # fmt: skip
+        messages.success(request, f"{k.peserta.nama_lengkap}: status daftar ulang {status.lower()}.")
+    return redirect("absensi_admin:titik_detail", pk=k.titik_absen_id)
+
+
+@superadmin_wajib
+@require_POST
+def kedatangan_atur(request, pk: int):
+    """Isi/ubah waktu tiba kontingen secara manual (misalnya QR kontingen tidak dipindai), atau hapus."""
+    t = get_object_or_404(TitikAbsen.objects.select_related("kegiatan"), pk=pk)
+    k = get_object_or_404(Kontingen, pk=request.POST.get("kontingen") or 0)
+    ada = KedatanganKontingen.objects.filter(titik_absen=t, kontingen=k).first()
+    if request.POST.get("hapus") == "1":
+        if ada:
+            catat(
+                request,
+                "kedatangan.dihapus",
+                k,
+                keterangan=f"{t.kode} {k.kode}: {timezone.localtime(ada.tiba_pada):%H.%M}",
+            )
+            ada.delete()
+            messages.success(request, f"Waktu tiba {k.nama} dihapus (dihitung lagi dari kartu anggota).")
+        return redirect("absensi_admin:titik_detail", pk=t.pk)
+    try:
+        jam = datetime.strptime(request.POST.get("jam", "").replace(".", ":"), "%H:%M").time()
+    except ValueError:
+        messages.error(request, "Jam tiba harus berbentuk JJ.MM, misalnya 08.15.")
+        return redirect("absensi_admin:titik_detail", pk=t.pk)
+    pada = timezone.make_aware(datetime.combine(t.tanggal, jam), timezone.get_current_timezone())
+    lama = f"{timezone.localtime(ada.tiba_pada):%H.%M}" if ada else "-"
+    if ada:
+        ada.tiba_pada, ada.sumber = pada, SumberKedatangan.MANUAL
+        ada.nama_pemindai = (getattr(request, "nama_pelaku", "") or request.user.username)[:100]
+        ada.save(update_fields=["tiba_pada", "sumber", "nama_pemindai"])
+    else:
+        du.catat_kedatangan(
+            t, k, pada, SumberKedatangan.MANUAL, getattr(request, "nama_pelaku", "") or request.user.username
+        )
+    catat(request, "kedatangan.diatur", k, keterangan=f"{t.kode} {k.kode}: {lama} -> {jam:%H.%M}")
+    messages.success(request, f"Waktu tiba {k.nama}: {jam:%H.%M}.")
+    return redirect("absensi_admin:titik_detail", pk=t.pk)
 
 
 @superadmin_wajib
@@ -454,7 +537,6 @@ def kegiatan_bentrok(request, pk: int):
 @superadmin_wajib
 def kegiatan_kuota(request, pk: int):
     """Kuota khusus per kontingen untuk satu kegiatan (kosong = ikut kuota bawaan)."""
-    from apps.kontingen.models import URUTAN_TINGKAT, Kontingen
 
     from .models import KuotaKegiatan
 

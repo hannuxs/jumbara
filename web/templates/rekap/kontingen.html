@@ -22,7 +22,7 @@
         <td class="whitespace-nowrap text-xs">{{ b.titik.tanggal|date:"D d/m" }} {{ b.titik.mulai|time:"H.i" }}</td>
         <td class="text-right font-bold {% if b.p.kuota and b.p.hadir < b.p.kuota %}text-amber-700{% endif %}">{{ b.p.hadir }}</td>
         <td class="text-right">{{ b.p.kuota|default_if_none:"-" }}</td>
-        <td class="text-right">{% if b.titik.hitung_poin %}{{ b.p.poin }}{% else %}-{% endif %}</td>
+        <td class="text-right">{% if b.titik.hitung_poin %}{{ b.p.poin|floatformat:"-1" }}{% if b.p.telat is not None %}<div class="text-[10px] text-abu">tepat {{ b.p.tepat }} · telat {{ b.p.telat }}</div>{% endif %}{% else %}-{% endif %}</td>
       </tr>
     {% endfor %}
     </tbody>

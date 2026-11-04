@@ -129,6 +129,9 @@ class Kehadiran(ModelHapusLunak):
     client_uuid = models.UUIDField(unique=True)
     offline = models.BooleanField(default=False)
     alasan_manual = models.CharField(max_length=255, blank=True)
+    # Daftar ulang (R15): koreksi superadmin atas status tepat waktu/telat (None = dihitung otomatis).
+    tepat_waktu_manual = models.BooleanField(null=True, blank=True)
+    alasan_waktu = models.CharField(max_length=255, blank=True)
 
     class Meta:
         verbose_name = "kehadiran"
@@ -136,6 +139,30 @@ class Kehadiran(ModelHapusLunak):
         constraints = [
             models.UniqueConstraint(fields=["titik_absen", "peserta", "aktif_key"], name="kehadiran_unik_aktif"),
         ]
+
+
+class SumberKedatangan(models.TextChoices):
+    QR_KONTINGEN = "QR_KONTINGEN", "QR kontingen dipindai"
+    KARTU_PERTAMA = "KARTU_PERTAMA", "Kartu anggota pertama"
+    MANUAL = "MANUAL", "Diisi superadmin"
+
+
+class KedatanganKontingen(models.Model):
+    """Waktu kontingen tiba di daftar ulang (R15). Anggota yang dipindai belakangan karena antrean tetap dihitung
+    tepat waktu bila kontingennya tiba sebelum batas. Satu baris per kontingen per titik."""
+
+    titik_absen = models.ForeignKey(TitikAbsen, on_delete=models.PROTECT, related_name="kedatangan")
+    kontingen = models.ForeignKey(Kontingen, on_delete=models.PROTECT, related_name="kedatangan")
+    tiba_pada = models.DateTimeField()
+    sumber = models.CharField(max_length=20, choices=SumberKedatangan.choices)
+    nama_pemindai = models.CharField(max_length=100, blank=True)
+    client_uuid = models.UUIDField(null=True, blank=True, unique=True)
+    dibuat_pada = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        verbose_name = "kedatangan kontingen"
+        verbose_name_plural = "kedatangan kontingen"
+        constraints = [models.UniqueConstraint(fields=["titik_absen", "kontingen"], name="kedatangan_unik")]
 
 
 class PindaianDitolak(models.Model):

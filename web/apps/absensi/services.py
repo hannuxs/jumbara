@@ -22,7 +22,17 @@ from apps.inti import pengaturan
 from apps.inti.log import catat
 from apps.kartu.services import kenali
 
-from .models import Kehadiran, Metode, PindaianDitolak, StatusTitik, TingkatTitik, TitikAbsen
+from . import daftar_ulang as du
+from .models import (
+    KedatanganKontingen,
+    Kehadiran,
+    Metode,
+    PindaianDitolak,
+    StatusTitik,
+    SumberKedatangan,
+    TingkatTitik,
+    TitikAbsen,
+)
 
 HIJAU, KUNING, MERAH = "HIJAU", "KUNING", "MERAH"
 
@@ -34,13 +44,15 @@ def jendela_titik(titik: TitikAbsen, nilai: dict | None = None) -> tuple[datetim
     """Rentang waktu titik bisa dipindai saat status OTOMATIS.
 
     Bawaan: 60 menit sebelum mulai sampai 60 menit setelah selesai; bila selesai kosong, sampai 23.59.
+    Daftar ulang tetap terbuka sampai 23.59 (pengaturan daftar_ulang.terbuka_sampai_malam) agar yang telat
+    tetap bisa daftar ulang dan mengambil kartu (dihitung telat).
     """
     nilai = nilai if nilai is not None else pengaturan.semua()
     sebelum = int(nilai.get("absensi.menit_sebelum", 60) or 0)
     sesudah = int(nilai.get("absensi.menit_sesudah", 60) or 0)
     tz = timezone.get_current_timezone()
     mulai = timezone.make_aware(datetime.combine(titik.tanggal, titik.mulai), tz) - timedelta(minutes=sebelum)
-    if titik.selesai:
+    if titik.selesai and not (du.adalah_daftar_ulang(titik) and nilai.get("daftar_ulang.terbuka_sampai_malam", True)):
         akhir = timezone.make_aware(datetime.combine(titik.tanggal, titik.selesai), tz) + timedelta(minutes=sesudah)
     else:
         akhir = timezone.make_aware(datetime.combine(titik.tanggal, time(23, 59, 59)), tz)
@@ -269,8 +281,19 @@ def _info_bentrok(kehadiran: Kehadiran) -> str:
     return ""
 
 
+def _info_daftar_ulang(k: Kehadiran) -> str:
+    t = k.titik_absen
+    if not du.adalah_daftar_ulang(t):
+        return ""
+    tiba = KedatanganKontingen.objects.filter(titik_absen=t, kontingen_id=k.peserta.kontingen_id).first()
+    tepat = du.tepat_waktu(k, tiba.tiba_pada if tiba else None, du.batas(t), du.toleransi())
+    if tepat:
+        return "Daftar ulang: tepat waktu" + (f" (kontingen tiba {_jam(tiba.tiba_pada)})" if tiba else "")
+    return f"Daftar ulang: telat ({du.poin_telat():g} poin)".replace(".", ",")
+
+
 def _hasil_dari_kehadiran(k: Kehadiran, status: str, kode: str, pesan: str) -> HasilPindai:
-    info = " · ".join(x for x in (_info_bentrok(k), _info_satu_sesi(k)) if x)
+    info = " · ".join(x for x in (_info_bentrok(k), _info_satu_sesi(k), _info_daftar_ulang(k)) if x)
     return HasilPindai(
         status,
         kode,
@@ -288,12 +311,28 @@ def jawaban_ulang(client_uuid: uuid.UUID) -> HasilPindai | None:
     k = Kehadiran.semua.filter(client_uuid=client_uuid).select_related("peserta__kontingen", "titik_absen").first()
     if k is not None:
         return _hasil_dari_kehadiran(k, HIJAU, "BERHASIL", "Berhasil")
+    tiba = KedatanganKontingen.objects.filter(client_uuid=client_uuid).select_related("kontingen").first()
+    if tiba is not None:
+        return _hasil_kedatangan(tiba, HIJAU, "KONTINGEN_TIBA")
     d = PindaianDitolak.objects.filter(client_uuid=client_uuid).select_related("peserta__kontingen").first()
     if d is not None:
         return HasilPindai(
             MERAH, d.kode, PESAN_MERAH.get(d.kode, "Ditolak"), peserta=data_peserta(d.peserta) if d.peserta else None
         )
     return None
+
+
+def _hasil_kedatangan(tiba: KedatanganKontingen, status: str, kode: str) -> HasilPindai:
+    k = tiba.kontingen
+    if kode == "KONTINGEN_TIBA":
+        pesan = (f"Kontingen tercatat tiba pukul {_jam(tiba.tiba_pada)}. Anggota yang mengantre dihitung tepat "
+                 "waktu bila kontingen tiba sebelum batas. Silakan pindai kartu setiap anggota.")  # fmt: skip
+    else:
+        pesan = f"Kontingen sudah tercatat tiba pukul {_jam(tiba.tiba_pada)} ({tiba.get_sumber_display().lower()})."
+    return HasilPindai(
+        status, kode, pesan, tercatat_pada=_jam(tiba.tiba_pada), oleh=tiba.nama_pemindai,
+        extra={"kontingen_tiba": {"nama": k.nama, "kode": k.kode, "tingkat": k.tingkat}},
+    )  # fmt: skip
 
 
 PESAN_MERAH = {
@@ -337,6 +376,14 @@ def pindai(user, data: dict, izinkan_tingkat_beda: bool = False) -> HasilPindai:
             return _tolak(req, titik, "KARTU_NONAKTIF", "Kartu orang ini dinonaktifkan. Hubungi superadmin.", peserta)
     else:
         hasil = kenali(req.qr)
+        titik_du = next((t for t in saudara if du.adalah_daftar_ulang(t)), None)
+        if hasil.kode == "BUKAN_KARTU_PESERTA" and hasil.kontingen and titik_du is not None:
+            # Daftar ulang: QR kontingen dipindai di ujung antrean = waktu tiba kontingen (R15).
+            tiba, baru = du.catat_kedatangan(titik_du, hasil.kontingen, req.dipindai_pada,
+                                             SumberKedatangan.QR_KONTINGEN, req.nama_pemindai, req.client_uuid)  # fmt: skip
+            if baru:
+                return _hasil_kedatangan(tiba, HIJAU, "KONTINGEN_TIBA")
+            return _hasil_kedatangan(tiba, KUNING, "KONTINGEN_SUDAH_TIBA")
         if hasil.kode != "BERHASIL":
             return _tolak(req, titik, hasil.kode, hasil.pesan, hasil.peserta)
         peserta = hasil.peserta
@@ -382,6 +429,11 @@ def pindai(user, data: dict, izinkan_tingkat_beda: bool = False) -> HasilPindai:
         )
     k.peserta = peserta
     k.titik_absen = titik
+    if du.adalah_daftar_ulang(titik):
+        # Bila QR kontingen tidak dipindai, kartu anggota pertama menjadi waktu tiba kontingen.
+        du.catat_kedatangan(
+            titik, peserta.kontingen, req.dipindai_pada, SumberKedatangan.KARTU_PERTAMA, req.nama_pemindai
+        )
     return _hasil_dari_kehadiran(k, HIJAU, "BERHASIL", "Berhasil")
 
 

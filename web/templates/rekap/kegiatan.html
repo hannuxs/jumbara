@@ -6,6 +6,7 @@
   {% for v, l in pilihan %}<a href="?tingkat={{ v }}" class="btn-kecil btn {% if tingkat == v %}bg-{{ v|lower }} {% if v == 'WIRA' %}text-navy{% else %}text-white{% endif %}{% else %}btn-abu{% endif %}">{{ l }}</a>{% endfor %}
 </div>
 {% if kg.satu_sesi %}<p class="mb-2 text-sm text-navy"><strong>{{ kg.nama }} dihitung satu sesi</strong> untuk semua hari: orang yang hadir di hari mana pun dihitung satu kali, kuota diterapkan sekali.</p>{% endif %}
+{% if kg.kode == "daftar-ulang" %}<p class="mb-2 text-sm text-navy"><strong>Daftar ulang:</strong> tepat waktu {{ poin_tepat|floatformat:"-1" }} poin, telat {{ poin_telat|floatformat:"-1" }} poin per orang, tanpa pengurangan. Ketepatan waktu dinilai dari waktu tiba kontingen (QR kontingen atau kartu anggota pertama), jadi anggota yang tertahan antrean tidak dirugikan.</p>{% endif %}
 <p class="mb-3 text-xs text-abu">Per sesi: setiap orang hadir +1, setiap kekurangan dari kuota -1{% if batasi %}; orang di atas kuota tidak menambah poin{% endif %}. Poin kegiatan = jumlah poin semua sesi. Sel: hadir/kuota, poin di bawahnya.</p>
 <div class="kartu overflow-x-auto p-0 sm:p-0">
   <table class="tabel">
@@ -15,10 +16,10 @@
       <tr>
         <td class="min-w-[12rem]"><span class="text-xs text-abu">{{ b.kontingen.kode }}</span> {{ b.kontingen.nama }}</td>
         {% for t, p in b.sesi %}
-          <td class="text-center">{{ p.hadir }}/{{ p.kuota|default_if_none:"-" }}<div class="text-xs {% if p.poin < 0 %}text-merah{% else %}text-abu{% endif %}">{{ p.poin }}{% if p.lebih %} <span title="lebih dari kuota">▲</span>{% endif %}</div></td>
+          <td class="text-center">{{ p.hadir }}/{{ p.kuota|default_if_none:"-" }}<div class="text-xs {% if p.poin < 0 %}text-merah{% else %}text-abu{% endif %}">{{ p.poin|floatformat:"-1" }}{% if p.telat is not None %}<span class="block text-[10px]">tepat {{ p.tepat }} · telat {{ p.telat }}</span>{% endif %}{% if p.lebih %} <span title="lebih dari kuota">▲</span>{% endif %}</div></td>
         {% endfor %}
         <td class="text-right">{{ b.total_hadir }}</td>
-        <td class="text-right font-bold {% if b.total < 0 %}text-merah{% endif %}">{{ b.total }}{% if b.ada_kuota_kosong %}<div class="text-[10px] font-normal text-amber-700">kuota belum diatur</div>{% endif %}</td>
+        <td class="text-right font-bold {% if b.total < 0 %}text-merah{% endif %}">{{ b.total|floatformat:"-1" }}{% if b.ada_kuota_kosong %}<div class="text-[10px] font-normal text-amber-700">kuota belum diatur</div>{% endif %}</td>
       </tr>
     {% empty %}<tr><td colspan="9" class="text-center text-abu">Tidak ada kontingen tingkat ini.</td></tr>{% endfor %}
     </tbody>

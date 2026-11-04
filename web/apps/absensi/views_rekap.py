@@ -16,6 +16,7 @@ from apps.inti.log import catat
 from apps.inti.models import Tingkat
 from apps.kontingen.models import URUTAN_TINGKAT, Kontingen
 
+from . import daftar_ulang as du
 from . import rekap
 from .models import Kegiatan, Kehadiran, TitikAbsen
 
@@ -139,7 +140,7 @@ def kegiatan(request, pk: int):
     return render(
         request, "rekap/kegiatan.html",
         {"tab": "kegiatan", "kg": kg, "tingkat": tingkat, "titik": titik_list, "baris": baris, "pilihan": Tingkat.choices,
-         "batasi": rekap.batasi_ke_kuota()},
+         "batasi": rekap.batasi_ke_kuota(), "poin_tepat": du.poin_tepat(), "poin_telat": du.poin_telat()},
     )  # fmt: skip
 
 
@@ -220,12 +221,18 @@ def harian(request):
 def daftar_ulang(request):
     data = rekap.rekap_daftar_ulang()
     if _unduh(request):
-        return excel(request, "Rekap daftar ulang", ["Kode", "Kontingen", "Tingkat", "Biodata", "Sudah daftar ulang", "Belum (kartu belum diambil)"],
-                     [[d["k"].kode, d["k"].nama, d["k"].get_tingkat_display(), d["biodata"], d["sudah"], d["belum"]] for d in data],
-                     "Rekap_daftar_ulang", [9, 36, 10, 10, 14, 18])  # fmt: skip
+        return excel(request, "Rekap daftar ulang", ["Kode", "Kontingen", "Tingkat", "Biodata", "Sudah daftar ulang", "Belum (kartu belum diambil)",
+                                                     "Kontingen tiba", "Tepat waktu", "Telat", "Poin"],
+                     [[d["k"].kode, d["k"].nama, d["k"].get_tingkat_display(), d["biodata"], d["sudah"], d["belum"],
+                       f"{timezone.localtime(d['tiba'].tiba_pada):%H.%M}" if d["tiba"] else "-", d["tepat"], d["telat"], d["poin"]] for d in data],
+                     "Rekap_daftar_ulang", [9, 36, 10, 10, 14, 18, 12, 10, 8, 8])  # fmt: skip
     total = {
         "biodata": sum(d["biodata"] for d in data),
         "sudah": sum(d["sudah"] for d in data),
         "belum": sum(d["belum"] for d in data),
     }
-    return render(request, "rekap/daftar_ulang.html", {"tab": "daftar_ulang", "data": data, "total": total})
+    titik_du = TitikAbsen.objects.filter(kegiatan__kode=du.KODE_DAFTAR_ULANG).order_by("tanggal").first()
+    return render(request, "rekap/daftar_ulang.html", {
+        "tab": "daftar_ulang", "data": data, "total": total, "poin_tepat": du.poin_tepat(), "poin_telat": du.poin_telat(),
+        "batas": du.batas(titik_du) if titik_du else None, "toleransi": int(du.toleransi().total_seconds() // 60),
+    })  # fmt: skip

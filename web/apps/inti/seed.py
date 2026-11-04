@@ -166,7 +166,7 @@ def seed_titik_absen(folder: Path, laporan: list[str]) -> None:
                 "mulai": _jam(b["mulai"]),
                 "selesai": _jam(b["selesai"]),
                 "lokasi": b["lokasi"],
-                "hitung_poin": b["kegiatan_kode"] != "daftar-ulang",
+                "hitung_poin": True,  # daftar ulang juga berpoin sejak R15 (tepat waktu 1, telat 0,5)
                 "catatan": b["catatan"],
             },
         )

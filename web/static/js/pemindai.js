@@ -411,6 +411,7 @@ document.addEventListener("alpine:init", function () {
         }).catch(function () { clearTimeout(batas); self.daring = false; return null; });
       },
       terapkanJawaban: function (item, j, tampil) {
+        if (j.kontingen_tiba) { return this.terapkanKedatangan(item, j, tampil); }
         var p = j.peserta || {};
         var judul = { HIJAU: "Berhasil", KUNING: "Sudah tercatat", MERAH: "Ditolak", GALAT: "Gagal" }[j.status] || j.status;
         var ket = j.status === "HIJAU" ? (p.kode_kontingen || "") + " · " + (j.tercatat_pada || jamSekarang()) : j.pesan;
@@ -424,6 +425,21 @@ document.addEventListener("alpine:init", function () {
             detail: p.nama ? p.kontingen + " · " + (LABEL_TINGKAT[p.tingkat] || p.tingkat || "") + " · " + p.peran : "",
             pesan: j.status === "HIJAU" ? "" : j.pesan,
             bentrok: j.info_bentrok || ""
+          });
+        }
+      },
+      // Daftar ulang: QR kontingen dipindai di ujung antrean = waktu tiba kontingen (R15).
+      terapkanKedatangan: function (item, j, tampil) {
+        var k = j.kontingen_tiba;
+        this.tambahRiwayat(item, j.status, "Kontingen " + k.nama, "tiba " + j.tercatat_pada);
+        if (tampil) {
+          this.tampilkan({
+            status: j.status,
+            judul: j.status === "HIJAU" ? "Kontingen tiba" : "Sudah tercatat tiba",
+            nama: k.nama,
+            detail: (LABEL_TINGKAT[k.tingkat] || "") + " · tiba " + j.tercatat_pada,
+            pesan: j.pesan,
+            bentrok: ""
           });
         }
       },

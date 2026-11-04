@@ -10,6 +10,8 @@ Poin kehadiran kegiatan = jumlah poin semua sesi kegiatan itu pada tingkat konti
 
 Kegiatan `satu_sesi` (Got Talent, Drama; R15): semua titiknya (semua hari dan tingkat) dihitung SATU sesi:
 hadir = jumlah orang berbeda yang tercatat di salah satu titiknya, kuota diterapkan sekali.
+
+Daftar ulang (R15): poin = tepat waktu x 1 + telat x 0,5 (lihat daftar_ulang.py), tanpa pengurangan.
 """
 
 from __future__ import annotations
@@ -23,9 +25,9 @@ from apps.biodata.models import Peserta
 from apps.inti import pengaturan
 from apps.kontingen.models import URUTAN_TINGKAT, Kontingen
 
+from . import daftar_ulang as du
+from .daftar_ulang import KODE_DAFTAR_ULANG
 from .models import Kegiatan, Kehadiran, KuotaKegiatan, TingkatTitik, TitikAbsen
-
-KODE_DAFTAR_ULANG = "daftar-ulang"
 
 
 @dataclass
@@ -34,8 +36,10 @@ class PoinSesi:
     kuota: int | None
     dihitung: int
     absen: int
-    poin: int
+    poin: float
     lebih: bool  # hadir melebihi kuota
+    tepat: int | None = None  # daftar ulang saja
+    telat: int | None = None
 
     @property
     def kuota_kosong(self) -> bool:
@@ -48,6 +52,12 @@ def hitung_poin_sesi(hadir: int, kuota: int | None, batasi: bool = True) -> Poin
     dihitung = min(hadir, kuota) if batasi else hadir
     absen = max(kuota - hadir, 0)
     return PoinSesi(hadir, kuota, dihitung, absen, dihitung - absen, hadir > kuota)
+
+
+def poin_daftar_ulang(r: du.RingkasDaftarUlang | None, kuota: int | None) -> PoinSesi:
+    if r is None:
+        return PoinSesi(0, kuota, 0, 0, 0, False, 0, 0)
+    return PoinSesi(r.hadir, kuota, r.hadir, 0, r.poin, False, r.tepat, r.telat)
 
 
 def batasi_ke_kuota() -> bool:
@@ -154,6 +164,13 @@ def tabel_poin_kegiatan(kegiatan: Kegiatan, tingkat: str) -> tuple[list[TitikAbs
             b.sesi.append((gabungan, hitung_poin_sesi(berbeda.get(k.pk, 0), peta.kuota(kegiatan.pk, k.pk), batasi)))
             baris.append(b)
         return [gabungan], baris
+    if kegiatan.kode == KODE_DAFTAR_ULANG:
+        per_titik = {t.pk: du.ringkas_per_kontingen([t]) for t in titik}
+        for k in kontingen:
+            b = BarisPoin(k)
+            b.sesi = [(t, poin_daftar_ulang(per_titik[t.pk].get(k.pk), k.kuota)) for t in titik]
+            baris.append(b)
+        return titik, baris
     hadir = hitungan_hadir([t.pk for t in titik])
     for k in kontingen:
         b = BarisPoin(k)
@@ -245,8 +262,8 @@ def rekap_kontingen(k: Kontingen) -> dict:
     baris = []
     sudah_gabung: set[int] = set()
     for t in titik:
-        du = bool(t.kegiatan_id and t.kegiatan.kode == KODE_DAFTAR_ULANG)
-        kuota = k.kuota if du else peta.kuota(t.kegiatan_id, k.pk)
+        du_ = bool(t.kegiatan_id and t.kegiatan.kode == KODE_DAFTAR_ULANG)
+        kuota = k.kuota if du_ else peta.kuota(t.kegiatan_id, k.pk)
         if t.kegiatan_id and t.kegiatan.satu_sesi:
             # Satu baris untuk semua hari kegiatan satu sesi, pada posisi hari pertamanya.
             if t.kegiatan_id in sudah_gabung:
@@ -257,7 +274,11 @@ def rekap_kontingen(k: Kontingen) -> dict:
             baris.append({"titik": titik_gabungan(t.kegiatan, semua), "p": hitung_poin_sesi(n, kuota, batasi),
                           "daftar_ulang": False})  # fmt: skip
             continue
-        baris.append({"titik": t, "p": hitung_poin_sesi(hadir.get((t.pk, k.pk), 0), kuota, batasi), "daftar_ulang": du})
+        if du_ and t.hitung_poin:
+            p = poin_daftar_ulang(du.ringkas_per_kontingen([t]).get(k.pk), kuota)
+        else:
+            p = hitung_poin_sesi(hadir.get((t.pk, k.pk), 0), kuota, batasi)
+        baris.append({"titik": t, "p": p, "daftar_ulang": du_})
     return {"baris": baris, "daftar_ulang": daftar_ulang_kontingen(k)}
 
 
@@ -275,7 +296,8 @@ def daftar_ulang_kontingen(k: Kontingen) -> dict:
 
 
 def rekap_daftar_ulang() -> list[dict]:
-    titik_du = TitikAbsen.objects.filter(kegiatan__kode=KODE_DAFTAR_ULANG)
+    titik_du = list(TitikAbsen.objects.filter(kegiatan__kode=KODE_DAFTAR_ULANG).select_related("kegiatan"))
+    ringkas = du.ringkas_per_kontingen([t for t in titik_du if t.hitung_poin])
     sudah = dict(
         Kehadiran.objects.filter(titik_absen__in=titik_du)
         .values_list("peserta__kontingen_id")
@@ -287,7 +309,9 @@ def rekap_daftar_ulang() -> list[dict]:
     for k in Kontingen.objects.order_by(URUTAN_TINGKAT, "kode"):
         total = biodata.get(k.pk, 0)
         s = sudah.get(k.pk, 0)
-        hasil.append({"k": k, "biodata": total, "sudah": s, "belum": total - s})
+        r = ringkas.get(k.pk)
+        hasil.append({"k": k, "biodata": total, "sudah": s, "belum": total - s, "tiba": r.tiba if r else None,
+                      "tepat": r.tepat if r else 0, "telat": r.telat if r else 0, "poin": r.poin if r else 0})  # fmt: skip
     return hasil
 
 
@@ -309,8 +333,8 @@ def rekap_harian(tanggal) -> list[dict]:
         for k in Kontingen.objects.filter(tingkat=tingkat).order_by("kode"):
             sel = []
             for t in titik:
-                du = bool(t.kegiatan_id and t.kegiatan.kode == KODE_DAFTAR_ULANG)
-                kuota = k.kuota if du else peta.kuota(t.kegiatan_id, k.pk)
+                du_ = bool(t.kegiatan_id and t.kegiatan.kode == KODE_DAFTAR_ULANG)
+                kuota = k.kuota if du_ else peta.kuota(t.kegiatan_id, k.pk)
                 sel.append(hitung_poin_sesi(hadir.get((t.pk, k.pk), 0), kuota, batasi))
             baris.append({"k": k, "sel": sel})
         hasil.append({"tingkat": tingkat, "titik": titik, "baris": baris})

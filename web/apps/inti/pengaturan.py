@@ -49,6 +49,14 @@ BAWAAN: dict[str, Any] = {
     "absensi.menit_sesudah": 60,
     # Poin kehadiran: orang di atas kuota tidak menambah poin (docs/15-REKAP-POIN.md).
     "poin.batasi_ke_kuota": True,
+    # Daftar ulang (R15): tepat waktu bila kontingen tiba sampai batas (kosong = jam selesai titik daftar ulang);
+    # anggota yang dipindai setelah batas karena antrean tetap tepat waktu bila kontingennya tiba sebelum batas
+    # dan ia dipindai paling lambat batas + toleransi antrean.
+    "daftar_ulang.batas_tepat": "",
+    "daftar_ulang.toleransi_antrean_menit": 120,
+    "daftar_ulang.poin_tepat": 1,
+    "daftar_ulang.poin_telat": 0.5,
+    "daftar_ulang.terbuka_sampai_malam": True,
     # Pilihan kegiatan di biodata: sesi berjam "08.00-selesai" dianggap selesai pukul ini untuk cek bentrok.
     "kegiatan.selesai_bawaan": "12:00",
     # Piagam (docs/18-PIAGAM.md). {urut} = nomor urut per jenis piagam.

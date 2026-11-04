@@ -7,13 +7,16 @@
   <div class="kartu text-center"><div class="text-xs text-abu">Sudah</div><div class="font-judul text-3xl font-bold text-hijau">{{ total.sudah }}</div></div>
   <div class="kartu text-center"><div class="text-xs text-abu">Belum</div><div class="font-judul text-3xl font-bold text-merah">{{ total.belum }}</div></div>
 </div>
+<p class="mb-2 text-xs text-abu">Poin daftar ulang: tepat waktu {{ poin_tepat|floatformat:"-1" }}, telat {{ poin_telat|floatformat:"-1" }} per orang. Batas tepat waktu {{ batas|date:"H.i" }} WITA. Anggota yang dipindai setelah batas tetap tepat waktu bila kontingennya tiba sebelum batas dan ia dipindai paling lambat {{ toleransi }} menit setelah batas (antrean). Waktu tiba = QR kontingen dipindai di ujung antrean, atau kartu anggota pertama.</p>
 <div class="kartu overflow-x-auto p-0 sm:p-0">
   <table class="tabel">
-    <thead><tr><th>Kontingen</th><th class="text-right">Biodata</th><th class="text-right">Sudah</th><th class="text-right">Belum (kartu belum diambil)</th></tr></thead>
+    <thead><tr><th>Kontingen</th><th class="text-right">Biodata</th><th class="text-right">Sudah</th><th class="text-right">Belum (kartu belum diambil)</th><th>Kontingen tiba</th><th class="text-right">Tepat</th><th class="text-right">Telat</th><th class="text-right">Poin</th></tr></thead>
     <tbody>
     {% for d in data %}
       <tr><td><a href="{% url 'rekap:kontingen' d.k.pk %}" class="hover:underline"><span class="badge-{{ d.k.tingkat }}">{{ d.k.kode }}</span> {{ d.k.nama }}</a></td>
-        <td class="text-right">{{ d.biodata }}</td><td class="text-right font-bold text-hijau">{{ d.sudah }}</td><td class="text-right {% if d.belum %}font-bold text-merah{% endif %}">{{ d.belum }}</td></tr>
+        <td class="text-right">{{ d.biodata }}</td><td class="text-right font-bold text-hijau">{{ d.sudah }}</td><td class="text-right {% if d.belum %}font-bold text-merah{% endif %}">{{ d.belum }}</td>
+        <td class="whitespace-nowrap text-xs">{% if d.tiba %}{{ d.tiba.tiba_pada|date:"H.i" }} <span class="text-abu">{{ d.tiba.get_sumber_display|lower }}</span>{% else %}-{% endif %}</td>
+        <td class="text-right">{{ d.tepat }}</td><td class="text-right {% if d.telat %}text-amber-700{% endif %}">{{ d.telat }}</td><td class="text-right font-bold">{{ d.poin|floatformat:"-1" }}</td></tr>
     {% endfor %}
     </tbody>
   </table>
