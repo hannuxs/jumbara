@@ -70,6 +70,60 @@ def kelompok_titik(titik: TitikAbsen, sekarang: datetime | None = None, nilai: d
     return "HARI_LAIN"
 
 
+# --- Sesi kegiatan: titik saudara (kegiatan sama, hari sama, tingkat berbeda) ---------------
+# Pemindai cukup memilih kegiatan pada satu hari (R15); tingkat orang diambil dari biodata, lalu server
+# memilih titik absen yang sesuai tingkat itu. Titik tanpa kegiatan (titik bebas) berdiri sendiri.
+
+
+def saudara_titik(titik: TitikAbsen) -> list[TitikAbsen]:
+    """Semua titik untuk kegiatan yang sama pada tanggal yang sama (termasuk titik itu sendiri)."""
+    if not titik.kegiatan_id:
+        return [titik]
+    return list(
+        TitikAbsen.objects.select_related("kegiatan")
+        .filter(kegiatan_id=titik.kegiatan_id, tanggal=titik.tanggal)
+        .order_by("pk")
+    )
+
+
+def kunci_sesi(titik: TitikAbsen) -> str:
+    return f"K{titik.kegiatan_id}-{titik.tanggal:%Y%m%d}" if titik.kegiatan_id else f"T{titik.pk}"
+
+
+def tingkat_sesi(saudara: list[TitikAbsen]) -> set[str]:
+    """Tingkat orang yang dilayani sesi ini (SEMUA bila ada titik untuk semua tingkat)."""
+    semua = {t.tingkat for t in saudara}
+    return {TingkatTitik.SEMUA} if TingkatTitik.SEMUA in semua else semua
+
+
+def titik_untuk_peserta(titik: TitikAbsen, peserta: Peserta, saudara: list[TitikAbsen] | None = None):
+    """Titik di sesi yang sama yang cocok dengan tingkat orang ini (titik khusus tingkat lebih dulu)."""
+    if titik.tingkat in (TingkatTitik.SEMUA, peserta.tingkat):
+        return titik
+    saudara = saudara if saudara is not None else saudara_titik(titik)
+    cocok = [t for t in saudara if t.tingkat == peserta.tingkat] or [
+        t for t in saudara if t.tingkat == TingkatTitik.SEMUA
+    ]
+    return cocok[0] if cocok else None
+
+
+def _info_satu_sesi(kehadiran: Kehadiran) -> str:
+    """Kegiatan satu sesi (Got Talent, Drama): beri tahu bila sudah tercatat di hari lain."""
+    kg = kehadiran.titik_absen.kegiatan
+    if not kg or not kg.satu_sesi:
+        return ""
+    lain = (
+        Kehadiran.objects.filter(peserta_id=kehadiran.peserta_id, titik_absen__kegiatan=kg)
+        .exclude(titik_absen_id=kehadiran.titik_absen_id)
+        .select_related("titik_absen")
+        .order_by("titik_absen__tanggal")
+        .first()
+    )
+    if lain is None:
+        return ""
+    return f"Juga tercatat {lain.titik_absen.tanggal:%d/%m}. {kg.nama} dihitung satu kali untuk semua hari."
+
+
 # --- Pindai ------------------------------------------------------------------------
 
 
@@ -216,6 +270,7 @@ def _info_bentrok(kehadiran: Kehadiran) -> str:
 
 
 def _hasil_dari_kehadiran(k: Kehadiran, status: str, kode: str, pesan: str) -> HasilPindai:
+    info = " · ".join(x for x in (_info_bentrok(k), _info_satu_sesi(k)) if x)
     return HasilPindai(
         status,
         kode,
@@ -223,7 +278,8 @@ def _hasil_dari_kehadiran(k: Kehadiran, status: str, kode: str, pesan: str) -> H
         peserta=data_peserta(k.peserta),
         tercatat_pada=_jam(k.diterima_pada),
         oleh=k.nama_pemindai,
-        info_bentrok=_info_bentrok(k),
+        info_bentrok=info,
+        extra={"titik": k.titik_absen.nama_tampil},
     )
 
 
@@ -264,13 +320,14 @@ def pindai(user, data: dict, izinkan_tingkat_beda: bool = False) -> HasilPindai:
         return _tolak(req, None, "TITIK_TIDAK_ADA", PESAN_MERAH["TITIK_TIDAK_ADA"])
 
     superadmin = getattr(user, "superadmin", False)
-    if not superadmin:
-        terbuka = titik_terbuka(titik)
+
+    def terbuka(t: TitikAbsen) -> bool:
         # Pindaian dari antrean offline dinilai menurut jam saat dipindai di HP.
-        if not terbuka and req.offline:
-            terbuka = titik_terbuka(titik, req.dipindai_pada)
-        if not terbuka:
-            return _tolak(req, titik, "TITIK_TUTUP", f"Titik absen {titik.nama_tampil} sedang tertutup.")
+        return titik_terbuka(t) or (req.offline and titik_terbuka(t, req.dipindai_pada))
+
+    saudara = [titik] if izinkan_tingkat_beda else saudara_titik(titik)
+    if not superadmin and not any(terbuka(t) for t in saudara):
+        return _tolak(req, titik, "TITIK_TUTUP", f"Titik absen {titik.nama_tampil} sedang tertutup.")
 
     if req.metode == Metode.MANUAL:
         peserta = Peserta.objects.select_related("kontingen").filter(pk=req.peserta_id).first()
@@ -284,12 +341,17 @@ def pindai(user, data: dict, izinkan_tingkat_beda: bool = False) -> HasilPindai:
             return _tolak(req, titik, hasil.kode, hasil.pesan, hasil.peserta)
         peserta = hasil.peserta
 
-    if titik.tingkat != TingkatTitik.SEMUA and peserta.tingkat != titik.tingkat and not izinkan_tingkat_beda:
-        pesan = (
-            f"Tingkat tidak sesuai: kartu ini {peserta.get_tingkat_display()}, "
-            f"titik absen ini {titik.get_tingkat_display()}."
-        )
-        return _tolak(req, titik, "TINGKAT_BEDA", pesan, peserta)
+    if not izinkan_tingkat_beda:
+        # Tingkat diambil dari biodata: pindah ke titik saudara yang sesuai tingkat orang ini.
+        sasaran = titik_untuk_peserta(titik, peserta, saudara)
+        if sasaran is None:
+            nama = titik.kegiatan.nama if titik.kegiatan_id else titik.nama_tampil
+            ada = ", ".join(t.get_tingkat_display() for t in saudara)
+            pesan = f"Tingkat tidak sesuai: kartu ini {peserta.get_tingkat_display()}, {nama} hari ini hanya {ada}."
+            return _tolak(req, titik, "TINGKAT_BEDA", pesan, peserta)
+        if sasaran.pk != titik.pk and not superadmin and not terbuka(sasaran):
+            return _tolak(req, sasaran, "TITIK_TUTUP", f"Titik absen {sasaran.nama_tampil} sedang tertutup.", peserta)
+        titik = sasaran
 
     try:
         with transaction.atomic():

@@ -12,9 +12,44 @@
     <div><label class="label text-sm" for="f-tingkat">Tingkat</label>
       <select id="f-tingkat" name="tingkat" class="input"><option value="">Semua</option>{% for v, l in pilihan_tingkat %}<option value="{{ v }}" {% if g.tingkat == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
   </div>
+  <input type="hidden" name="tampil" value="{{ tampil }}">
   <div class="mt-3 flex gap-2"><button class="btn-utama btn-kecil" type="submit">Terapkan</button><a href="?reset=1" class="btn-abu btn-kecil">Hapus saringan</a></div>
 </form>
+<div class="mb-3 flex flex-wrap items-center gap-2 text-sm">
+  <a href="?{% for k, v in g.items %}{% if k != 'tampil' %}{{ k }}={{ v|urlencode }}&{% endif %}{% endfor %}tampil=kegiatan" class="rounded-lg px-3 py-2 font-medium {% if tampil == 'kegiatan' %}bg-oranye text-white{% else %}bg-white text-navy shadow-kartu{% endif %}">Per kegiatan</a>
+  <a href="?{% for k, v in g.items %}{% if k != 'tampil' %}{{ k }}={{ v|urlencode }}&{% endif %}{% endfor %}tampil=rinci" class="rounded-lg px-3 py-2 font-medium {% if tampil == 'rinci' %}bg-oranye text-white{% else %}bg-white text-navy shadow-kartu{% endif %}">Rinci per titik</a>
+</div>
 <p class="mb-2 text-xs text-abu">Status <strong>Otomatis</strong>: terbuka {{ menit_sebelum }} menit sebelum mulai sampai {{ menit_sesudah }} menit setelah selesai (bila selesai kosong, sampai 23.59). Panitia tidak bisa memindai di titik yang tertutup; superadmin tetap bisa.</p>
+{% if tampil == "kegiatan" %}
+<p class="mb-2 text-xs text-abu"><strong>Per kegiatan</strong>: tombol Buka/Tutup/Otomatis berlaku untuk semua tingkat kegiatan itu pada hari tersebut. Pemindai juga cukup memilih kegiatan; tingkat orang diambil otomatis dari biodata.</p>
+<div class="kartu overflow-x-auto p-0 sm:p-0">
+  <table class="tabel">
+    <thead><tr><th>Kegiatan</th><th>Tanggal</th><th>Jam</th><th>Status</th><th class="text-right">Hadir</th><th>Ubah status (semua tingkat)</th></tr></thead>
+    <tbody>
+    {% for s in sesi %}
+      <tr>
+        <td class="min-w-[14rem]"><span class="font-semibold">{{ s.nama }}</span>{% if s.wakil.kegiatan.satu_sesi %} <span class="badge-abu" title="Semua hari dan tingkat dihitung satu sesi">1 sesi</span>{% endif %}
+          <div class="mt-0.5 flex flex-wrap gap-1">{% for t in s.titik %}<a href="{% url 'absensi_admin:titik_detail' t.pk %}" class="badge-{{ t.tingkat }} hover:underline" title="{{ t.kode }} {{ t.nama_tampil }}">{{ t.get_tingkat_display }} · {{ t.hadir }}</a>{% endfor %}</div></td>
+        <td class="whitespace-nowrap text-xs">{{ s.wakil.tanggal|date:"D d/m" }}</td>
+        <td class="whitespace-nowrap text-xs">{{ s.wakil.mulai|time:"H.i" }}-{% if s.wakil.selesai %}{{ s.wakil.selesai|time:"H.i" }}{% else %}selesai{% endif %}</td>
+        <td class="whitespace-nowrap text-xs">
+          {% if s.kelompok == "BERLANGSUNG" %}<span class="badge bg-green-100 text-green-800">terbuka</span>{% elif s.kelompok == "TUTUP" %}<span class="badge bg-red-100 text-red-800">tutup</span>{% else %}<span class="badge-abu">tertutup</span>{% endif %}
+          <div class="text-abu">{% if s.status == "CAMPURAN" %}Campuran (beda per tingkat){% elif s.status == "BUKA" %}Buka paksa{% elif s.status == "TUTUP" %}Tutup paksa{% else %}Otomatis (ikut jadwal){% endif %}</div></td>
+        <td class="text-right font-semibold">{{ s.hadir }}</td>
+        <td class="whitespace-nowrap">
+          <form method="post" action="{% url 'absensi_admin:sesi_status' s.wakil.pk %}" class="flex gap-1">
+            {% csrf_token %}<input type="hidden" name="kembali" value="{{ request.get_full_path }}">
+            {% if s.status != "BUKA" %}<button name="status" value="BUKA" class="btn-abu btn-kecil" type="submit">Buka</button>{% endif %}
+            {% if s.status != "TUTUP" %}<button name="status" value="TUTUP" class="btn-abu btn-kecil" type="submit">Tutup</button>{% endif %}
+            {% if s.status != "OTOMATIS" %}<button name="status" value="OTOMATIS" class="btn-abu btn-kecil" type="submit">Otomatis</button>{% endif %}
+          </form>
+        </td>
+      </tr>
+    {% empty %}<tr><td colspan="6" class="text-center text-abu">Tidak ada titik absen.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
 <div class="kartu overflow-x-auto p-0 sm:p-0">
   <table class="tabel">
     <thead><tr><th>Kode</th><th>Nama</th><th>Tanggal</th><th>Jam</th><th>Lokasi</th><th>Status</th><th class="text-right">Hadir</th><th>Ubah status</th></tr></thead>
@@ -44,4 +79,5 @@
     </tbody>
   </table>
 </div>
+{% endif %}
 {% endblock %}

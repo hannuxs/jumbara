@@ -127,7 +127,7 @@ def test_pindai_merah(panitia, ani, kontingen_madya, kasus, kode):
 def test_tingkat_salah_merah(panitia, ani):
     t = buat_titik(tingkat="WIRA")
     h = kirim(panitia, t, "SJP:" + ani.qr_token)
-    assert h.kode == "TINGKAT_BEDA" and "kartu ini Madya, titik absen ini Wira" in h.pesan
+    assert h.kode == "TINGKAT_BEDA" and "kartu ini Madya" in h.pesan and "hanya Wira" in h.pesan
 
 
 def test_titik_semua_tingkat_menerima_semua(panitia, ani):

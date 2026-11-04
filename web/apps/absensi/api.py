@@ -54,11 +54,45 @@ def hash_token(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()[:16]
 
 
-def _jumlah_kontingen(tingkat: str) -> int:
+def _jumlah_kontingen(tingkat: set[str]) -> int:
     qs = Kontingen.objects.all()
-    if tingkat != TingkatTitik.SEMUA:
-        qs = qs.filter(tingkat=tingkat)
+    if TingkatTitik.SEMUA not in tingkat:
+        qs = qs.filter(tingkat__in=tingkat)
     return qs.count()
+
+
+def _saring_tingkat(qs, tingkat: set[str]):
+    return qs if TingkatTitik.SEMUA in tingkat else qs.filter(tingkat__in=tingkat)
+
+
+URUT_KELOMPOK = ["BERLANGSUNG", "NANTI_HARI_INI", "SUDAH_LEWAT", "HARI_LAIN", "TUTUP"]
+
+
+def _sesi_dari_titik(daftar: list[dict]) -> list[dict]:
+    """Gabungkan titik kegiatan yang sama pada hari yang sama menjadi satu pilihan di pemindai (R15).
+
+    `id` = titik wakil (pk terkecil); server memilih titik yang sesuai tingkat orang saat memindai.
+    """
+    sesi: dict[str, dict] = {}
+    for t in daftar:
+        s = sesi.get(t["sesi"])
+        if s is None:
+            sesi[t["sesi"]] = s = {
+                **t, "nama": t["nama_kegiatan"] or t["nama"], "titik_ids": [], "tingkat_list": [], "hadir": 0
+            }  # fmt: skip
+        s["titik_ids"].append(t["id"])
+        s["tingkat_list"].append(t["tingkat"])
+        s["hadir"] += t["hadir"]
+        s["id"] = min(s["id"], t["id"])
+        # Sesi dianggap berlangsung bila salah satu titiknya terbuka.
+        if URUT_KELOMPOK.index(t["kelompok"]) < URUT_KELOMPOK.index(s["kelompok"]):
+            s["kelompok"] = t["kelompok"]
+        if t["status"] != s["status"]:
+            s["status"] = "CAMPURAN"
+    for s in sesi.values():
+        semua = set(s["tingkat_list"])
+        s["tingkat"] = "SEMUA" if "SEMUA" in semua or len(semua) > 1 else s["tingkat_list"][0]
+    return list(sesi.values())
 
 
 @require_GET
@@ -73,6 +107,8 @@ def daftar_titik(request):
         hasil.append(
             {
                 "id": t.pk,
+                "sesi": services.kunci_sesi(t),
+                "nama_kegiatan": t.kegiatan.nama if t.kegiatan_id else "",
                 "kode": t.kode,
                 "nama": t.nama_tampil,
                 "tingkat": t.tingkat,
@@ -87,17 +123,20 @@ def daftar_titik(request):
                 "hadir": hadir.get(t.pk, 0),
             }
         )
-    return JsonResponse({"sekarang": sekarang.isoformat(), "titik": hasil})
+    return JsonResponse({"sekarang": sekarang.isoformat(), "titik": hasil, "sesi": _sesi_dari_titik(hasil)})
 
 
 @require_GET
 @api_peran("PANITIA", "SUPERADMIN")
 def ringkas_titik(request, pk: int):
-    """Penghitung untuk layar pindai: jumlah hadir, kontingen hadir, 10 pindaian terakhir (semua HP)."""
+    """Penghitung untuk layar pindai: jumlah hadir, kontingen hadir, 10 pindaian terakhir (semua HP).
+
+    Mencakup semua titik sesi itu (kegiatan sama, hari sama, semua tingkat)."""
     t = TitikAbsen.objects.filter(pk=pk).first()
     if t is None:
         return JsonResponse({"galat": "TITIK_TIDAK_ADA"}, status=404)
-    qs = Kehadiran.objects.filter(titik_absen=t)
+    saudara = services.saudara_titik(t)
+    qs = Kehadiran.objects.filter(titik_absen__in=saudara)
     agregat = qs.aggregate(hadir=Count("id"), kontingen=Count("peserta__kontingen", distinct=True))
     terakhir = [
         {
@@ -111,10 +150,10 @@ def ringkas_titik(request, pk: int):
     return JsonResponse(
         {
             "id": t.pk,
-            "terbuka": services.titik_terbuka(t),
+            "terbuka": any(services.titik_terbuka(x) for x in saudara),
             "hadir": agregat["hadir"],
             "kontingen_hadir": agregat["kontingen"],
-            "kontingen_total": _jumlah_kontingen(t.tingkat),
+            "kontingen_total": _jumlah_kontingen(services.tingkat_sesi(saudara)),
             "terakhir": terakhir,
         }
     )
@@ -128,8 +167,7 @@ def peserta_ringan(request, pk: int):
     if t is None:
         return JsonResponse({"galat": "TITIK_TIDAK_ADA"}, status=404)
     qs = Peserta.objects.filter(kartu_aktif=True).exclude(qr_token=None).select_related("kontingen")
-    if t.tingkat != TingkatTitik.SEMUA:
-        qs = qs.filter(tingkat=t.tingkat)
+    qs = _saring_tingkat(qs, services.tingkat_sesi(services.saudara_titik(t)))
     data = [
         {
             "id": p.pk,
@@ -153,14 +191,17 @@ def cari_peserta(request):
     t = TitikAbsen.objects.filter(pk=request.GET.get("titik") or 0).first()
     if len(q) < 2 or t is None:
         return JsonResponse({"hasil": []})
-    qs = Peserta.objects.filter(kartu_aktif=True).select_related("kontingen")
-    if t.tingkat != TingkatTitik.SEMUA:
-        qs = qs.filter(tingkat=t.tingkat)
+    saudara = services.saudara_titik(t)
+    qs = _saring_tingkat(
+        Peserta.objects.filter(kartu_aktif=True).select_related("kontingen"), services.tingkat_sesi(saudara)
+    )
     kode = q.upper().replace(" ", "").replace("-", "")
     filter_kode = Q(kode_kartu=f"{kode[:4]}-{kode[4:8]}") if len(kode) == 8 else Q()
     qs = qs.filter(Q(nama_lengkap__icontains=q) | filter_kode)[:20]
     sudah = set(
-        Kehadiran.objects.filter(titik_absen=t, peserta__in=[p.pk for p in qs]).values_list("peserta_id", flat=True)
+        Kehadiran.objects.filter(titik_absen__in=saudara, peserta__in=[p.pk for p in qs]).values_list(
+            "peserta_id", flat=True
+        )
     )
     return JsonResponse({"hasil": [dict(services.data_peserta(p), sudah_hadir=p.pk in sudah) for p in qs]})
 

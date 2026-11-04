@@ -54,6 +54,12 @@ class Kegiatan(ModelDasar):
     )
     # Bentrok yang ditetapkan panitia walau jam di titik absen tidak bertumpuk (misalnya Traveling yang
     # "08.00-selesai" berlangsung sampai sore sehingga bentrok dengan Got Talent). Berlaku dua arah.
+    # Got Talent dan Drama (R15, 4 Nov 2026): semua hari dan semua tingkat dicatat sebagai SATU sesi untuk
+    # rekap dan poin (orang yang hadir di hari mana pun dihitung sekali, kuota diterapkan sekali).
+    satu_sesi = models.BooleanField(
+        default=False,
+        help_text="Semua hari dan tingkat dihitung satu sesi di rekap dan poin (misalnya Got Talent, Drama).",
+    )
     bentrok_dengan = models.ManyToManyField(
         "self",
         blank=True,

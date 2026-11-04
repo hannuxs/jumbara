@@ -30,15 +30,16 @@
     </form>
   </section>
 
-  {# 2. Pilih titik absen #}
+  {# 2. Pilih kegiatan (sesi): tingkat otomatis dari biodata kartu yang dipindai #}
   <section x-show="tahap === 'titik'" x-cloak>
-    <div class="mb-3 flex items-center gap-2">
-      <h1 class="flex-1 text-lg font-bold">Pilih titik absen</h1>
+    <div class="mb-1 flex items-center gap-2">
+      <h1 class="flex-1 text-lg font-bold">Pilih kegiatan</h1>
       <a href="/rekap/" class="btn-abu btn-kecil">Rekap</a>
       <button type="button" class="btn-abu btn-kecil" @click="tahap = 'nama'; isianNama = namaPemindai">Pemindai: <span x-text="namaPemindai"></span></button>
     </div>
-    <input type="search" class="input mb-3" placeholder="Cari kegiatan, tingkat, atau kode…" x-model="cariTitik" aria-label="Cari titik absen">
-    <p x-show="memuatTitik" class="text-sm text-abu">Memuat titik absen…</p>
+    <p class="mb-3 text-xs text-abu">Tidak perlu memilih tingkat: tingkat diambil otomatis dari biodata kartu yang dipindai.</p>
+    <input type="search" class="input mb-3" placeholder="Cari kegiatan…" x-model="cariTitik" aria-label="Cari kegiatan">
+    <p x-show="memuatTitik" class="text-sm text-abu">Memuat kegiatan…</p>
     <p x-show="galatTitik" x-cloak class="pesan-galat" x-text="galatTitik"></p>
     <template x-for="grup in grupTitik()" :key="grup.kode">
       <div class="mb-4">
@@ -51,6 +52,7 @@
               <span class="min-w-0 flex-1">
                 <span class="block font-semibold text-navy" x-text="t.nama"></span>
                 <span class="block text-xs text-abu" x-text="labelTanggal(t) + ' · ' + t.mulai + '-' + t.selesai + (t.lokasi ? ' · ' + t.lokasi : '')"></span>
+                <span class="block text-[11px] text-abu" x-text="labelTingkatSesi(t)"></span>
               </span>
               <span class="shrink-0 text-right">
                 <span class="block font-judul text-lg font-bold text-navy" x-text="t.hadir"></span>
@@ -70,10 +72,10 @@
         <div class="truncate font-judul font-bold text-navy" x-text="titik && titik.nama"></div>
         <div class="text-xs text-abu">Pemindai: <strong x-text="namaPemindai"></strong> · <span x-text="titik && (titik.mulai + '-' + titik.selesai)"></span></div>
       </div>
-      <button type="button" class="btn-abu btn-kecil shrink-0" @click="selesai()">Ganti titik</button>
+      <button type="button" class="btn-abu btn-kecil shrink-0" @click="selesai()">Ganti kegiatan</button>
     </div>
 
-    <div x-show="titikTutup" x-cloak class="pesan-peringatan">Titik absen ini sedang tertutup. Pindaian akan ditolak{% if request.user.superadmin %} (kecuali akun superadmin){% endif %}.</div>
+    <div x-show="titikTutup" x-cloak class="pesan-peringatan">Kegiatan ini sedang tertutup untuk absen. Pindaian akan ditolak{% if request.user.superadmin %} (kecuali akun superadmin){% endif %}.</div>
 
     <div class="relative overflow-hidden rounded-2xl bg-black" style="aspect-ratio: 1 / 1; max-height: 60vh; width: 100%">
       <video x-ref="video" class="h-full w-full object-cover" playsinline muted></video>
@@ -108,7 +110,7 @@
       </template>
       <li x-show="riwayat.length === 0" class="px-3 py-3 text-abu">Belum ada pindaian.</li>
     </ul>
-    <p class="mt-2 text-xs text-abu">Juga di titik ini (semua HP): <span x-text="ringkas.terakhir.map(t => t.nama.split(' ')[0] + ' ' + t.jam).join(', ') || '-'"></span></p>
+    <p class="mt-2 text-xs text-abu">Juga di kegiatan ini (semua HP): <span x-text="ringkas.terakhir.map(t => t.nama.split(' ')[0] + ' ' + t.jam).join(', ') || '-'"></span></p>
   </section>
 
   {# Layar status penuh: hijau / kuning / merah / abu #}
@@ -129,7 +131,7 @@
     <div class="flex max-h-[90vh] w-full max-w-lg flex-col rounded-t-2xl bg-white p-4 sm:rounded-2xl" @keydown.escape.window="cari.buka = false">
       <div class="mb-2 flex items-center gap-2"><h2 class="flex-1 text-lg font-bold">Cari nama atau kode kartu</h2><button type="button" class="btn-abu btn-kecil" @click="cari.buka = false">Tutup</button></div>
       <input type="search" class="input mb-2" x-ref="isianCari" x-model="cari.q" @input.debounce.300ms="jalankanCari()" placeholder="Ketik minimal 2 huruf atau kode kartu" autocomplete="off">
-      <p class="mb-2 text-xs text-abu">Hanya orang tingkat yang sesuai titik ini. Pakai jika kartu rusak atau tertinggal.</p>
+      <p class="mb-2 text-xs text-abu">Hanya orang tingkat yang mengikuti kegiatan ini hari ini. Pakai jika kartu rusak atau tertinggal.</p>
       <div class="min-h-0 flex-1 overflow-y-auto">
         <template x-for="o in cari.hasil" :key="o.id">
           <button type="button" class="flex w-full items-center gap-2 border-b border-gray-100 px-1 py-3 text-left" @click="pilihManual(o)">

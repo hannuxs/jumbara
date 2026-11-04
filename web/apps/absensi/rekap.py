@@ -7,6 +7,9 @@ Poin per sesi (titik absen) s untuk kontingen k dengan kuota q:
     poin     = dihitung - absen
 Kuota kosong: poin = hadir (tanpa pengurangan) + peringatan "kuota belum diatur".
 Poin kehadiran kegiatan = jumlah poin semua sesi kegiatan itu pada tingkat kontingen (atau titik SEMUA).
+
+Kegiatan `satu_sesi` (Got Talent, Drama; R15): semua titiknya (semua hari dan tingkat) dihitung SATU sesi:
+hadir = jumlah orang berbeda yang tercatat di salah satu titiknya, kuota diterapkan sekali.
 """
 
 from __future__ import annotations
@@ -80,6 +83,27 @@ def hitungan_hadir(titik_ids=None) -> dict[tuple[int, int], int]:
     }
 
 
+def hadir_berbeda(titik_ids) -> dict[int, int]:
+    """{kontingen_id: jumlah orang berbeda} yang tercatat di salah satu titik (untuk kegiatan satu sesi)."""
+    return dict(
+        Kehadiran.objects.filter(titik_absen_id__in=list(titik_ids))
+        .values_list("peserta__kontingen_id")
+        .annotate(n=Count("peserta", distinct=True))
+        .order_by()
+    )
+
+
+def titik_gabungan(kegiatan: Kegiatan, titik: list[TitikAbsen]) -> TitikAbsen:
+    """Titik semu (tidak disimpan) yang mewakili semua sesi kegiatan satu sesi di tabel rekap."""
+    awal = min(titik, key=lambda t: (t.tanggal, t.mulai))
+    hari = sorted({t.tanggal for t in titik})
+    teks_hari = ", ".join(f"{d:%d/%m}" for d in hari)
+    return TitikAbsen(
+        kode="1 SESI", kegiatan=kegiatan, tingkat=TingkatTitik.SEMUA, tanggal=awal.tanggal, mulai=awal.mulai,
+        nama_tampil=f"{kegiatan.nama} (semua hari: {teks_hari})", hitung_poin=True,
+    )  # fmt: skip
+
+
 def titik_untuk_tingkat(titik_qs, tingkat: str):
     return [t for t in titik_qs if t.tingkat in (tingkat, TingkatTitik.SEMUA)]
 
@@ -119,10 +143,18 @@ def tabel_poin_kegiatan(kegiatan: Kegiatan, tingkat: str) -> tuple[list[TitikAbs
         if t.tingkat in (tingkat, TingkatTitik.SEMUA)
     ]
     kontingen = list(Kontingen.objects.filter(tingkat=tingkat).order_by("kode"))
-    hadir = hitungan_hadir([t.pk for t in titik])
     peta = PetaKuota()
     batasi = batasi_ke_kuota()
     baris = []
+    if kegiatan.satu_sesi and titik:
+        berbeda = hadir_berbeda([t.pk for t in titik])
+        gabungan = titik_gabungan(kegiatan, titik)
+        for k in kontingen:
+            b = BarisPoin(k)
+            b.sesi.append((gabungan, hitung_poin_sesi(berbeda.get(k.pk, 0), peta.kuota(kegiatan.pk, k.pk), batasi)))
+            baris.append(b)
+        return [gabungan], baris
+    hadir = hitungan_hadir([t.pk for t in titik])
     for k in kontingen:
         b = BarisPoin(k)
         for t in titik:
@@ -211,9 +243,20 @@ def rekap_kontingen(k: Kontingen) -> dict:
     peta = PetaKuota()
     batasi = batasi_ke_kuota()
     baris = []
+    sudah_gabung: set[int] = set()
     for t in titik:
         du = bool(t.kegiatan_id and t.kegiatan.kode == KODE_DAFTAR_ULANG)
         kuota = k.kuota if du else peta.kuota(t.kegiatan_id, k.pk)
+        if t.kegiatan_id and t.kegiatan.satu_sesi:
+            # Satu baris untuk semua hari kegiatan satu sesi, pada posisi hari pertamanya.
+            if t.kegiatan_id in sudah_gabung:
+                continue
+            sudah_gabung.add(t.kegiatan_id)
+            semua = [x for x in titik if x.kegiatan_id == t.kegiatan_id]
+            n = hadir_berbeda([x.pk for x in semua]).get(k.pk, 0)
+            baris.append({"titik": titik_gabungan(t.kegiatan, semua), "p": hitung_poin_sesi(n, kuota, batasi),
+                          "daftar_ulang": False})  # fmt: skip
+            continue
         baris.append({"titik": t, "p": hitung_poin_sesi(hadir.get((t.pk, k.pk), 0), kuota, batasi), "daftar_ulang": du})
     return {"baris": baris, "daftar_ulang": daftar_ulang_kontingen(k)}
 

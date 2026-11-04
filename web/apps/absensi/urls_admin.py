@@ -10,6 +10,7 @@ urlpatterns = [
     path("titik/<int:pk>/", v.titik_detail, name="titik_detail"),
     path("titik/<int:pk>/ubah/", v.titik_form, name="titik_ubah"),
     path("titik/<int:pk>/status/", v.titik_status, name="titik_status"),
+    path("titik/<int:pk>/status-kegiatan/", v.sesi_status, name="sesi_status"),
     path("titik/<int:pk>/salin/", v.titik_salin, name="titik_salin"),
     path("titik/<int:pk>/hapus/", v.titik_hapus, name="titik_hapus"),
     path("titik/<int:pk>/tambah-manual/", v.kehadiran_tambah, name="kehadiran_tambah"),

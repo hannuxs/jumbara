@@ -114,12 +114,15 @@ def titik_daftar(request):
     baris = list(qs.order_by("tanggal", "mulai", "kode"))
     for t in baris:
         t.kelompok = services.kelompok_titik(t, sekarang, nilai)
+    tampil = "rinci" if request.GET.get("tampil") == "rinci" else "kegiatan"
     return render(
         request,
         "superadmin/titik_daftar.html",
         {
             "menu_aktif": "titik",
             "baris": baris,
+            "sesi": _kelompokkan_sesi(baris),
+            "tampil": tampil,
             "daftar_tanggal": TitikAbsen.objects.order_by("tanggal").values_list("tanggal", flat=True).distinct(),
             "daftar_kegiatan": Kegiatan.objects.all(),
             "pilihan_tingkat": TingkatTitik.choices,
@@ -128,6 +131,48 @@ def titik_daftar(request):
             "menit_sesudah": nilai.get("absensi.menit_sesudah"),
         },
     )
+
+
+URUT_KELOMPOK = ["BERLANGSUNG", "NANTI_HARI_INI", "SUDAH_LEWAT", "HARI_LAIN", "TUTUP"]
+
+
+def _kelompokkan_sesi(baris: list[TitikAbsen]) -> list[dict]:
+    """Satu baris per kegiatan per hari (semua tingkat) untuk buka/tutup sekaligus (R15)."""
+    sesi: dict[str, dict] = {}
+    for t in baris:
+        s = sesi.setdefault(services.kunci_sesi(t), {"titik": [], "hadir": 0, "kelompok": t.kelompok, "wakil": t})
+        s["titik"].append(t)
+        s["hadir"] += t.hadir
+        if URUT_KELOMPOK.index(t.kelompok) < URUT_KELOMPOK.index(s["kelompok"]):
+            s["kelompok"] = t.kelompok
+    for s in sesi.values():
+        w = s["wakil"]
+        s["nama"] = w.kegiatan.nama if w.kegiatan_id else w.nama_tampil
+        status = {t.status for t in s["titik"]}
+        s["status"] = status.pop() if len(status) == 1 else "CAMPURAN"
+    return list(sesi.values())
+
+
+@superadmin_wajib
+@require_POST
+def sesi_status(request, pk: int):
+    """Ubah status semua titik satu kegiatan pada hari yang sama (semua tingkat) sekaligus."""
+    t = get_object_or_404(TitikAbsen.objects.select_related("kegiatan"), pk=pk)
+    status = request.POST.get("status")
+    if status in StatusTitik.values:
+        berubah = []
+        for x in services.saudara_titik(t):
+            if x.status != status:
+                lama, x.status = x.status, status
+                x.save(update_fields=["status", "diubah_pada"])
+                catat(request, "titik_absen.status", x, keterangan=f"{x.kode}: {lama} -> {status} (per kegiatan)")
+                berubah.append(x.kode)
+        nama = t.kegiatan.nama if t.kegiatan_id else t.nama_tampil
+        messages.success(
+            request, f"{nama} {t.tanggal:%d/%m}: {StatusTitik(status).label} ({len(berubah)} titik absen diubah)."
+        )
+    kembali = request.POST.get("kembali", "")
+    return redirect(kembali if kembali.startswith("/superadmin/") else "absensi_admin:titik_daftar")
 
 
 @superadmin_wajib
@@ -354,14 +399,16 @@ def kegiatan_daftar(request):
                 messages.error(request, f"Kuota {kg.nama} harus angka 0-500 atau kosong.")
                 return redirect("absensi_admin:kegiatan_daftar")
             dipilih = request.POST.get(f"pilih_{kg.pk}") == "1"
-            if nilai != kg.kuota_default or dipilih != kg.bisa_dipilih:
-                berubah.append((kg, {"kuota_default": kg.kuota_default, "bisa_dipilih": kg.bisa_dipilih},
-                                {"kuota_default": nilai, "bisa_dipilih": dipilih}))  # fmt: skip
+            satu = request.POST.get(f"satu_{kg.pk}") == "1"
+            if nilai != kg.kuota_default or dipilih != kg.bisa_dipilih or satu != kg.satu_sesi:
+                berubah.append((kg, {"kuota_default": kg.kuota_default, "bisa_dipilih": kg.bisa_dipilih, "satu_sesi": kg.satu_sesi},
+                                {"kuota_default": nilai, "bisa_dipilih": dipilih, "satu_sesi": satu}))  # fmt: skip
         batasi = request.POST.get("batasi") == "1"
         for kg, lama, baru in berubah:
             kg.kuota_default = baru["kuota_default"]
             kg.bisa_dipilih = baru["bisa_dipilih"]
-            kg.save(update_fields=["kuota_default", "bisa_dipilih", "diubah_pada"])
+            kg.satu_sesi = baru["satu_sesi"]
+            kg.save(update_fields=["kuota_default", "bisa_dipilih", "satu_sesi", "diubah_pada"])
             d_lama, d_baru = selisih(lama, baru)
             aksi = "kegiatan.kuota_diubah" if "kuota_default" in d_baru else "kegiatan.diubah"
             catat(request, aksi, kg, keterangan=kg.nama, lama=d_lama, baru=d_baru)

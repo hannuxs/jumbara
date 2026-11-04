@@ -4,6 +4,9 @@
  * Bila gagal karena sinyal/sesi, pindaian tetap di HP (abu-abu, "menunggu terkirim") dan dikirim
  * otomatis: setiap 10 detik, saat kembali online, saat halaman dibuka, dan setelah masuk lagi.
  * Server idempoten menurut client_uuid, jadi kiriman ulang tidak membuat data dobel.
+ *
+ * Pemindai memilih KEGIATAN pada satu hari (sesi), bukan titik per tingkat (R15). Tingkat orang diambil
+ * dari biodata di server, yang memilih titik absen sesuai tingkat kartu yang dipindai.
  */
 document.addEventListener("alpine:init", function () {
   "use strict";
@@ -138,12 +141,12 @@ document.addEventListener("alpine:init", function () {
             return r.json();
           })
           .then(function (d) {
-            self.daftarTitik = d.titik;
-            try { localStorage.setItem("sigap:pemindai:titik", JSON.stringify(d.titik)); } catch (e) { /* abaikan */ }
+            self.daftarTitik = d.sesi || d.titik;
+            try { localStorage.setItem("sigap:pemindai:titik", JSON.stringify(self.daftarTitik)); } catch (e) { /* abaikan */ }
           })
           .catch(function () {
             try { self.daftarTitik = JSON.parse(localStorage.getItem("sigap:pemindai:titik") || "[]"); } catch (e) { self.daftarTitik = []; }
-            if (!self.daftarTitik.length) { self.galatTitik = "Daftar titik absen tidak bisa dimuat. Periksa sinyal lalu muat ulang."; }
+            if (!self.daftarTitik.length) { self.galatTitik = "Daftar kegiatan tidak bisa dimuat. Periksa sinyal lalu muat ulang."; }
           })
           .finally(function () { self.memuatTitik = false; });
       },
@@ -161,6 +164,11 @@ document.addEventListener("alpine:init", function () {
       },
       warnaTingkat: function (t) {
         return { MULA: "bg-mula", MADYA: "bg-madya", WIRA: "bg-wira", SEMUA: "bg-gray-400" }[t] || "bg-gray-400";
+      },
+      labelTingkatSesi: function (t) {
+        var daftar = t.tingkat_list || [t.tingkat];
+        if (daftar.indexOf("SEMUA") !== -1) { return "Semua tingkat"; }
+        return daftar.map(function (x) { return LABEL_TINGKAT[x] || x; }).join(", ");
       },
       labelTanggal: function (t) {
         var d = new Date(t.tanggal + "T00:00:00");

@@ -114,6 +114,8 @@ def seed_kontingen(folder: Path, laporan: list[str]) -> None:
 KEGIATAN_BUKAN_PILIHAN = ("daftar-ulang", "anjangsana")
 # Kegiatan yang tidak boleh dipilih bersamaan walau jam titik absennya tidak bertumpuk (REVISI R14).
 PASANGAN_BENTROK = [("traveling", "got-talent")]
+# Semua hari dan tingkat dihitung satu sesi di rekap dan poin (REVISI R15).
+KEGIATAN_SATU_SESI = ("got-talent", "drama")
 
 
 def seed_kegiatan(folder: Path, laporan: list[str]) -> None:
@@ -133,6 +135,7 @@ def seed_kegiatan(folder: Path, laporan: list[str]) -> None:
                 "urutan": urutan,
                 # Daftar ulang dan Anjangsana diikuti semua orang, bukan pilihan di form biodata.
                 "bisa_dipilih": b["kode"] not in KEGIATAN_BUKAN_PILIHAN,
+                "satu_sesi": b["kode"] in KEGIATAN_SATU_SESI,
             },
         )
         baru += dibuat

@@ -5,10 +5,11 @@
 <div class="mb-3 flex flex-wrap gap-2">
   {% for v, l in pilihan %}<a href="?tingkat={{ v }}" class="btn-kecil btn {% if tingkat == v %}bg-{{ v|lower }} {% if v == 'WIRA' %}text-navy{% else %}text-white{% endif %}{% else %}btn-abu{% endif %}">{{ l }}</a>{% endfor %}
 </div>
+{% if kg.satu_sesi %}<p class="mb-2 text-sm text-navy"><strong>{{ kg.nama }} dihitung satu sesi</strong> untuk semua hari: orang yang hadir di hari mana pun dihitung satu kali, kuota diterapkan sekali.</p>{% endif %}
 <p class="mb-3 text-xs text-abu">Per sesi: setiap orang hadir +1, setiap kekurangan dari kuota -1{% if batasi %}; orang di atas kuota tidak menambah poin{% endif %}. Poin kegiatan = jumlah poin semua sesi. Sel: hadir/kuota, poin di bawahnya.</p>
 <div class="kartu overflow-x-auto p-0 sm:p-0">
   <table class="tabel">
-    <thead><tr><th>Kontingen</th>{% for t in titik %}<th class="text-center"><a class="hover:underline" href="{% url 'rekap:titik' t.pk %}">{{ t.kode }}</a><div class="text-[10px] font-normal text-abu">{{ t.tanggal|date:"D d/m" }} {{ t.mulai|time:"H.i" }}</div></th>{% endfor %}<th class="text-right">Hadir</th><th class="text-right">Poin</th></tr></thead>
+    <thead><tr><th>Kontingen</th>{% for t in titik %}<th class="text-center">{% if t.pk %}<a class="hover:underline" href="{% url 'rekap:titik' t.pk %}">{{ t.kode }}</a><div class="text-[10px] font-normal text-abu">{{ t.tanggal|date:"D d/m" }} {{ t.mulai|time:"H.i" }}</div>{% else %}{{ t.kode }}<div class="text-[10px] font-normal text-abu">{{ t.nama_tampil }}</div>{% endif %}</th>{% endfor %}<th class="text-right">Hadir</th><th class="text-right">Poin</th></tr></thead>
     <tbody>
     {% for b in baris %}
       <tr>
