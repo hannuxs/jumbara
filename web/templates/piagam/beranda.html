@@ -1,7 +1,7 @@
 {% extends "superadmin/base.html" %}
 {% block judul %}Piagam{% endblock %}
 {% block judul_halaman %}Piagam{% endblock %}
-{% block aksi_judul %}<a href="{% url 'piagam_admin:unduh_semua' %}" class="btn-utama btn-kecil" data-unduh-semua>Unduh semua (ZIP)</a>{% endblock %}
+{% block aksi_judul %}<a href="{% url 'piagam_admin:unduh_nomor' %}" class="btn-abu btn-kecil">Daftar nomor (Excel)</a> <a href="{% url 'piagam_admin:unduh_semua' %}" class="btn-utama btn-kecil" data-unduh-semua>Unduh semua (ZIP)</a>{% endblock %}
 {% block konten %}
 <div class="mb-4 grid gap-4 lg:grid-cols-3">
   <section class="kartu lg:col-span-2">
@@ -31,8 +31,22 @@
         {% include "komponen/isian.html" with f=form.tanggal %}
       </div>
       {% include "komponen/isian.html" with f=form.tempat %}
+      {% include "komponen/isian.html" with f=form.tanggal_acara %}
+      {% include "komponen/isian.html" with f=form.lokasi_acara %}
+      <h3 class="mb-2 mt-4 text-sm font-semibold text-navy">Penanda tangan (satu orang)</h3>
+      {% include "komponen/isian.html" with f=form.ttd_jabatan %}
+      {% include "komponen/isian.html" with f=form.ttd_nama %}
+      {% include "komponen/isian.html" with f=form.ttd_nip %}
+      {% include "komponen/isian.html" with f=form.ttd_tinggi %}
       {% include "komponen/isian.html" with f=form.syarat_daftar_ulang %}
       <button class="btn-utama btn-kecil" type="submit">Simpan</button>
+    </form>
+    <form method="post" action="{% url 'piagam_admin:ttd' %}" enctype="multipart/form-data" class="mt-4 border-t border-gray-100 pt-3">
+      {% csrf_token %}
+      <label class="label text-sm" for="ttd-berkas">Gambar tanda tangan (opsional)</label>
+      <p class="mb-2 text-xs text-abu">{% if ada_ttd %}Sudah ada gambar tanda tangan; tercetak di atas nama penanda tangan.{% else %}Belum ada. Tanpa gambar, piagam diberi ruang kosong untuk ditandatangani basah.{% endif %} PNG/JPG, latar putih otomatis dibuat transparan.</p>
+      <input id="ttd-berkas" type="file" name="ttd" accept="image/png,image/jpeg" class="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-oranye file:px-3 file:py-2 file:font-semibold file:text-white">
+      <div class="mt-2 flex gap-2"><button class="btn-abu btn-kecil" type="submit">Unggah</button>{% if ada_ttd %}<button class="btn-abu btn-kecil" type="submit" name="hapus" value="1">Hapus gambar</button>{% endif %}</div>
     </form>
   </section>
 </div>
@@ -61,7 +75,7 @@
 </div>
 
 <h2 class="mb-2 mt-6 text-lg font-bold">Piagam juara</h2>
-<p class="mb-2 text-sm text-abu">Diterbitkan dari tabel hasil form penilaian (tombol "Piagam juara" di halaman hasil) dan dari peringkat Anjangsana.</p>
+<p class="mb-2 text-sm text-abu">Diterbitkan dari tabel hasil form penilaian (tombol "Piagam juara" di halaman hasil) dan dari peringkat Anjangsana. Bawaannya setiap anggota kontingen juara mendapat piagam juara atas namanya, selain piagam pesertanya; piagam juara anggota ikut tercetak di PDF kontingen (setelah piagam peserta orang itu).</p>
 <div class="kartu overflow-x-auto p-0 sm:p-0">
   <table class="tabel">
     <thead><tr><th>Sumber</th><th class="text-right">Piagam</th><th></th></tr></thead>

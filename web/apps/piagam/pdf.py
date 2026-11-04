@@ -70,6 +70,25 @@ def warna(teks: str, bawaan="#1F2937"):
 
 # --- Desain bawaan (dipakai sampai desain panitia diunggah) ---------------------------------------------
 
+# Pita warna atas seperti contoh piagam panitia (R15): merah, oranye, salem, peach.
+PITA_TEGAK = (("#E53935", 0.43), ("#F2603A", 0.22), ("#F6A07F", 0.19), ("#FCD3C3", 0.16))
+
+
+def desain_tegak(c: canvas.Canvas, w: float, h: float) -> None:
+    """Piagam tegak: latar putih, pita warna di atas dan pita tipis di bawah (urutan terbalik)."""
+    c.setFillColor(colors.white)
+    c.rect(0, 0, w, h, stroke=0, fill=1)
+    x = 0.0
+    for warna_pita, bagian in PITA_TEGAK:
+        c.setFillColor(colors.HexColor(warna_pita))
+        c.rect(x, h - 14 * mm, w * bagian + 0.5, 14 * mm, stroke=0, fill=1)
+        x += w * bagian
+    x = 0.0
+    for warna_pita, bagian in reversed(PITA_TEGAK):
+        c.setFillColor(colors.HexColor(warna_pita))
+        c.rect(x, 0, w * bagian + 0.5, 5 * mm, stroke=0, fill=1)
+        x += w * bagian
+
 
 def desain_bawaan(c: canvas.Canvas, w: float, h: float) -> None:
     oranye, merah, navy = colors.HexColor("#F26B1D"), colors.HexColor("#C62828"), colors.HexColor("#1F2937")
@@ -153,6 +172,38 @@ def gambar_elemen(c: canvas.Canvas, e: dict, data: dict, w: float, h: float) -> 
         y -= ukuran * 1.3
 
 
+def path_ttd() -> Path | None:
+    """Gambar tanda tangan penanda tangan (pengaturan piagam.ttd_gambar) di folder privat."""
+    from apps.inti import pengaturan
+
+    nama = str(pengaturan.ambil("piagam.ttd_gambar") or "")
+    if not re.fullmatch(r"ttd-[0-9a-f]{32}\.png", nama):
+        return None
+    p = Path(settings.SIGAP_FOLDER_PRIVAT) / "piagam" / nama
+    return p if p.is_file() else None
+
+
+def tempel_ttd(c: canvas.Canvas, t: TemplatePiagam, h: float) -> None:
+    """Tanda tangan digambar di atas elemen `ttd_nama` (tengah elemen itu), bila gambarnya ada."""
+    from apps.inti import pengaturan
+
+    gambar = path_ttd()
+    e = next((x for x in t.elemen or [] if x.get("kode") == "ttd_nama"), None)
+    if gambar is None or e is None:
+        return
+    try:
+        tinggi = max(8.0, min(50.0, float(pengaturan.ambil("piagam.ttd_tinggi") or 22))) * mm
+    except (TypeError, ValueError):
+        tinggi = 22 * mm
+    img = ImageReader(str(gambar))
+    lb, tg = img.getSize()
+    lebar = min(tinggi * lb / tg, 80 * mm)
+    tinggi = lebar * tg / lb
+    tengah = (float(e.get("x") or 0) + float(e.get("lebar") or 0) / 2) * mm
+    bawah = h - float(e.get("y") or 0) * mm + 5 * mm
+    c.drawImage(str(gambar), tengah - lebar / 2, bawah, width=lebar, height=tinggi, mask="auto")
+
+
 def path_latar(t: TemplatePiagam) -> Path | None:
     if not t.latar or not re.fullmatch(r"[0-9a-f]{32}\.(png|jpg)", t.latar):
         return None
@@ -166,9 +217,10 @@ def gambar_halaman(c: canvas.Canvas, t: TemplatePiagam, data: dict) -> None:
     if latar is not None:
         c.drawImage(str(latar), 0, 0, width=w, height=h)  # path string: gambar disimpan sekali per PDF
     elif t.desain_bawaan:
-        desain_bawaan(c, w, h)
+        (desain_tegak if t.orientasi == Orientasi.TEGAK else desain_bawaan)(c, w, h)
     if t.tempel_logo:
         tempel_logo(c, t, w, h)
+    tempel_ttd(c, t, h)
     for e in t.elemen or []:
         gambar_elemen(c, e, data, w, h)
 

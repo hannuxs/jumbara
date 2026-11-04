@@ -64,18 +64,18 @@ def test_syarat_dan_nomor_tetap(template, kontingen_madya, daftar_ulang, panitia
     assert [x.peserta for x in hasil] == [a]
     alasan = {p.nama_lengkap: al for p, al in lewat}
     assert alasan["BUDI"] == "Belum daftar ulang" and alasan["CITRA"].startswith("Tidak berhak")
-    assert hasil[0].nomor == "001/PST/JUMBARA-V/PMI-BLG/XI/2026"
+    assert hasil[0].nomor == "001 / JMB-V / PMR / PMI.BULUNGAN / PST / XI / 2026"
     # Syarat daftar ulang dimatikan: BUDI ikut, nomor ANI tetap.
     pengaturan.simpan("piagam.syarat_daftar_ulang", False)
     hasil2, _ = svc.terbitkan_peserta(None, [a, b, c], template)
     assert {x.peserta.nama_lengkap: x.nomor for x in hasil2} == {
-        "ANI": "001/PST/JUMBARA-V/PMI-BLG/XI/2026", "BUDI": "002/PST/JUMBARA-V/PMI-BLG/XI/2026",
+        "ANI": "001 / JMB-V / PMR / PMI.BULUNGAN / PST / XI / 2026", "BUDI": "002 / JMB-V / PMR / PMI.BULUNGAN / PST / XI / 2026",
     }  # fmt: skip
     # Nama diperbaiki: data piagam diperbarui, nomor tetap.
     a.nama_lengkap = "ANI LESTARI"
     a.save()
     x = svc.terbitkan_peserta(None, [a], template)[0][0]
-    assert x.nomor.startswith("001/") and x.data["nama"] == "ANI LESTARI"
+    assert x.nomor.startswith("001 /") and x.data["nama"] == "ANI LESTARI"
     assert PiagamTerbit.objects.count() == 2
     assert LogAktivitas.objects.filter(aksi="piagam.berhak_diubah").exists()
 
@@ -90,9 +90,11 @@ def test_unduh_kontingen_peserta_semua(template, kontingen_madya, kontingen_wira
     r = c.get(f"/superadmin/piagam/kontingen/{kontingen_madya.pk}/unduh.pdf")
     assert r["Content-Type"] == "application/pdf" and halaman(r.content) == 2
     isi = teks_pdf(r.content)
-    assert "ANI" in isi and "Peserta" in isi and "SMP Negeri Uji" in isi and "PIAGAM PENGHARGAAN" in isi
+    # Desain tegak bawaan (R15): PENGHARGAAN, sebagai PESERTA, unit PMR, tanda tangan Ketua PMI.
+    assert "ANI" in isi and "PESERTA" in isi and "PMR MADYA UNIT SMP NEGERI UJI" in isi and "PENGHARGAAN" in isi
+    assert "Ketua PMI Kabupaten Bulungan" in isi and "12 - 15 November 2026" in isi
     r = c.get(f"/superadmin/piagam/peserta/{w.pk}/unduh.pdf")
-    assert "Pembina Pendamping" in teks_pdf(r.content)
+    assert "PEMBINA PENDAMPING" in teks_pdf(r.content)
     r = c.get("/superadmin/piagam/semua.zip")
     z = zipfile.ZipFile(io.BytesIO(r.content))
     assert sorted(n.split("_")[1] for n in z.namelist()) == ["MA-01", "WI-01"]
@@ -123,9 +125,10 @@ def test_piagam_juara_dari_tabel_hasil(klien_superadmin, juri):
     r = klien_superadmin.post(f"/superadmin/piagam/juara/form/{f.pk}/", {"maks": "3", "kegiatan": "Ranking 1"})
     assert r["Content-Type"] == "application/pdf" and halaman(r.content) == 3
     isi = teks_pdf(r.content)
-    assert "Kontingen SMA Uji 2" in isi and "Juara 1" in isi and "Ranking 1 Tingkat Wira" in isi
+    # Kontingen tanpa anggota yang tercatat: piagam atas nama kontingen.
+    assert "KONTINGEN SMA UJI 2" in isi and "JUARA I" in isi and "Ranking 1 Tingkat Wira" in isi
     x = PiagamTerbit.objects.get(sumber=f"form:{f.pk}", peringkat=1)
-    assert x.kontingen == ks[1] and x.nomor == "001/JR/JUMBARA-V/PMI-BLG/XI/2026"
+    assert x.kontingen == ks[1] and x.nomor == "001 / JMB-V / PMR / PMI.BULUNGAN / JR / XI / 2026"
     # Unduh ulang: nomor sama, tidak ada piagam baru.
     klien_superadmin.post(f"/superadmin/piagam/juara/form/{f.pk}/", {"maks": "3", "kegiatan": "Ranking 1"})
     assert PiagamTerbit.objects.filter(jenis=JenisPiagam.JUARA).count() == 3
@@ -202,16 +205,19 @@ def test_template_editor_latar_dan_validasi(klien_superadmin, template):
 def test_pengaturan_nomor_dan_hak_akses(klien_superadmin, panitia):
     r = klien_superadmin.post("/superadmin/piagam/", {
         "format_nomor_peserta": "PST-2026", "format_nomor_juara": "{urut}/JR", "digit_urut": "4",
-        "tempat": "Tanjung Selor", "tanggal": "2026-11-15",
+        "tempat": "Tanjung Selor", "tanggal": "2026-11-15", "tanggal_acara": "12 - 15 November 2026",
+        "ttd_jabatan": "Ketua PMI Kabupaten Bulungan", "ttd_tinggi": "22",
     })  # fmt: skip
     assert "Harus memuat {urut}" in r.content.decode()
     klien_superadmin.post("/superadmin/piagam/", {
         "format_nomor_peserta": "{urut}/PST", "format_nomor_juara": "{urut}/JR", "digit_urut": "4",
-        "tempat": "Tanjung Selor", "tanggal": "2026-11-14",
+        "tempat": "Tanjung Selor", "tanggal": "2026-11-14", "tanggal_acara": "12 - 15 November 2026",
+        "ttd_jabatan": "Ketua PMI Kabupaten Bulungan", "ttd_nama": "dr. Contoh Nama", "ttd_tinggi": "22",
     })  # fmt: skip
     assert svc.nomor_dari_format(JenisPiagam.PESERTA, 7) == "0007/PST"
     assert pengaturan.ambil("piagam.syarat_daftar_ulang") is False
     assert svc.data_umum()["tanggal"] == "14 November 2026"
+    assert svc.data_umum()["ttd_nama"] == "dr. Contoh Nama"
     p = Client()
     masuk(p, "panitia")
     assert p.get("/superadmin/piagam/").status_code == 403
@@ -231,4 +237,5 @@ def test_simpan_pengaturan_template_angka_koma(klien_superadmin, template):
         "t-orientasi": "TEGAK", "t-logo_x": "0", "t-logo_y": "10", "t-logo_tinggi": "20", "t-aktif": "on",
     })  # fmt: skip
     baru = TemplatePiagam.objects.get(nama="Juara panitia")
-    assert r.status_code == 302 and any(e["kode"] == "juara" for e in baru.elemen)
+    # Template tegak baru memakai susunan tegak (R15).
+    assert r.status_code == 302 and {"sebagai", "kegiatan", "ttd_nama"} <= {e["kode"] for e in baru.elemen}

@@ -9,11 +9,12 @@ from pathlib import Path
 
 from django.conf import settings
 from django.db import IntegrityError, transaction
+from django.db.models import Q
 from django.utils import timezone
 from PIL import Image, UnidentifiedImageError
 
-from apps.absensi.models import Kehadiran
-from apps.absensi.rekap import KODE_DAFTAR_ULANG
+from apps.absensi.daftar_ulang import KODE_DAFTAR_ULANG
+from apps.absensi.models import Kegiatan, Kehadiran
 from apps.biodata.models import Peserta
 from apps.inti import pengaturan
 from apps.inti.log import catat
@@ -43,6 +44,13 @@ PLACEHOLDER = {
     "tanggal": "Tanggal penerbitan, misal 15 November 2026",
     "acara": ACARA,
     "acara_panjang": ACARA_PANJANG,
+    "unit_pmr": "PMR <TINGKAT> UNIT <SEKOLAH>, misal PMR MADYA UNIT SMP NEGERI 1 BUNYU",
+    "sebagai": "PESERTA, PIMPINAN KONTINGEN, ... atau JUARA I (piagam juara)",
+    "tanggal_acara": "Tanggal kegiatan (pengaturan), misal 12 - 15 November 2026",
+    "lokasi_acara": "Lokasi kegiatan (pengaturan)",
+    "ttd_jabatan": "Jabatan penanda tangan (pengaturan), misal Ketua PMI Kabupaten Bulungan",
+    "ttd_nama": "Nama penanda tangan (pengaturan)",
+    "ttd_nip": "NIP/NIA penanda tangan (pengaturan, boleh kosong)",
 }
 
 
@@ -59,8 +67,10 @@ def _e(kode, teks, y, font, ukuran, x=20, lebar=257, warna="#1F2937", rata="TENG
             "baris_maks": baris_maks, "kapital": kapital}  # fmt: skip
 
 
-def elemen_bawaan(jenis: str) -> list[dict]:
-    """Tata letak awal untuk A4 mendatar (297 x 210 mm), cocok dengan desain bawaan."""
+def elemen_bawaan(jenis: str, orientasi: str = Orientasi.TEGAK) -> list[dict]:
+    """Tata letak awal: tegak (bawaan sejak R15) atau A4 mendatar (297 x 210 mm)."""
+    if orientasi == Orientasi.TEGAK:
+        return elemen_tegak(jenis)
     umum_atas = [
         _e("judul", "PIAGAM PENGHARGAAN", 58, "POPPINS_TEBAL", 32, warna="#E2451F"),
         _e("nomor", "Nomor: {nomor}", 66, "INTER", 10, warna="#6B7280"),
@@ -88,20 +98,69 @@ def elemen_bawaan(jenis: str) -> list[dict]:
     return umum_atas + isi + ttd
 
 
-def pastikan_template_bawaan() -> list[TemplatePiagam]:
-    """Buat template bawaan (peserta dan juara) bila belum ada sama sekali."""
+def _t(kode, teks, y, font, ukuran, **kw) -> dict:
+    """Elemen untuk A4 tegak (210 x 297 mm): lebar penuh dengan tepi 15 mm, rata tengah."""
+    return _e(kode, teks, y, font, ukuran, x=kw.pop("x", 15), lebar=kw.pop("lebar", 180), **kw)
+
+
+MERAH = "#E53935"
+
+
+def elemen_tegak(jenis: str) -> list[dict]:
+    """Tata letak piagam tegak sesuai contoh panitia (R15): pita warna, logo, PENGHARGAAN, nomor, nama, unit PMR,
+    sebagai, kegiatan, tanggal, lalu tanda tangan satu orang (Ketua PMI)."""
+    atas = [
+        _t("judul", "PENGHARGAAN", 72, "POPPINS_TEBAL", 36, warna=MERAH),
+        _t("nomor", "No: {nomor}", 80, "INTER_SEMI", 9.5, warna="#3B5B8C"),
+        _t("pengantar", "Diberikan Kepada :", 96, "INTER", 14, warna="#111111"),
+        _t("nama", "{nama}", 108, "POPPINS_TEBAL", 22, ukuran_min=12, warna="#111111", kapital=True),
+        _t("unit", "{unit_pmr}", 116, "INTER_SEMI", 11, ukuran_min=8, warna="#111111", kapital=True),
+        _t("sebagai_label", "Sebagai :", 132, "INTER", 14, warna="#111111"),
+        _t("sebagai", "{sebagai}", 145, "POPPINS_TEBAL", 24, ukuran_min=14, warna=MERAH, kapital=True),
+    ]
+    if jenis == JenisPiagam.JUARA:
+        atas.append(_t("kegiatan", "{kegiatan_tingkat}", 154, "INTER_SEMI", 14, ukuran_min=10, warna="#111111"))
+    y = 168 if jenis == JenisPiagam.JUARA else 162
+    isi = [
+        _t("pada", "Pada Kegiatan", y, "INTER", 14, warna="#111111"),
+        _t("acara", ACARA, y + 8, "INTER", 14, ukuran_min=10, warna="#111111"),
+        _t("lokasi", "{lokasi_acara}", y + 15, "INTER", 13, ukuran_min=9, warna="#111111"),
+        _t("tanggal_acara", "pada Tanggal {tanggal_acara}", y + 25, "INTER_SEMI", 14, warna="#111111"),
+    ]
+    ttd = [
+        _t("tempat_tanggal", "{tempat}, {tanggal}", 222, "INTER", 11, warna="#111111"),
+        _t("jabatan", "{ttd_jabatan}", 229, "INTER_SEMI", 12, ukuran_min=9, warna="#111111"),
+        _t("ttd_nama", "{ttd_nama}", 262, "POPPINS_SEMI", 13, ukuran_min=9, warna="#111111"),
+        _t("ttd_nip", "{ttd_nip}", 268, "INTER", 10, warna="#374151"),
+    ]
+    return atas + isi + ttd
+
+
+NAMA_TEGAK = {
+    JenisPiagam.PESERTA: "Piagam peserta 2026 (tegak, desain bawaan)",
+    JenisPiagam.JUARA: "Piagam juara 2026 (tegak, desain bawaan)",
+}
+
+
+def pastikan_template_tegak() -> list[TemplatePiagam]:
+    """R15: piagam tegak (portrait) menjadi template bawaan. Template lama tidak dihapus; template bawaan
+    mendatar tanpa latar panitia dinonaktifkan agar tidak terpilih otomatis (masih bisa diaktifkan lagi)."""
     dibuat = []
-    for jenis, nama in (
-        (JenisPiagam.PESERTA, "Piagam peserta (desain bawaan)"),
-        (JenisPiagam.JUARA, "Piagam juara (desain bawaan)"),
-    ):
-        if not TemplatePiagam.objects.filter(jenis=jenis).exists():
-            dibuat.append(
-                TemplatePiagam.objects.create(
-                    nama=nama, jenis=jenis, elemen=elemen_bawaan(jenis), logo_y=17, logo_tinggi=20
-                )
-            )
+    for jenis, nama in NAMA_TEGAK.items():
+        if TemplatePiagam.semua.filter(jenis=jenis, nama=nama).exists():
+            continue
+        dibuat.append(TemplatePiagam.objects.create(
+            nama=nama, jenis=jenis, ukuran_kertas="A4", orientasi=Orientasi.TEGAK, desain_bawaan=True,
+            tempel_logo=True, logo_x=0, logo_y=24, logo_tinggi=24, elemen=elemen_tegak(jenis),
+        ))  # fmt: skip
+        TemplatePiagam.objects.filter(jenis=jenis, orientasi=Orientasi.MENDATAR, desain_bawaan=True, latar="",
+                                      aktif=True).exclude(nama=nama).update(aktif=False)  # fmt: skip
     return dibuat
+
+
+def pastikan_template_bawaan() -> list[TemplatePiagam]:
+    """Buat template bawaan (peserta dan juara, tegak sejak R15) bila belum ada."""
+    return pastikan_template_tegak()
 
 
 # --- Latar dari panitia ------------------------------------------------------------------------------------
@@ -155,6 +214,43 @@ def simpan_latar(request, t: TemplatePiagam, berkas) -> None:
     catat(request, "piagam.latar_diunggah", t, keterangan=f"{t.nama}: {t.latar_asli} ({img.width}x{img.height})")
 
 
+def simpan_ttd(request, berkas) -> None:
+    """Gambar tanda tangan PNG/JPG. Latar putih/terang dibuat transparan agar menyatu dengan piagam."""
+    if berkas.size > 5 * 1024 * 1024:
+        raise GagalPiagam("Ukuran gambar tanda tangan paling besar 5 MB.")
+    try:
+        img = Image.open(io.BytesIO(berkas.read()))
+        img.load()
+    except (UnidentifiedImageError, OSError, Image.DecompressionBombError):
+        raise GagalPiagam("File tanda tangan harus gambar PNG atau JPG.") from None
+    if img.format not in ("PNG", "JPEG", "MPO"):
+        raise GagalPiagam("File tanda tangan harus gambar PNG atau JPG.")
+    img = img.convert("RGBA")
+    img.thumbnail((1600, 1600))
+    piksel = [(r, g, b, 0 if min(r, g, b) > 225 else a) for r, g, b, a in img.getdata()]
+    img.putdata(piksel)
+    if img.getbbox():
+        img = img.crop(img.getbbox())
+    folder = Path(settings.SIGAP_FOLDER_PRIVAT) / "piagam"
+    folder.mkdir(parents=True, exist_ok=True)
+    nama = f"ttd-{uuid.uuid4().hex}.png"
+    img.save(folder / nama, format="PNG", optimize=True)
+    lama = str(pengaturan.ambil("piagam.ttd_gambar") or "")
+    pengaturan.simpan("piagam.ttd_gambar", nama, oleh=getattr(request.user, "username", ""))
+    if lama.startswith("ttd-") and (p := folder / lama).is_file():
+        p.unlink()
+    catat(request, "piagam.ttd_diunggah", keterangan=f"{Path(berkas.name).name[:120]} ({img.width}x{img.height})")
+
+
+def hapus_ttd(request) -> None:
+    lama = str(pengaturan.ambil("piagam.ttd_gambar") or "")
+    pengaturan.simpan("piagam.ttd_gambar", "", oleh=getattr(request.user, "username", ""))
+    p = Path(settings.SIGAP_FOLDER_PRIVAT) / "piagam" / lama
+    if lama.startswith("ttd-") and p.is_file():
+        p.unlink()
+    catat(request, "piagam.ttd_dihapus", keterangan="Gambar tanda tangan dihapus")
+
+
 # --- Syarat dan data ------------------------------------------------------------------------------------------
 
 
@@ -172,7 +268,17 @@ def data_umum() -> dict:
         "tanggal": _tanggal(),
         "acara": ACARA,
         "acara_panjang": ACARA_PANJANG,
+        "tanggal_acara": pengaturan.ambil("piagam.tanggal_acara") or "",
+        "lokasi_acara": pengaturan.ambil("piagam.lokasi_acara") or "",
+        "ttd_jabatan": pengaturan.ambil("piagam.ttd_jabatan") or "",
+        "ttd_nama": pengaturan.ambil("piagam.ttd_nama") or "(................................)",
+        "ttd_nip": pengaturan.ambil("piagam.ttd_nip") or "",
     }
+
+
+def unit_pmr(tingkat_label: str, kontingen_nama: str) -> str:
+    """Seperti di daftar nomor sertifikat panitia: PMR MADYA UNIT SMP NEGERI 1 BUNYU."""
+    return f"PMR {tingkat_label} UNIT {kontingen_nama}".upper() if kontingen_nama else ""
 
 
 def sudah_daftar_ulang_ids(kontingen: Kontingen | None = None) -> set[int]:
@@ -202,7 +308,8 @@ def daftar_peserta(kontingen: Kontingen) -> list[dict]:
 def data_peserta(p: Peserta) -> dict:
     return {
         **data_umum(), "nama": p.nama_lengkap, "kontingen": p.kontingen.nama, "peran": p.get_peran_display(),
-        "tingkat": p.get_tingkat_display(),
+        "tingkat": p.get_tingkat_display(), "unit_pmr": unit_pmr(p.get_tingkat_display(), p.kontingen.nama),
+        "sebagai": p.get_peran_display().upper(),
     }  # fmt: skip
 
 
@@ -213,7 +320,11 @@ def data_juara(
     peringkat: int, kegiatan: str, tingkat: str, kontingen: Kontingen | None, peserta: Peserta | None
 ) -> dict:
     nama = peserta.nama_lengkap if peserta else f"Kontingen {kontingen.nama}" if kontingen else ""
+    k_nama = peserta.kontingen.nama if peserta else kontingen.nama if kontingen else ""
+    t_label = peserta.get_tingkat_display() if peserta else (kontingen.get_tingkat_display() if kontingen else tingkat)
+    romawi = f"Juara {ROMAWI[peringkat] if peringkat < len(ROMAWI) else peringkat}"
     return {
+        "unit_pmr": unit_pmr(t_label, k_nama), "sebagai": romawi.upper(),
         **data_umum(), "nama": nama, "kontingen": (peserta.kontingen.nama if peserta else kontingen.nama if kontingen else ""),
         "peran": peserta.get_peran_display() if peserta else "", "tingkat": tingkat, "kegiatan": kegiatan,
         "kegiatan_tingkat": f"{kegiatan} Tingkat {tingkat}" if tingkat else kegiatan,
@@ -230,10 +341,12 @@ def data_contoh(jenis: str) -> dict:
         Kontingen.objects.values_list("nama", flat=True), key=len, default="SD Negeri 003 Tanjung Palas Utara"
     )
     data = {**data_umum(), "nama": nama, "kontingen": kontingen, "peran": "Pembina Pendamping", "tingkat": "Madya",
+            "unit_pmr": unit_pmr("Madya", kontingen), "sebagai": "PEMBINA PENDAMPING",
             "nomor": nomor_dari_format(JenisPiagam(jenis), 123)}  # fmt: skip
     if jenis == JenisPiagam.JUARA:
         data.update(data_juara(1, "Wahana Kepalangmerahan - Voli Tutup Terpal", "Madya", None, None))
-        data["nama"] = f"Kontingen {kontingen}"
+        data["nama"] = nama
+        data["unit_pmr"] = unit_pmr("Madya", kontingen)
         data["nomor"] = nomor_dari_format(JenisPiagam.JUARA, 7)
     return data
 
@@ -281,6 +394,7 @@ def _terbitkan(request, kunci: str, jenis: str, template: TemplatePiagam, data: 
 
 
 def template_aktif(jenis: str, pk: int | None = None) -> TemplatePiagam:
+    pastikan_template_bawaan()
     qs = TemplatePiagam.objects.filter(jenis=jenis, aktif=True)
     t = qs.filter(pk=pk).first() if pk else qs.order_by("-diubah_pada").first()
     if t is None:
@@ -304,19 +418,74 @@ def terbitkan_peserta(
     return hasil, lewat
 
 
+def anggota_kegiatan(k: Kontingen, kegiatan: Kegiatan | None) -> list[Peserta]:
+    """Anggota kontingen yang mengikuti kegiatan: memilihnya di biodata ATAU tercatat hadir di titik absennya.
+    Tanpa kegiatan (misalnya Anjangsana): semua anggota kontingen. Yang tidak berhak piagam dilewati."""
+    qs = Peserta.objects.filter(kontingen=k)
+    if kegiatan is not None:
+        hadir = Kehadiran.objects.filter(titik_absen__kegiatan=kegiatan, peserta__kontingen=k).values("peserta_id")
+        qs = qs.filter(Q(kegiatan=kegiatan) | Q(pk__in=hadir)).distinct()
+    du = sudah_daftar_ulang_ids(k)
+    return [p for p in urutkan_untuk_cetak(qs) if not alasan_tidak_berhak(p, du)]
+
+
+class Penerima:
+    ORANG = "ORANG"  # setiap anggota yang mengikuti kegiatan (bawaan, R15: juara mendapat 2 piagam)
+    KONTINGEN = "KONTINGEN"  # satu piagam atas nama kontingen
+
+
 def terbitkan_juara(
-    request, sumber: str, baris: list[dict], template: TemplatePiagam, kegiatan: str
-) -> list[PiagamTerbit]:
-    """`baris`: {"peringkat", "tingkat", "kontingen" | "peserta"} (sudah disaring peringkat <= N)."""
+    request, sumber: str, baris: list[dict], template: TemplatePiagam, kegiatan: str,
+    kegiatan_obj: Kegiatan | None = None, penerima: str = Penerima.ORANG,
+) -> list[PiagamTerbit]:  # fmt: skip
+    """`baris`: {"peringkat", "tingkat", "kontingen" | "peserta"} (sudah disaring peringkat <= N).
+
+    Juara kontingen dengan penerima ORANG: setiap anggota yang mengikuti kegiatan mendapat piagam juara atas
+    namanya (selain piagam pesertanya). Bila tidak ada anggota yang tercatat, piagam atas nama kontingen."""
     hasil = []
     for b in sorted(baris, key=lambda x: (x["peringkat"], getattr(x.get("kontingen"), "kode", ""))):
         k, p = b.get("kontingen"), b.get("peserta")
-        subjek = f"P{p.pk}" if p else f"K{k.pk}"
-        data = data_juara(b["peringkat"], kegiatan, b["tingkat"], k, p)
-        hasil.append(_terbitkan(request, f"J:{sumber}:{subjek}"[:80], JenisPiagam.JUARA, template, data,
-                                peserta=p, kontingen=k or (p.kontingen if p else None), sumber=sumber,
-                                peringkat=b["peringkat"]))  # fmt: skip
+        orang = [p] if p else (anggota_kegiatan(k, kegiatan_obj) if penerima == Penerima.ORANG else [])
+        for o in orang:
+            data = data_juara(b["peringkat"], kegiatan, b["tingkat"], None, o)
+            hasil.append(_terbitkan(request, f"J:{sumber}:P{o.pk}"[:80], JenisPiagam.JUARA, template, data,
+                                    peserta=o, kontingen=o.kontingen, sumber=sumber, peringkat=b["peringkat"]))  # fmt: skip
+        if not orang:
+            data = data_juara(b["peringkat"], kegiatan, b["tingkat"], k, None)
+            hasil.append(_terbitkan(request, f"J:{sumber}:K{k.pk}"[:80], JenisPiagam.JUARA, template, data,
+                                    kontingen=k, sumber=sumber, peringkat=b["peringkat"]))  # fmt: skip
     return hasil
+
+
+def data_terkini(x: PiagamTerbit) -> dict:
+    """Data cetak dari biodata terbaru (nama yang diperbaiki ikut berubah); nomor tetap."""
+    if x.jenis == JenisPiagam.PESERTA and x.peserta_id:
+        data = data_peserta(x.peserta)
+    elif x.jenis == JenisPiagam.JUARA:
+        d = x.data or {}
+        data = data_juara(x.peringkat or d.get("peringkat") or 1, d.get("kegiatan", ""), d.get("tingkat", ""),
+                          None if x.peserta_id else x.kontingen, x.peserta)  # fmt: skip
+    else:
+        data = dict(x.data or {})
+    return {**data, "nomor": x.nomor}
+
+
+def piagam_kontingen(k: Kontingen, peserta: list[PiagamTerbit]) -> list[PiagamTerbit]:
+    """Piagam peserta kontingen + piagam juara anggotanya (setelah piagam peserta masing-masing) + juara
+    atas nama kontingen di akhir: satu PDF untuk dibagikan ke kontingen."""
+    juara = list(PiagamTerbit.objects.filter(jenis=JenisPiagam.JUARA, kontingen=k).select_related("template",
+                                                                                                 "peserta"))  # fmt: skip
+    per_orang: dict[int, list[PiagamTerbit]] = {}
+    for j in juara:
+        if j.peserta_id:
+            per_orang.setdefault(j.peserta_id, []).append(j)
+    hasil = []
+    for x in peserta:
+        hasil.append(x)
+        hasil += sorted(per_orang.pop(x.peserta_id, []), key=lambda j: j.urut)
+    for sisa in per_orang.values():
+        hasil += sisa
+    return hasil + [j for j in juara if not j.peserta_id]
 
 
 @transaction.atomic
@@ -331,7 +500,7 @@ def atur_berhak(request, p: Peserta, berhak: bool, alasan: str) -> None:
 def pdf_terbit(daftar: list[PiagamTerbit], judul: str) -> bytes:
     from .pdf import buat_pdf
 
-    return buat_pdf([(x.template, x.data) for x in daftar], judul)
+    return buat_pdf([(x.template, data_terkini(x)) for x in daftar], judul)
 
 
 def waktu() -> str:

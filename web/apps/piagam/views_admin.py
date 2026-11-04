@@ -32,6 +32,12 @@ KUNCI_PENGATURAN = {
     "tempat": "piagam.tempat",
     "tanggal": "piagam.tanggal",
     "syarat_daftar_ulang": "piagam.syarat_daftar_ulang",
+    "tanggal_acara": "piagam.tanggal_acara",
+    "lokasi_acara": "piagam.lokasi_acara",
+    "ttd_jabatan": "piagam.ttd_jabatan",
+    "ttd_nama": "piagam.ttd_nama",
+    "ttd_nip": "piagam.ttd_nip",
+    "ttd_tinggi": "piagam.ttd_tinggi",
 }
 
 
@@ -55,6 +61,15 @@ class FormPengaturan(forms.Form):
     tempat = forms.CharField(label="Tempat penerbitan", max_length=80)
     tanggal = forms.DateField(label="Tanggal piagam", widget=forms.DateInput(attrs={"type": "date"}))
     syarat_daftar_ulang = forms.BooleanField(label="Hanya yang sudah daftar ulang", required=False)
+    tanggal_acara = forms.CharField(
+        label="Tanggal kegiatan (teks)", max_length=60, help_text="Contoh: 12 - 15 November 2026"
+    )
+    lokasi_acara = forms.CharField(label="Lokasi kegiatan", max_length=120, required=False)
+    ttd_jabatan = forms.CharField(label="Jabatan penanda tangan", max_length=120)
+    ttd_nama = forms.CharField(label="Nama penanda tangan", max_length=120, required=False,
+                               help_text="Kosong = garis titik-titik untuk ditandatangani manual.")  # fmt: skip
+    ttd_nip = forms.CharField(label="NIP/NIA penanda tangan (boleh kosong)", max_length=60, required=False)
+    ttd_tinggi = forms.IntegerField(label="Tinggi gambar tanda tangan (mm)", min_value=8, max_value=50)
 
     def __init__(self, *a, **kw):
         super().__init__(*a, **kw)
@@ -111,7 +126,56 @@ def beranda(request):
         "total_berhak": sum(x["berhak"] for x in kontingen), "total": sum(x["jumlah"] for x in kontingen),
         "contoh_peserta": svc.nomor_dari_format(JenisPiagam.PESERTA, 1),
         "contoh_juara": svc.nomor_dari_format(JenisPiagam.JUARA, 1),
+        "ada_ttd": pdf_mod.path_ttd() is not None,
     })  # fmt: skip
+
+
+@superadmin_wajib
+@require_POST
+def ttd(request):
+    """Unggah atau hapus gambar tanda tangan penanda tangan (PNG/JPG; latar putih dibuat transparan)."""
+    try:
+        if request.POST.get("hapus") == "1":
+            svc.hapus_ttd(request)
+            messages.success(request, "Gambar tanda tangan dihapus. Piagam memakai ruang kosong untuk ditandatangani.")
+        elif request.FILES.get("ttd"):
+            svc.simpan_ttd(request, request.FILES["ttd"])
+            messages.success(request, "Gambar tanda tangan disimpan. Periksa pratinjau template.")
+    except svc.GagalPiagam as e:
+        messages.error(request, e.pesan)
+    return redirect("piagam_admin:beranda")
+
+
+@superadmin_wajib
+def unduh_nomor(request):
+    """Daftar nomor sertifikat (Excel) seperti format panitia: NO, NAMA, UNIT PMR, NOMOR SERTIFIKAT."""
+    import xlsxwriter
+
+    buf = io.BytesIO()
+    wb = xlsxwriter.Workbook(buf, {"in_memory": True})
+    f_judul = wb.add_format({"bold": True, "font_size": 13})
+    f_kepala = wb.add_format({"bold": True, "border": 1, "align": "center", "bg_color": "#F6A07F"})
+    f_isi = wb.add_format({"border": 1})
+    for jenis, nama_sheet in ((JenisPiagam.PESERTA, "Peserta"), (JenisPiagam.JUARA, "Juara")):
+        ws = wb.add_worksheet(nama_sheet)
+        ws.write(0, 0, f"DAFTAR NOMOR SERTIFIKAT {nama_sheet.upper()} - JUMBARA PMR KAB. BULUNGAN V 2026", f_judul)
+        kepala = ["NO.", "NAMA PESERTA", "UNIT PMR", "SEBAGAI", "NOMOR SERTIFIKAT"]
+        for i, (k, lebar) in enumerate(zip(kepala, [6, 38, 46, 30, 52], strict=True)):
+            ws.write(2, i, k, f_kepala)
+            ws.set_column(i, i, lebar)
+        daftar = PiagamTerbit.objects.filter(jenis=jenis).select_related("peserta__kontingen", "kontingen")
+        for r, x in enumerate(daftar.order_by("urut"), start=3):
+            d = svc.data_terkini(x)
+            sebagai = d.get("sebagai", "")
+            if jenis == JenisPiagam.JUARA and d.get("kegiatan_tingkat"):
+                sebagai = f"{sebagai} {d['kegiatan_tingkat']}"
+            ws.write_row(r, 0, [r - 2, d.get("nama", ""), d.get("unit_pmr", ""), sebagai, x.nomor], f_isi)
+        ws.freeze_panes(3, 0)
+    wb.close()
+    catat(request, "piagam.daftar_nomor_diunduh", keterangan="Daftar nomor sertifikat (Excel)")
+    r = HttpResponse(buf.getvalue(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    r["Content-Disposition"] = f'attachment; filename="Daftar_Nomor_Sertifikat_{svc.waktu()}.xlsx"'
+    return r
 
 
 def _judul_sumber(sumber: str) -> str:
@@ -192,8 +256,10 @@ def unduh_kontingen(request, pk: int):
     if not hasil:
         messages.error(request, f"Belum ada piagam yang bisa diterbitkan untuk {k.nama} ({len(lewat)} orang dilewati).")
         return redirect("piagam_admin:kontingen", pk=k.pk)
-    catat(request, "piagam.diunduh", k, keterangan=f"{k.kode}: {len(hasil)} piagam, {len(lewat)} dilewati")
-    return _pdf(svc.pdf_terbit(hasil, f"Piagam {k.nama}"), f"Piagam_{k.kode}_{_nama_file(k.nama)}.pdf")
+    semua = svc.piagam_kontingen(k, hasil)
+    catat(request, "piagam.diunduh", k,
+          keterangan=f"{k.kode}: {len(hasil)} piagam peserta + {len(semua) - len(hasil)} juara, {len(lewat)} dilewati")  # fmt: skip
+    return _pdf(svc.pdf_terbit(semua, f"Piagam {k.nama}"), f"Piagam_{k.kode}_{_nama_file(k.nama)}.pdf")
 
 
 @superadmin_wajib
@@ -209,9 +275,10 @@ def unduh_semua(request):
         for k in Kontingen.objects.order_by("kode"):
             hasil, lewat = svc.terbitkan_peserta(request, list(Peserta.objects.filter(kontingen=k)), template)
             dilewati += len(lewat)
-            if hasil:
-                total += len(hasil)
-                z.writestr(f"Piagam_{k.kode}_{_nama_file(k.nama)}.pdf", svc.pdf_terbit(hasil, f"Piagam {k.nama}"))
+            semua = svc.piagam_kontingen(k, hasil)
+            if semua:
+                total += len(semua)
+                z.writestr(f"Piagam_{k.kode}_{_nama_file(k.nama)}.pdf", svc.pdf_terbit(semua, f"Piagam {k.nama}"))
     catat(request, "piagam.diunduh", keterangan=f"Semua kontingen: {total} piagam, {dilewati} dilewati")
     r = HttpResponse(buf.getvalue(), content_type="application/zip")
     r["Content-Disposition"] = f'attachment; filename="Piagam_Peserta_Semua_{svc.waktu()}.zip"'
@@ -226,6 +293,11 @@ def unduh_terbit(request, pk: int):
 
 
 # --- Juara -------------------------------------------------------------------------------------------------------
+
+
+def _penerima(request) -> str:
+    """Bawaan per orang: setiap anggota juara mendapat piagam juara selain piagam pesertanya (R15)."""
+    return svc.Penerima.KONTINGEN if request.POST.get("penerima") == svc.Penerima.KONTINGEN else svc.Penerima.ORANG
 
 
 def kegiatan_dari_form(f) -> str:
@@ -264,7 +336,8 @@ def juara_form(request, pk: int):
         messages.error(request, "Belum ada subjek berperingkat. Periksa kolom peringkat dan nilai.")
         return redirect(f"/superadmin/form/{f.pk}/hasil/")
     kegiatan = " ".join((request.POST.get("kegiatan") or kegiatan_dari_form(f)).split())[:150]
-    hasil = svc.terbitkan_juara(request, f"form:{f.pk}", baris, template, kegiatan)
+    hasil = svc.terbitkan_juara(request, f"form:{f.pk}", baris, template, kegiatan, kegiatan_obj=f.kegiatan,
+                                penerima=_penerima(request))  # fmt: skip
     catat(request, "piagam.juara_diunduh", f, keterangan=f"{f.slug}: {len(hasil)} piagam juara 1-{maks}")
     return _pdf(svc.pdf_terbit(hasil, f"Piagam juara {f.judul}"), f"Piagam_Juara_{_nama_file(f.slug)}.pdf")
 
@@ -291,7 +364,8 @@ def juara_anjangsana(request):
         return redirect("/rekap/anjangsana/")
     baris = [{"peringkat": h["peringkat"], "tingkat": "" if tingkat == "SEMUA" else tingkat.title(), "kontingen": h["k"],
               "peserta": None} for h in data]  # fmt: skip
-    hasil = svc.terbitkan_juara(request, f"anjangsana:{tingkat}", baris, template, "Anjangsana")
+    hasil = svc.terbitkan_juara(request, f"anjangsana:{tingkat}", baris, template, "Anjangsana",
+                                penerima=_penerima(request))  # fmt: skip
     catat(request, "piagam.juara_diunduh", keterangan=f"Anjangsana {tingkat}: {len(hasil)} piagam")
     return _pdf(svc.pdf_terbit(hasil, "Piagam juara Anjangsana"), f"Piagam_Juara_Anjangsana_{tingkat}.pdf")
 
@@ -391,7 +465,7 @@ def template(request, pk: int | None = None):
         baru = t is None
         t = form.save(commit=False)
         if baru:
-            t.elemen = svc.elemen_bawaan(t.jenis)
+            t.elemen = svc.elemen_bawaan(t.jenis, t.orientasi)
         t.save()
         catat(request, "piagam.template_disimpan", t, keterangan=t.nama)
         messages.success(request, "Template disimpan.")
@@ -412,7 +486,7 @@ def template(request, pk: int | None = None):
             messages.success(request, "Latar dihapus; kembali ke desain bawaan.")
         return redirect("piagam_admin:template", pk=t.pk)
     if t and request.method == "POST" and request.POST.get("aksi") == "elemen_bawaan":
-        t.elemen = svc.elemen_bawaan(t.jenis)
+        t.elemen = svc.elemen_bawaan(t.jenis, t.orientasi)
         t.save(update_fields=["elemen", "diubah_pada"])
         catat(request, "piagam.template_disimpan", t, keterangan=f"{t.nama}: elemen dikembalikan ke bawaan")
         messages.success(request, "Elemen teks dikembalikan ke susunan bawaan.")

@@ -35,6 +35,9 @@
     <div><label class="label text-sm" for="pa-tingkat">Peringkat</label><select id="pa-tingkat" name="tingkat" class="input"><option value="MULA">Mula</option><option value="MADYA">Madya</option><option value="WIRA">Wira</option><option value="SEMUA">Gabungan semua tingkat</option></select></div>
     <div><label class="label text-sm" for="pa-maks">Juara 1 sampai</label><select id="pa-maks" name="maks" class="input"><option>1</option><option>2</option><option selected>3</option></select></div>
     <button class="btn-utama btn-kecil" type="submit">Terbitkan dan unduh PDF</button>
+    <div class="w-full"><fieldset class="mt-2"><legend class="label text-sm">Penerima piagam juara</legend>
+      <label class="flex items-start gap-2 text-sm"><input type="radio" name="penerima" value="ORANG" checked class="mt-0.5 h-5 w-5 accent-oranye"> <span><strong>Setiap anggota</strong> kontingen. Juara mendapat 2 piagam: peserta dan juara.</span></label>
+      <label class="mt-1 flex items-start gap-2 text-sm"><input type="radio" name="penerima" value="KONTINGEN" class="mt-0.5 h-5 w-5 accent-oranye"> <span>Satu piagam atas nama kontingen</span></label></fieldset></div>
   </form>
   <p class="mt-2 text-xs text-abu">Hanya kontingen yang sudah mendapat review. Memakai template piagam juara aktif terbaru.</p>
 </details>

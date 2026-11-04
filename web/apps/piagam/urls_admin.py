@@ -21,4 +21,6 @@ urlpatterns = [
     path("template/<int:pk>/pratinjau.png", v.template_pratinjau, name="template_pratinjau"),
     path("template/<int:pk>/pratinjau.pdf", v.template_pratinjau_pdf, name="template_pratinjau_pdf"),
     path("template/<int:pk>/hapus/", v.template_hapus, name="template_hapus"),
+    path("ttd/", v.ttd, name="ttd"),
+    path("unduh/nomor/", v.unduh_nomor, name="unduh_nomor"),
 ]

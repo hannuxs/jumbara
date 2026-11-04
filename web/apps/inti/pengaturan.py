@@ -60,10 +60,19 @@ BAWAAN: dict[str, Any] = {
     # Pilihan kegiatan di biodata: sesi berjam "08.00-selesai" dianggap selesai pukul ini untuk cek bentrok.
     "kegiatan.selesai_bawaan": "12:00",
     # Piagam (docs/18-PIAGAM.md). {urut} = nomor urut per jenis piagam.
-    "piagam.format_nomor_peserta": "{urut}/PST/JUMBARA-V/PMI-BLG/XI/2026",
-    "piagam.format_nomor_juara": "{urut}/JR/JUMBARA-V/PMI-BLG/XI/2026",
+    # Susunan seperti daftar nomor sertifikat panitia: 001 / 046 / PMR / SMAN1.BUNYU / RLW / X / 2026 (R15).
+    "piagam.format_nomor_peserta": "{urut} / JMB-V / PMR / PMI.BULUNGAN / PST / XI / 2026",
+    "piagam.format_nomor_juara": "{urut} / JMB-V / PMR / PMI.BULUNGAN / JR / XI / 2026",
     "piagam.digit_urut": 3,
-    "piagam.tempat": "Tanjung Selor",
+    "piagam.tempat": "Bulungan",
+    "piagam.tanggal_acara": "12 - 15 November 2026",
+    "piagam.lokasi_acara": "di Kebun Raya Bundayati, Tanjung Selor",
+    # Satu penanda tangan: Ketua PMI (R15). Gambar tanda tangan (PNG, latar transparan) opsional.
+    "piagam.ttd_jabatan": "Ketua PMI Kabupaten Bulungan",
+    "piagam.ttd_nama": "",
+    "piagam.ttd_nip": "",
+    "piagam.ttd_gambar": "",
+    "piagam.ttd_tinggi": 22,
     "piagam.tanggal": "2026-11-15",
     "piagam.syarat_daftar_ulang": True,
 }
