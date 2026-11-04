@@ -8,7 +8,8 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 - Revisi R1-R5 dari Farhan (tingkat dulu + cari sekolah, foto wajib dan dicetak di kartu, nama kapital, tanpa pencocokan NIK, pemotong foto responsif) **selesai** 18 Okt; lihat `docs/REVISI.md`.
 - Revisi R10 (pilihan kegiatan di biodata), R11 (produksi tanpa XAMPP: Caddy HTTPS, port 8585), dan R12 (form tambah/ubah superadmin sama dengan form publik) selesai 24 Okt. `CLAUDE.md` dan `02-ARSITEKTUR.md` sudah disesuaikan (atas permintaan Farhan).
 - Revisi R13 (logo PMI baru di semua halaman dan PDF) selesai 25 Okt. R14 (Traveling dan Got Talent tidak boleh dipilih bersamaan) selesai 29 Okt.
-- Terakhir diperbarui: 29 Oktober 2026
+- R15 (4 Nov): piagam tegak + tanda tangan Ketua PMI + nomor sertifikat, Got Talent dan Drama satu sesi, poin daftar ulang tepat/telat dengan waktu tiba kontingen, rekap peringkat per tingkat, juara 2 piagam, pemindai cukup pilih kegiatan. Lihat `docs/REVISI.md` R15.
+- Terakhir diperbarui: 4 November 2026
 - Tenggat terdekat: **25 Oktober 2026** (form biodata siap), dibuka 26 Oktober 00.00 WITA
 
 ## Tahap 0: Fondasi
@@ -94,6 +95,17 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 14. Di laptop, status form biodata masih **Paksa buka** (untuk uji). Kembalikan ke **Otomatis** sebelum 26 Okt (`sigap_cek_lingkungan` mengingatkan).
 
 ## Catatan sesi
+
+### 4 November 2026 (Claude Code): R15 (7 permintaan)
+
+Dikerjakan dalam 4 commit (R15a-d), semua migrasi hanya menambah (absensi 0004, 0005). Di server: `git pull` lalu `jalankan.bat -Produksi` (migrasi otomatis).
+
+**Setelah pull di server, mohon diperiksa:**
+1. Superadmin > Piagam > Pengaturan: **format nomor** (bagian tetap seperti `046`, unit penyelenggara), tempat (contoh panitia "Bulungan"), tanggal dan lokasi kegiatan, **nama Ketua PMI** dan NIP/NIA, unggah gambar tanda tangan bila ada. Pengaturan yang sudah pernah disimpan di server tidak ikut berubah ke nilai bawaan baru.
+2. Superadmin > Pengaturan > Daftar ulang: batas tepat waktu (bawaan 12.00), toleransi antrean (120 menit), poin 1/0,5.
+3. Panitia daftar ulang: **pindai QR kontingen saat rombongan tiba di ujung antrean**, lalu kartu setiap anggota.
+4. Superadmin > Piagam: pastikan template tegak yang aktif; template lama masih ada (nonaktif).
+
 
 ### 29 Oktober 2026 (Claude Code): R14 Traveling vs Got Talent
 

@@ -88,6 +88,8 @@ Uji coba bersama panitia 7 sampai 8 November. Pelatihan panitia dan juri 10 Nove
 - Titik absen: daftar ulang (12 Nov), setiap kegiatan **per tingkat** (Mula, Madya, Wira) **per hari/sesi**, dan Jumbara Got Talent sebagai satu titik gabungan per hari.
 - **Catatan panitia: "pemindai harus dapat berjalan secara bersamaan karena ada acara/kegiatan yang berjalan bersama."** Banyak titik absen aktif pada saat yang sama, dan banyak HP boleh memindai di titik yang sama. Rincian di `14-ABSENSI.md`.
 - Kegiatan yang berlangsung lebih dari satu hari dibuat **satu titik absen per kegiatan x tingkat x hari/sesi** (keputusan Farhan, opsi 4a). Poin kehadiran dijumlah dari semua sesinya.
+- **Pemindai cukup memilih kegiatan** pada hari itu, tidak memilih tingkat (REVISI R15, 4 Nov 2026): tingkat orang diambil dari biodata, lalu server mencatat ke titik absen tingkat yang sesuai. Buka/tutup titik absen juga per kegiatan (semua tingkat sekaligus) di Superadmin > Titik absen > Per kegiatan; tampilan rinci per titik tetap ada.
+- **Got Talent dan Pentas Seni Drama dicatat satu sesi** untuk semua hari dan tingkat (REVISI R15): orang yang hadir di hari mana pun dihitung sekali dan kuota diterapkan sekali (kolom "1 sesi" di Kegiatan dan kuota).
 - Kamera tetap menyala untuk pindai berturut-turut. Hijau = berhasil, kuning = sudah tercatat, merah = kartu tidak dikenal/nonaktif atau tingkat tidak sesuai. Nama, kontingen, tingkat tampil di layar.
 - Cari nama manual jika kartu rusak/tertinggal. Pindaian disimpan di HP saat koneksi putus dan dikirim otomatis saat kembali.
 
@@ -106,6 +108,8 @@ Gembira: Pentas Seni Drama Kepalangmerahan, Jumbara Got Talent, Anjangsana, Waha
 - Setiap kegiatan punya kuota orang per kontingen (diatur superadmin; bawaan dari pedoman, lihat `data/kegiatan.csv`).
 - Per sesi: setiap orang hadir **+1**, setiap kekurangan dari kuota **-1**. Contoh: kuota 8, hadir 7 -> 7 - 1 = 6.
 - Poin ini menjadi kolom otomatis `[poin_kehadiran]` di form penilaian kegiatan tersebut.
+- **Daftar ulang berpoin** (REVISI R15, 4 Nov 2026): **tepat waktu = 1, telat = 0,5** per orang, tanpa pengurangan. Agar antrean tidak merugikan, ketepatan waktu dinilai dari **waktu tiba kontingen** (QR kontingen dipindai di ujung antrean, atau kartu anggota pertama): anggota yang dipindai setelah batas tetap tepat waktu bila kontingennya tiba sebelum batas dan ia dipindai paling lambat batas + toleransi antrean (bawaan 120 menit). Batas bawaan = jam selesai daftar ulang (12.00). Superadmin bisa mengoreksi per orang dan mengisi waktu tiba manual; semua angka di Superadmin > Pengaturan.
+- **Rekap peringkat per tingkat** (REVISI R15): nama sekolah, jumlah poin semua kegiatan, urut poin terbanyak.
 
 ## Form builder
 
@@ -126,6 +130,8 @@ Gembira: Pentas Seni Drama Kepalangmerahan, Jumbara Got Talent, Anjangsana, Waha
 - Semua orang mendapat piagam PDF (peserta, pimpinan kontingen, pembina pendamping, peninjau).
 - Piagam juara dari form mode 2: juara setiap kegiatan per tingkat, juara per cabang Wahana, juara Got Talent, juara umum per tingkat.
 - Template dari panitia. Nama, kontingen, kegiatan, peringkat diisi otomatis. Unduh per orang atau per kontingen.
+- **Piagam tegak (portrait)** seperti contoh panitia (REVISI R15, 4 Nov 2026): PENGHARGAAN, No, Diberikan Kepada, nama, unit PMR (PMR MADYA UNIT SMP NEGERI ...), Sebagai, kegiatan, tanggal, lalu **tanda tangan satu orang: Ketua PMI**. Nomor: nomor urut 3 angka + susunan tetap seperti daftar nomor sertifikat panitia (bisa diubah); daftar nomor bisa diunduh Excel.
+- **Juara mendapat 2 piagam**: piagam peserta dan piagam juara atas namanya (juara kontingen: setiap anggota yang memilih kegiatan itu di biodata atau tercatat hadir di titik absennya).
 
 ## Urutan kerja dan pemasangan (keputusan Farhan, 22 Okt 2026)
 
