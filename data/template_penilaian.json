@@ -178,6 +178,16 @@
       "urut_berdasarkan": "nilai_akhir"
     },
     {
+      "kegiatan": "sarasehan-sampah",
+      "judul": "Poin Keaktifan Sarasehan Pengelolaan Sampah",
+      "per_tingkat": true,
+      "subjek": "kontingen",
+      "kolom_input": [{"kode": "poin_aktif", "label": "Poin keaktifan (menjawab pertanyaan narasumber)", "min": 0, "max": 100}],
+      "kolom_rumus": [{"kode": "nilai_akhir", "label": "Nilai Akhir", "rumus": "[poin_aktif] + [poin_kehadiran]"}],
+      "urut_berdasarkan": "nilai_akhir",
+      "catatan": "Kegiatan baru dari jadwal revisi panitia 13 Nov 2026; disamakan dengan sarasehan lain."
+    },
+    {
       "kegiatan": null,
       "judul": "Juara Umum",
       "per_tingkat": true,

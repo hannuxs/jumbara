@@ -9,7 +9,8 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 - Revisi R10 (pilihan kegiatan di biodata), R11 (produksi tanpa XAMPP: Caddy HTTPS, port 8585), dan R12 (form tambah/ubah superadmin sama dengan form publik) selesai 24 Okt. `CLAUDE.md` dan `02-ARSITEKTUR.md` sudah disesuaikan (atas permintaan Farhan).
 - Revisi R13 (logo PMI baru di semua halaman dan PDF) selesai 25 Okt. R14 (Traveling dan Got Talent tidak boleh dipilih bersamaan) selesai 29 Okt.
 - R15 (4 Nov): piagam tegak + tanda tangan Ketua PMI + nomor sertifikat, Got Talent dan Drama satu sesi, poin daftar ulang tepat/telat dengan waktu tiba kontingen, rekap peringkat per tingkat, juara 2 piagam, pemindai cukup pilih kegiatan. Lihat `docs/REVISI.md` R15.
-- Terakhir diperbarui: 4 November 2026
+- R16 (13 Nov): jadwal revisi panitia (Traveling Jumat 07.30-18.00, Ranking 1 dan Ngobrol Bareng ke Sabtu) dan kegiatan baru Sarasehan Pengelolaan Sampah, lewat migrasi absensi 0006 yang tidak menghapus data.
+- Terakhir diperbarui: 13 November 2026
 - Tenggat terdekat: **25 Oktober 2026** (form biodata siap), dibuka 26 Oktober 00.00 WITA
 
 ## Tahap 0: Fondasi
@@ -95,6 +96,11 @@ Claude Code memperbarui file ini di akhir setiap sesi kerja: centang yang selesa
 14. Di laptop, status form biodata masih **Paksa buka** (untuk uji). Kembalikan ke **Otomatis** sebelum 26 Okt (`sigap_cek_lingkungan` mengingatkan).
 
 ## Catatan sesi
+
+### 13 November 2026 (Claude Code): R16 jadwal revisi
+
+Di server: `git pull`, hentikan `jalankan.bat -Produksi` (Ctrl+C), jalankan lagi (migrasi 0006 otomatis), lalu sekali `web\.venv\Scripts\python web\manage.py sigap_buat_template_penilaian` untuk form penilaian Sarasehan Pengelolaan Sampah (form lain dilewati). Periksa Superadmin > Titik absen: Ranking 1, Ngobrol Bareng, dan Sarasehan Pengelolaan Sampah ada di Sabtu 14/11.
+
 
 ### 4 November 2026 (Claude Code): R15 (7 permintaan)
 

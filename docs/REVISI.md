@@ -386,3 +386,20 @@ Latar kartu Wira diganti dari kuning gelap (#CA8A04 -> #FACC15) menjadi **kuning
 **Database lama aman:** migrasi absensi 0004 (kolom baru + menandai got-talent, drama) dan 0005 (tabel kedatangan + dua kolom koreksi + daftar ulang berpoin) hanya menambah; tidak ada data yang dihapus atau diubah selain penanda tersebut.
 
 **Pengujian:** tes baru `test_absensi_sesi.py` (8), `test_daftar_ulang_poin.py` (8), `test_peringkat.py`, `test_piagam_r15.py` (5); tes lama disesuaikan (pesan tingkat, nomor/desain piagam, isian pengaturan baru). Seluruh tes lulus. Chrome 360 px: pemindai (22 pilihan kegiatan dari 60 titik), titik per kegiatan, detail daftar ulang, peringkat, piagam, pengaturan tanpa geser mendatar dan tanpa galat JavaScript.
+
+---
+
+## R16. Jadwal revisi panitia dan kegiatan baru Sarasehan Pengelolaan Sampah (13 Nov 2026, saat acara berlangsung)
+
+**Perubahan jadwal** (sumber: "Jadwal Kegiatan Revisi.pdf" dari panitia):
+- Traveling Kepalangmerahan Jumat 13/11: 07.30-11.30 dan 13.30-18.00. Dicatat sebagai **satu titik per tingkat 07.30-18.00** (absen sekali per hari, seperti sebelumnya), jadi titik terbuka sejak 06.30.
+- Ranking 1: Jumat 13/11 -> **Sabtu 14/11 08.00-selesai**.
+- Ngobrol Bareng PMR: Jumat 13/11 14.00-17.00 -> **Sabtu 14/11 08.00-12.00**.
+- **Kegiatan baru Sarasehan Pengelolaan Sampah** Sabtu 14/11 08.00-12.00, Tenda Utama, per tingkat (TA-061..063). Kuota sementara 3 orang per kontingen (disamakan dengan sarasehan lain; ubah di Kegiatan dan kuota bila panitia menentukan lain). Form penilaian "Poin Keaktifan Sarasehan Pengelolaan Sampah" (Mula/Madya/Wira) ditambahkan ke `data/template_penilaian.json`.
+- Kegiatan lain sama. Pemilihan Koordinator Forpis tidak diabsen.
+
+**Cara diterapkan ke produksi tanpa kehilangan data:** migrasi `absensi.0006_jadwal_revisi_panitia` menggeser titik absen menurut kodenya (TA-017..019, TA-023..028); kehadiran yang sudah tercatat tetap menempel di titiknya. Tidak ada yang dihapus. Bila superadmin sudah membuat sendiri titik kegiatan itu di Sabtu, titik lama tidak digeser. Kegiatan dan titik Sarasehan Pengelolaan Sampah hanya dibuat bila belum ada (kode TA yang sudah terpakai dilewati). Aman dijalankan ulang. `data/kegiatan.csv` dan `data/titik_absen.csv` diperbarui untuk instalasi baru.
+
+**Akibat yang perlu diketahui:** karena Traveling Jumat kini sampai 18.00, sistem juga menganggapnya bentrok dengan Wahana, Got Talent, dan Bakti (sore) untuk pilihan kegiatan di biodata. Form biodata sudah ditutup, jadi hanya berpengaruh bila superadmin mengubah biodata; peringatan "memilih kegiatan yang bentrok" di Dasbor bisa bertambah dan cukup diabaikan bila memang sesuai kenyataan.
+
+**Pengujian:** `tests/test_jadwal_revisi.py` (digeser + kehadiran tetap + aman diulang + kode terpakai dilewati, titik buatan superadmin tidak ditimpa, database kosong dilewati); seluruh tes lulus; migrasi dicoba pada database laptop yang masih berjadwal lama (60 -> 63 titik, kehadiran tetap).

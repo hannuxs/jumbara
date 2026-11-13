@@ -95,7 +95,7 @@ Uji coba bersama panitia 7 sampai 8 November. Pelatihan panitia dan juri 10 Nove
 
 ## Kegiatan yang diabsen dan dinilai
 
-Jumpa: Traveling Kepalangmerahan, Jurnalistik Remaja, Ranking 1, Sarasehan Sehat Bermedia Sosial, Sarasehan Menjaga Diri dari Pergaulan Bebas, Ngobrol Bareng PMR.
+Jumpa: Traveling Kepalangmerahan, Jurnalistik Remaja, Ranking 1, Sarasehan Sehat Bermedia Sosial, Sarasehan Menjaga Diri dari Pergaulan Bebas, **Sarasehan Pengelolaan Sampah** (baru, jadwal revisi panitia 13 Nov 2026, REVISI R16), Ngobrol Bareng PMR.
 Bakti: Bakti Masyarakat, Kewirausahaan dan Pameran.
 Gembira: Pentas Seni Drama Kepalangmerahan, Jumbara Got Talent, Anjangsana, Wahana Kepalangmerahan (Olahraga Persahabatan).
 

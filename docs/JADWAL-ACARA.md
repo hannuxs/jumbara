@@ -1,6 +1,6 @@
 # Jadwal Acara (dari Jadwal Kegiatan PDF terbaru)
 
-Sumber: `docs/referensi/Jadwal_Kegiatan_Jumbara_V_2026.pdf`. Jadwal ini **lebih baru dari pedoman**. Jika berbeda dengan pedoman, ikuti jadwal ini. Titik absen di `data/titik_absen.csv` dibuat dari tabel ini. Semua jam WITA.
+Sumber: `docs/referensi/Jadwal_Kegiatan_Jumbara_V_2026.pdf`, **direvisi panitia 13 Nov 2026** ("Jadwal Kegiatan Revisi.pdf", REVISI R16: Traveling Jumat 07.30-11.30 dan 13.30-18.00, Ranking 1 dan Ngobrol Bareng pindah ke Sabtu, kegiatan baru Sarasehan Pengelolaan Sampah). Jadwal ini **lebih baru dari pedoman**. Jika berbeda dengan pedoman, ikuti jadwal ini. Titik absen di `data/titik_absen.csv` dibuat dari tabel ini. Semua jam WITA.
 
 | Hari | Jam | Kegiatan | Lokasi | Penanggung jawab | Diabsen? |
 |---|---|---|---|---|---|
@@ -15,24 +15,26 @@ Sumber: `docs/referensi/Jadwal_Kegiatan_Jumbara_V_2026.pdf`. Jadwal ini **lebih 
 | | 23.00-24.00 | Evaluasi dan briefing | Panggung Utama | | Tidak (pakai rekap harian) |
 | Jumat 13 Nov | 06.00-06.45 | Senam pagi | Lapangan Utama | | Tidak |
 | | 06.45-07.00 | Bakti lingkungan | Seluruh area | | Tidak |
-| | 08.00-selesai | **Traveling Kepalangmerahan** | Kebun Raya Bundayati | Sub Kegiatan Jumpa | Ya, per tingkat |
-| | 08.00-selesai | **Ranking 1** | Panggung Utama | Sub Kegiatan Jumpa | Ya, per tingkat |
+| | 07.30-11.30, 13.30-18.00 | **Traveling Kepalangmerahan** | Kebun Raya Bundayati | Sub Kegiatan Jumpa | Ya, per tingkat (1 titik 07.30-18.00) |
 | | 08.00-selesai | **Jurnalistik Remaja (Penugasan)** | Kebun Raya Bundayati | Sub Kegiatan Jumpa | Ya, per tingkat |
 | | 08.00-selesai | **Kewirausahaan dan Pameran (Produksi Karya dan Pameran)** | Kaveling Kontingen | Sub Kegiatan Bakti | Ya, per tingkat |
 | | 08.00-11.30, 13.30-17.30, 20.00-22.00 | **Anjangsana** | Kaveling Kontingen | Sub Kegiatan Gembira | Lewat link publik |
 | | 08.00-11.30 | **Sarasehan Sehat Bermedia Sosial** | Tenda Utama | Sub Kegiatan Jumpa | Ya, per tingkat |
-| | 14.00-17.00 | **Ngobrol Bareng PMR** | Tenda Utama | Sub Kegiatan Jumpa | Ya, per tingkat |
 | | 16.00-18.00 | **Wahana Kepalangmerahan** | Lapangan Utama | Sub Kegiatan Gembira | Ya, per tingkat |
 | | 16.00-18.00 | **Jumbara Got Talent** | Panggung Utama | Sub Kegiatan Gembira | Ya, 1 titik gabungan |
 | | 17.00-18.00 | **Bakti Masyarakat (Pembekalan dan Pembagian Kelompok)** | Tenda Utama | Sub Kegiatan Bakti | Ya, per tingkat |
 | | 20.00-23.00 | **Pentas Seni Drama (malam 2)** | Panggung Utama | Sub Kegiatan Gembira | Ya, per tingkat |
 | Sabtu 14 Nov | 06.00-07.00 | Senam pagi, bakti lingkungan | | | Tidak |
+| | 08.00-selesai | **Ranking 1** | Panggung Utama | Sub Kegiatan Jumpa | Ya, per tingkat (revisi: pindah dari Jumat) |
+| | 08.00-12.00 | **Ngobrol Bareng PMR** | Tenda Utama | Sub Kegiatan Jumpa | Ya, per tingkat (revisi: pindah dari Jumat 14.00-17.00) |
+| | 08.00-12.00 | **Sarasehan Pengelolaan Sampah** | Tenda Utama | Sub Kegiatan Jumpa | Ya, per tingkat (kegiatan baru) |
 | | 08.00-selesai | **Traveling Kepalangmerahan** | Kebun Raya Bundayati | Sub Kegiatan Jumpa | Ya, per tingkat |
 | | 08.00-selesai | **Jurnalistik Remaja (Penugasan)** | Kebun Raya Bundayati | Sub Kegiatan Jumpa | Ya, per tingkat |
 | | 08.00-selesai | **Kewirausahaan dan Pameran (Produksi Karya dan Pameran)** | Kaveling Kontingen | Sub Kegiatan Bakti | Ya, per tingkat |
 | | 08.00-11.00 | **Bakti Masyarakat (Kunjungan Panti Asuhan dan Panti Jompo Tresna Werdha)** | Di luar perkemahan | Sub Kegiatan Bakti | Ya, per tingkat |
 | | 08.00-11.30, 13.30-17.30, 20.00-22.00 | **Anjangsana** | Kaveling Kontingen | Sub Kegiatan Gembira | Lewat link publik |
 | | 13.30-17.00 | **Sarasehan Menjaga Diri dari Pergaulan Bebas** | Tenda Utama | Sub Kegiatan Jumpa | Ya, per tingkat |
+| | 15.00-18.00 | Pemilihan Koordinator Forpis Kab. Bulungan | Tenda Utama | Bidang Acara | Tidak (superadmin bisa menambah) |
 | | 16.00-18.00 | **Wahana Kepalangmerahan** | Lapangan Utama | Sub Kegiatan Gembira | Ya, per tingkat |
 | | 16.00-18.00 | **Jumbara Got Talent** | Panggung Utama | Sub Kegiatan Gembira | Ya, 1 titik gabungan |
 | | 20.00-23.00 | **Pentas Seni Drama (malam 3)** | Panggung Utama | Sub Kegiatan Gembira | Ya, per tingkat |
@@ -53,6 +55,6 @@ Sumber: `docs/referensi/Jadwal_Kegiatan_Jumbara_V_2026.pdf`. Jadwal ini **lebih 
 ## Kegiatan yang berjalan bersamaan (alasan pemindai harus paralel)
 
 - Kamis 12 Nov 13.00: Jurnalistik + Kewirausahaan (x3 tingkat = 6 titik).
-- Jumat 13 Nov 08.00: Traveling + Ranking 1 + Jurnalistik + Kewirausahaan + Sarasehan (x3 = 15 titik) + Anjangsana.
+- Jumat 13 Nov 08.00: Traveling (sejak 07.30) + Jurnalistik + Kewirausahaan + Sarasehan Medsos (x3 = 12 titik) + Anjangsana.
 - Jumat dan Sabtu 16.00-18.00: Wahana (x3) + Got Talent + (Jumat) Ngobrol Bareng dan Bakti Masyarakat, (Sabtu) Sarasehan Pergaulan Bebas.
-- Sabtu 14 Nov 08.00: Traveling + Jurnalistik + Kewirausahaan + Bakti Masyarakat (x3 = 12 titik) + Anjangsana.
+- Sabtu 14 Nov 08.00: Traveling + Jurnalistik + Kewirausahaan + Bakti Masyarakat + Ranking 1 + Ngobrol Bareng + Sarasehan Pengelolaan Sampah (x3 = 21 titik) + Anjangsana.
